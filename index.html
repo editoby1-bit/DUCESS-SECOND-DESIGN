@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ducess Enterprise Ledger Workflow</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="app.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+
+<body>
+
+<!-- ================= HEADER ======DASHBOARD ALMOST DONE AND DUSTED COD========== -->
+<header class="header">
+  <div class="logo">SC</div>
+  <div class="brand">Ducess Enterprise — Professional</div>
+  <div class="actions">
+    <select id="staffSelect" class="input"></select>
+    <button id="btnNew" class="btn">New Cust</button>
+   <button
+  id="btnCOD"
+  class="btn ghost"
+>
+  Close Day
+</button>
+<button id="btnDeclareFloat" class="btn">Opening Balance</button>
+<button class="btn" onclick="openMyStaffAccount()">My Balance</button>
+<button
+  id="btnMyCOD"
+  class="btn ghost"
+  style="display:none"
+>
+  My Close of Day
+</button>
+    <button id="btnVerify" class="btn ghost">Verify</button>
+    <button id="btnMyOps" class="btn ghost">Income & Expense</button>
+    <button id="btnStaffDirectory" class="btn ghost" style="display:none">Staff Directory</button>
+    <select id="themeSelect" class="input theme-select" title="Theme"></select>
+    <button id="btnDashboard" class="btn">Dashboard</button>
+  </div>
+</header>
+
+<!-- ================================================= -->
+<!-- ROOT -->
+<!-- ================================================= -->
+<main id="layoutRoot">
+
+  <!-- ================================================= -->
+  <!-- APP VIEW (GRID LAYOUT) -->
+  <!-- ================================================= -->
+  <div id="app" class="container">
+
+    <!-- LEFT PANEL -->
+    <aside class="panel left">
+      <div class="card">
+        <h3>Overview</h3>
+        <div class="small">Customers: <strong id="custCount">0</strong></div>
+        <div class="small">Total: <strong id="total">₦0</strong></div>
+      </div>
+
+      <div class="card">
+        <h3>Weekly Collections</h3>
+        <canvas id="chartWeek" height="120"></canvas>
+      </div>
+
+      <div class="card" id="approvalsCard">
+        <h3>Approvals</h3>
+        <div id="approvals" class="list small"></div>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+  <h3>New Customer Requests</h3>
+  <div id="customerKycApprovals" 
+       style="max-height:420px; overflow-y:auto; padding-right:4px;">
+  </div>
+</div>
+    </aside>
+
+    <!-- MIDDLE PANEL -->
+    <section class="panel middle">
+      <div class="card toolbar">
+        <div>
+          <h3>Customers</h3>
+          <div class="small">Manage accounts & quick actions</div>
+        </div>
+        <div class="searchbox">
+          <input id="search" class="input" placeholder="Search"/>
+          <input id="searchAcc" class="input" placeholder="Search Account No" />
+          <select id="sort" class="input">
+            <option value="name">Name</option>
+            <option value="balDesc">Balance high</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="custList" class="card list"></div>
+
+      <div class="card">
+        <h3>Quick Transaction</h3>
+        <div class="row">
+          <select id="txType" class="input">
+            <option value="credit">Credit</option>
+            <option value="withdraw">Withdraw</option>
+            <option value="adjust">Adjust</option>
+          </select>
+          <select id="custSel" class="input"></select>
+          <input id="amount" class="input" placeholder="Amount"/>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <input id="desc" class="input" placeholder="Description (optional)"/>
+          <button id="submitTx" class="btn">Submit</button>
+        </div>
+
+        <div class="small" style="margin-top:8px">
+          Withdrawals above ₦50,000 will be queued for approval.
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT PANEL -->
+    <aside class="panel right">
+      <div class="card">
+        <h3>Audit Trail</h3>
+        <div id="audit" class="small"></div>
+      </div>
+
+      <div class="card">
+        <h3>Mobile Preview</h3>
+        <div class="phone">
+          <div class="small">Locked Balance</div>
+          <div id="mobileBal" class="big">₦0</div>
+          <div class="small">
+            Total Balance: <strong id="totalBal">₦0</strong>
+          </div>
+
+          <div style="margin-top:8px">
+            <button id="mobileContrib" class="btn">Contribute</button>
+          </div>
+        </div>
+
+        <div style="margin-top:12px">
+          <button id="printStmt" class="btn ghost">Statement</button>
+          <button id="printAudit" class="btn ghost">Audit</button>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+  <!-- ============== END APP VIEW ================= -->
+
+  <!-- ================================================= -->
+  <!-- DASHBOARD VIEW (ISOLATED – NOT GRID) -->
+  <!-- ================================================= -->
+  <div id="dashboardView" style="display:none">
+  <div class="dashboard-inner">
+
+    <!-- DASHBOARD HEADER -->
+    <div class="card">
+      <h3>Manager Dashboard</h3>
+      <div class="small">WELCOME TO DUCESS ENTERPRISE LEDGER WORKFLOW<br>Please note that this application is very robust and can detect non-compliance and fraudulent activities. Transparency is encouraged.</div>
+    </div>
+
+    <!-- KPI TILES -->
+    <div id="dashboardKPIs" class="dash-grid"></div>
+
+    <!-- INCOME / EXPENSE ACCOUNTS (NOW HIGHER UP) -->
+    <div id="accountsPanel" style="margin-top:20px"></div>
+
+    <!-- ATTENTION (NOW SMALLER & CLEANER) -->
+    <div class="card">
+      <h4>Attention Overview</h4>
+      <div id="attentionGrid" class="dash-grid"></div>
+    </div>
+
+    <!-- MANAGER COD SUMMARY -->
+    <div class="card">
+      <div id="managerCODSummary"></div>
+    </div>
+
+    <!-- CLOSE OF DAY TODAY -->
+    <div class="card">
+      <h4>Close of Day — Today</h4>
+
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
+        <label class="small">Date:</label>
+        <input type="date" id="codDatePicker" class="input" />
+      </div>
+
+      <div id="codTodayList"></div>
+    </div>
+
+    <!-- APPROVALS -->
+    <div class="card">
+      <h4>Approvals Requiring Action</h4>
+      <div id="dashboardApprovals"></div>
+    </div>
+
+    <!-- ACTIVITY -->
+    <div class="card">
+      <h4>Recent Activity</h4>
+      <div id="dashboardActivity"></div>
+    </div>
+
+  </div>
+</div>
+<!-- ============== END DASHBOARD VIEW ================= -->
+</main>
+
+<!-- ================= MODALS ================= -->
+
+<div id="modalBack" class="modal-back">
+  <div id="modal" class="modal">
+    <div class="modal-header">
+      <h3 id="mTitle"></h3>
+      <div id="mMeta" class="small"></div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn" data-tab="profile">Profile</button>
+      <button class="tab-btn" data-tab="tx">Transactions</button>
+      <button class="tab-btn" data-tab="tools">Tools</button>
+      <button class="tab-btn" data-tab="timeline">Timeline</button>
+    </div>
+
+    <div id="mBody"></div>
+
+    <div class="modal-actions">
+      <button id="mCancel" class="btn secondary">Close</button>
+    </div>
+  </div>
+</div>
+
+<div id="txModalBack" class="modal-back" style="display:none">
+  <div id="txModal" class="modal">
+    <div class="modal-header">
+      <h3 id="txTitle"></h3>
+    </div>
+    <div id="txBody"></div>
+    <div class="modal-actions">
+      <button id="txCancel" class="btn secondary">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
