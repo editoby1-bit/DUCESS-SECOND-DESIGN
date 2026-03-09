@@ -2,84 +2,75 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Ducess Enterprise Ledger Workflow</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Duces Enterprise Ledger</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="app.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="app.css" />
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand-wrap">
-      <div class="brand-mark">DE</div>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand-wrap">
+        <div class="logo">DE</div>
+        <div>
+          <div class="eyebrow">Duces Enterprise</div>
+          <h1>Administrative Working Tools</h1>
+        </div>
+      </div>
+      <div class="top-actions">
+        <label class="inline-field compact">
+          <span>Staff</span>
+          <select id="staffSelect"></select>
+        </label>
+        <button class="ghost-btn" id="btnTodayFloat">Opening Balance</button>
+        <button class="ghost-btn" id="btnCOD">Close of Day</button>
+        <button class="ghost-btn" id="btnAudit">Audit Trail</button>
+        <select id="themeSelect" class="theme-select">
+          <option value="classic">Classic</option>
+          <option value="ducess-sheet">Ducess Sheet</option>
+          <option value="ocean">Ocean</option>
+          <option value="dark-slate">Dark Slate</option>
+          <option value="neutral-stone">Neutral Stone</option>
+        </select>
+        <button id="btnThemeSave">Save</button>
+      </div>
+    </header>
+
+    <section class="hero-card">
       <div>
-        <div class="brand-title">DUCESS ENTERPRISE LEDGER WORKFLOW</div>
-        <div class="brand-sub">Robust workflow for transparent, compliant, approval-driven operations.</div>
+        <div class="section-label">Dashboard</div>
+        <div class="hero-title">WELCOME TO DUCESS ENTERPRISE LEDGER WORKFLOW</div>
+        <div class="hero-sub">Please note that this application is very robust and can detect non-compliance and fraudulent activities. Transparency is encouraged.</div>
       </div>
-    </div>
-    <div class="top-actions">
-      <select id="staffSelect" class="input compact"></select>
-      <select id="themeSelect" class="input compact theme-select"><option value="0">Classic</option><option value="1">Ducess Sheet</option><option value="2">Ocean</option><option value="3">Dark Slate</option><option value="4">Neutral Stone</option></select>
-      <button class="btn" id="btnSaveState">Save</button>
-    </div>
-  </header>
-
-  <main class="shell">
-    <section class="hero card soft">
-      <div>
-        <h1>WELCOME TO DUCESS ENTERPRISE LEDGER WORKFLOW</h1>
-        <p>Please note that this application is very robust and can detect non-compliance and fraudulent activities. Transparency is encouraged.</p>
-      </div>
-      <div class="hero-mini">
-        <div class="metric"><span id="heroCustomers">0</span><small>Customers</small></div>
-        <div class="metric"><span id="heroPending">0</span><small>Pending approvals</small></div>
-        <div class="metric"><span id="heroFlagged">0</span><small>Flagged COD</small></div>
-      </div>
+      <div class="hero-stats" id="heroStats"></div>
     </section>
 
-    <section class="quick-grid">
-      <button class="quick card" data-view="myBalance">
-        <div class="quick-title">My Balance</div>
-        <div class="quick-value" id="tileMyBalance">0</div>
-        <div class="quick-sub" id="tileMyBalanceSub">Wallet and debt</div>
-      </button>
-      <button class="quick card" data-view="myCOD">
-        <div class="quick-title">My Close of Day</div>
-        <div class="quick-value" id="tileMyCOD">0</div>
-        <div class="quick-sub">History and resolutions</div>
-      </button>
-      <button class="quick card restricted" data-view="incomePost" id="tileIncome">
-        <div class="quick-title">Post Income</div>
-        <div class="quick-value" id="tileIncomeCount">0</div>
-        <div class="quick-sub">Approved income accounts</div>
-      </button>
-      <button class="quick card restricted" data-view="expensePost" id="tileExpense">
-        <div class="quick-title">Post Expense</div>
-        <div class="quick-value" id="tileExpenseCount">0</div>
-        <div class="quick-sub">Approved expense accounts</div>
-      </button>
-    </section>
+    <section class="module-grid" id="moduleGrid"></section>
 
-    <section class="module-strip card soft">
-      <button class="module-btn active" data-view="customerService">Customer Service</button>
-      <button class="module-btn" data-view="tellering">Tellering</button>
-      <button class="module-btn" data-view="approvals">Approvals</button>
-      <button class="module-btn" data-view="administration">Administration</button>
-      <button class="module-btn" data-view="balances">Balances</button>
+    <section class="workspace-card">
+      <div class="workspace-head">
+        <div>
+          <div class="section-label" id="workspaceLabel">Customer Service</div>
+          <h2 id="workspaceTitle">Check Balance</h2>
+        </div>
+        <div class="workspace-right">
+          <input id="globalNameSearch" class="global-search" placeholder="Search customer by name" />
+        </div>
+      </div>
+      <div id="workspace"></div>
     </section>
-
-    <section id="viewRoot"></section>
-  </main>
+  </div>
 
   <div id="modalBack" class="modal-back hidden">
-    <div class="modal card" id="modal">
+    <div class="modal">
       <div class="modal-head">
-        <h3 id="modalTitle"></h3>
-        <button class="icon-btn" id="modalClose">×</button>
+        <h3 id="modalTitle">Modal</h3>
+        <button class="icon-btn" id="modalClose">✕</button>
       </div>
-      <div id="modalBody"></div>
-      <div class="modal-actions" id="modalActions"></div>
+      <div id="modalBody" class="modal-body"></div>
+      <div id="modalActions" class="modal-actions"></div>
     </div>
   </div>
 
