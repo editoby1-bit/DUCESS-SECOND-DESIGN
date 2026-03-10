@@ -184,8 +184,13 @@ button:disabled { opacity: .55; cursor:not-allowed; }
 .row-actions{display:flex;gap:8px;flex-wrap:wrap}
 small.status-flagged{color:var(--danger);font-weight:700}
 small.status-balanced{color:var(--success);font-weight:700}
-body[data-theme="ducess-sheet"]{--bg:#e8efe9;--panel:#f6f7f2;--line:#c8cec5;--text:#17342f;--muted:#6d7d74;--brand:#11535a;--brand-2:#2c7b79;--accent:#dde8df;--entry:#e5d6ac;--soft:#f3f5ef;--shadow:0 12px 28px rgba(17,83,90,.10)}
-body[data-theme="ocean"]{--bg:#edf6fb;--panel:#ffffff;--line:#cfe0ea;--text:#0f2840;--muted:#5b7487;--brand:#0a5a7f;--brand-2:#2c8db4;--accent:#dff0f7;--entry:#e7d4b2;--soft:#f7fbfd;--shadow:0 12px 28px rgba(10,90,127,.10)}
+body[data-theme="ducess-sheet"]{--bg:#101014;--panel:#15151a;--line:#403748;--text:#f6f2ff;--muted:#d9c9e6;--brand:#25d7eb;--brand-2:#7d2cff;--accent:#251b2f;--entry:#e8cfb8;--soft:#17141d;--shadow:0 12px 28px rgba(0,0,0,.35)}
+body[data-theme="ducess-sheet"] .display-field, body[data-theme="ducess-sheet"] select, body[data-theme="ducess-sheet"] input, body[data-theme="ducess-sheet"] textarea {background:#11141a;color:var(--text);border-color:var(--line)}
+body[data-theme="ducess-sheet"] .entry-input, body[data-theme="ducess-sheet"] textarea.entry-input, body[data-theme="ducess-sheet"] select.entry-input {background:#d9c5b7;color:#121212}
+body[data-theme="ocean"]{--bg:#e6f3f8;--panel:#f8fdff;--line:#b7d7e5;--text:#08324a;--muted:#4f7081;--brand:#0083b8;--brand-2:#38bdf8;--accent:#d1edf8;--entry:#e7d4b2;--soft:#f1fbff;--shadow:0 12px 28px rgba(0,131,184,.12)}
 body[data-theme="dark-slate"]{--bg:#0f1720;--panel:#16202b;--line:#243241;--text:#edf2f7;--muted:#9fb0c1;--brand:#2f8ea7;--brand-2:#66b7c7;--accent:#1f2b37;--entry:#7d6c49;--soft:#1a2633;--danger:#ef6b6b;--success:#53c68c;--warning:#f3a65a;--shadow:none}
 body[data-theme="dark-slate"] .display-field, body[data-theme="dark-slate"] select, body[data-theme="dark-slate"] input, body[data-theme="dark-slate"] textarea {background:#1b2734;color:var(--text);border-color:var(--line)}
 body[data-theme="neutral-stone"]{--bg:#f1f0ec;--panel:#fffdfa;--line:#d8d2c6;--text:#2c2a27;--muted:#726d64;--brand:#77614b;--brand-2:#9a8165;--accent:#ebe5da;--entry:#e2d3b8;--soft:#faf7f1;--shadow:0 12px 24px rgba(80,64,40,.08)}
+
+.summary-card.clickable{cursor:pointer}
+.summary-card.clickable:hover{transform:translateY(-1px)}

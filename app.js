@@ -69,13 +69,13 @@
   const DEFAULT_PERMS = {
     customer_service: ['check_balance','account_opening','account_maintenance','account_reactivation','account_statement'],
     teller: ['check_balance','account_statement','credit','debit'],
-    approving_officer: ['check_balance','account_statement','approval_queue','business_balance','operational_balance'],
+    approving_officer: ['check_balance','account_opening','account_maintenance','account_reactivation','account_statement','credit','debit','approval_queue','business_balance','operational_balance'],
     admin_officer: ['check_balance','account_opening','account_maintenance','account_reactivation','account_statement','credit','debit','approval_queue','permissions','operational_accounts','staff_directory','business_balance','operational_balance','teller_balances'],
     report_officer: ['check_balance','account_statement','business_balance','operational_balance','teller_balances']
   };
 
   const state = load() || seed();
-  state.ui = state.ui || { module: 'customer_service', tool: 'check_balance', selectedCustomerId: null, theme: 'classic', businessFilter: { preset: 'all', from: '', to: '' }, operationalFilter: { preset: 'all', from: '', to: '' } };
+  state.ui = state.ui || { module: 'customer_service', tool: 'check_balance', selectedCustomerId: null, theme: 'classic', businessFilter: { preset: 'daily', from: '', to: '' }, operationalFilter: { preset: 'all', from: '', to: '' }, operationalFocus:'income' };
   ensureState();
 
   function seed() {
@@ -140,6 +140,9 @@
     state.tempGrants ||= [];
     state.staffAccounts ||= {};
     state.businessExtras ||= [];
+    state.ui.businessFilter ||= { preset:'daily', from:'', to:'' };
+    state.ui.operationalFilter ||= { preset:'all', from:'', to:'' };
+    if (!state.ui.operationalFocus) state.ui.operationalFocus = 'income';
     state.staff.forEach(st => ensureStaffAccount(st.id));
     recalcAllCustomerBalances();
     recalcAllTellerBalances();
@@ -486,10 +489,19 @@
     byId('btnTodayFloat').onclick = openFloatModal;
     byId('btnCOD').onclick = openCODModal;
     byId('btnAudit').onclick = openAuditModal;
-    const themeSel = byId('themeSelect');
-    if (themeSel) themeSel.value = state.ui.theme || 'classic';
-    if (themeSel) themeSel.onchange = () => applyTheme(themeSel.value, false);
-    byId('btnThemeSave').onclick = () => { applyTheme(themeSel.value, true); showToast('Theme saved'); };
+    const themeBtn = byId('btnThemeCycle');
+    const themes = ['classic','ducess-sheet','ocean','dark-slate','neutral-stone'];
+    const labelMap = { classic:'Classic', 'ducess-sheet':'Ducess Sheet', ocean:'Ocean', 'dark-slate':'Dark Slate', 'neutral-stone':'Neutral Stone' };
+    if (themeBtn) {
+      themeBtn.textContent = `Theme: ${labelMap[state.ui.theme || 'classic']}`;
+      themeBtn.onclick = () => {
+        const idx = themes.indexOf(state.ui.theme || 'classic');
+        const next = themes[(idx + 1) % themes.length];
+        applyTheme(next, true);
+        themeBtn.textContent = `Theme: ${labelMap[next]}`;
+        showToast(`Theme changed to ${labelMap[next]}`);
+      };
+    }
     byId('globalNameSearch').oninput = (e) => {
       const results = searchCustomersByName(e.target.value);
       if (!e.target.value.trim()) return;
@@ -511,14 +523,15 @@
     byId('heroStats').innerHTML = [
       cardMetric('My Balance', money(Number(acc.walletBalance||0)), `Wallet ${money(acc.walletBalance||0)} • Debt ${money(acc.debtBalance||0)} • Opening ${money(openingToday)} • Remaining ${money(remaining)}`, 'my-balance'),
       cardMetric('My Close of Day', money(staffCODRecords((currentStaff()||{}).id).length), `${pending} pending approvals`, 'my-cod'),
-      cardMetric('Operational Income', money(operationalIncome), `${state.operations.incomeAccounts.length} income accounts`, 'operational-balance'),
-      cardMetric('Operational Expense', money(operationalExpense), `${state.operations.expenseAccounts.length} expense accounts`, 'operational-balance')
+      cardMetric('Operational Income', money(operationalIncome), `${state.operations.incomeAccounts.length} income accounts`, 'operational-income'),
+      cardMetric('Operational Expense', money(operationalExpense), `${state.operations.expenseAccounts.length} expense accounts`, 'operational-expense')
     ].join('');
     qq('[data-hero-card]').forEach(el => el.onclick = () => {
       const act = el.dataset.heroCard;
       if (act === 'my-balance') openMyBalanceModal();
       if (act === 'my-cod') openMyCODModal();
-      if (act === 'operational-balance') { state.ui.module = 'balances'; state.ui.tool = 'operational_balance'; save(); render(); }
+      if (act === 'operational-income') { state.ui.module = 'administration'; state.ui.tool = 'operational_accounts'; state.ui.operationalFocus='income'; save(); render(); }
+      if (act === 'operational-expense') { state.ui.module = 'administration'; state.ui.tool = 'operational_accounts'; state.ui.operationalFocus='expense'; save(); render(); }
     });
   }
 
@@ -732,7 +745,7 @@
   function prettyApprovalType(type) {
     return {
       account_opening:'Account Opening', account_maintenance:'Account Maintenance', account_reactivation:'Account Reactivation',
-      customer_credit:'Credit', customer_debit:'Debit', float_declaration:'Opening Float', operational_entry:'Operational Entry',
+      customer_credit:'Credit', customer_debit:'Debit', float_declaration:'Opening Balance', operational_entry:'Operational Entry',
       create_operational_account:'Operational Account', close_of_day:'Close of Day', temp_grant:'Temporary Grant'
     }[type] || type;
   }
@@ -763,6 +776,10 @@
           <tbody>${state.staff.map((s,i)=>`<tr><td>${i+1}</td><td>${s.name}</td><td>${ROLE_LABELS[s.role] || s.role}</td>${tools.map(t=>`<td>${hasPermission(t,s)?'YES':'NO'}</td>`).join('')}</tr>`).join('')}</tbody></table></div>
         </div>
         <div class="form-card">
+          <h3>Flagged Close of Day</h3>
+          <div class="table-wrap"><table class="table"><thead><tr><th>Staff</th><th>Date</th><th>Expected</th><th>Actual</th><th>Variance</th><th>Action</th></tr></thead><tbody>${state.cod.filter(c=>c.status==='flagged').map(c=>`<tr><td>${c.staffName}</td><td>${fmtDate(c.date)}</td><td>${money(c.expectedCash)}</td><td>${money(c.actualCash||0)}</td><td>${money(c.variance||0)}</td><td>${currentStaff()?.role==='admin_officer' ? `<button class="secondary" data-admin-resolve-cod="${c.id}">Resolve</button>` : 'Administrative Officer only'}</td></tr>`).join('') || '<tr><td colspan="6">No flagged close of day</td></tr>'}</tbody></table></div>
+        </div>
+        <div class="form-card">
           <h3>Temporary Access Grant</h3>
           <div class="form-grid three">
             <div class="field"><label>Staff</label><select id="grantStaff" class="entry-input">${state.staff.map(s=>`<option value="${s.id}">${s.name}</option>`).join('')}</select></div>
@@ -775,10 +792,12 @@
   }
 
   function renderOperationalAccounts() {
+    const focus = state.ui.operationalFocus || 'income';
     const allAccts = [
       ...state.operations.incomeAccounts.map(a=>({...a,category:'income'})),
       ...state.operations.expenseAccounts.map(a=>({...a,category:'expense'}))
     ];
+    if (!allAccts.filter(a=>a.category===focus).length && allAccts.length) state.ui.operationalFocus = allAccts[0].category;
     return `
       <div class="stack">
         <div class="layout-grid two">
@@ -794,7 +813,7 @@
           <div class="form-card">
             <h3>Post into Account</h3>
             <div class="form-grid three">
-              <div class="field"><label>Account</label><select id="oeAccount" class="entry-input">${allAccts.map(a=>`<option value="${a.id}">${a.accountNumber} — ${a.name}</option>`).join('')}</select></div>
+              <div class="field"><label>Account</label><select id="oeAccount" class="entry-input">${allAccts.filter(a=>a.category===focus).map(a=>`<option value="${a.id}">${a.accountNumber} — ${a.name}</option>`).join('')}</select></div>
               <div class="field"><label>Amount</label><input id="oeAmount" class="entry-input" type="number"></div>
               <div class="field"><label>Date</label><input id="oeDate" class="entry-input" type="date" value="${today()}"></div>
               <div class="field"><label>Note</label><input id="oeNote" class="entry-input"></div>
@@ -806,6 +825,14 @@
         <div class="table-card">
           <h3>Existing Accounts</h3>
           <div class="table-wrap"><table class="table"><thead><tr><th>Type</th><th>Account Number</th><th>Name</th><th>Entries</th></tr></thead><tbody>${allAccts.map(a=>`<tr><td>${a.category}</td><td>${a.accountNumber}</td><td>${a.name}</td><td>${state.operations.entries.filter(e=>e.accountId===a.id).length}</td></tr>`).join('') || '<tr><td colspan="4">No accounts</td></tr>'}</tbody></table></div>
+        </div>
+        <div class="table-card">
+          <h3>${focus === 'income' ? 'Income' : 'Expense'} Requests and Entries</h3>
+          <div class="table-wrap"><table class="table"><thead><tr><th>Status</th><th>Account</th><th>Amount</th><th>Note</th><th>Date</th><th>By</th></tr></thead><tbody>
+          ${[
+            ...state.approvals.filter(a=>a.type==='operational_entry' && a.payload.kind===focus).map(a=>`<tr><td><span class="badge ${a.status}">${a.status}</span></td><td>${a.payload.accountName}</td><td>${money(a.payload.amount)}</td><td>${a.payload.note||'—'}</td><td>${fmtDate(a.requestedAt)}</td><td>${a.requestedByName}</td></tr>`),
+            ...state.operations.entries.filter(e=>e.kind===focus).map(e=>`<tr><td><span class="badge approved">approved</span></td><td>${e.accountName}</td><td>${money(e.amount)}</td><td>${e.note||'—'}</td><td>${fmtDate(e.date)}</td><td>${e.postedBy}</td></tr>`)
+          ].join('') || '<tr><td colspan="6">No requests or entries</td></tr>'}</tbody></table></div>
         </div>
       </div>`;
   }
@@ -1014,8 +1041,16 @@
   }
 
   function currentFloatAvailable(staffId, date=today()) {
-    const acc = ensureStaffAccount(staffId);
-    return acc.balance;
+    return computeExpectedCash(staffId, date).expectedCash;
+  }
+
+  function computeExpectedCash(staffId, date=today()) {
+    const opening = getOpeningBalanceForDate(staffId, date);
+    const approvedCredits = state.approvals.filter(r => r.status==='approved' && r.type==='customer_credit' && r.payload.staffId===staffId && r.payload.date===date).reduce((s,r)=>s+Number(r.payload.amount||0),0);
+    const tellerDebits = state.approvals.filter(r => r.status==='approved' && r.type==='customer_debit' && r.payload.staffId===staffId && r.payload.date===date && (r.payload.payoutSource||'teller')==='teller').reduce((s,r)=>s+Number(r.payload.amount||0),0);
+    const expectedCash = opening - approvedCredits + tellerDebits;
+    const overdraw = Math.max(0, approvedCredits - (opening + tellerDebits));
+    return { opening, approvedCredits, tellerDebits, expectedCash, overdraw };
   }
 
   function bindJournal(kind) {
@@ -1092,6 +1127,7 @@
   }
 
   function bindPermissions() {
+    qq('[data-admin-resolve-cod]').forEach(btn => btn.onclick = ()=> openCODResolutionModal(btn.dataset.adminResolveCod));
     byId('grantSubmit').onclick = () => {
       createRequest('temp_grant', {
         staffId: byId('grantStaff').value,
@@ -1176,8 +1212,11 @@
     const st = currentStaff();
     if (!(hasPermission('credit') || hasPermission('debit'))) return showToast('Current staff does not submit close of day');
     if (!hasApprovedFloat(st.id)) return showToast('Approved opening balance required before closing day');
-    const expectedCash = currentFloatAvailable(st.id);
-    const overdraw = expectedCash < 0 ? Math.abs(expectedCash) : 0;
+    if (state.cod.some(c => c.staffId===st.id && c.date===today())) return showToast('Close of Day already submitted for today');
+    if (state.approvals.some(r => r.type==='close_of_day' && r.status==='pending' && r.payload.staffId===st.id && r.payload.date===today())) return showToast('Close of Day already pending for today');
+    const calc = computeExpectedCash(st.id);
+    const expectedCash = calc.expectedCash;
+    const overdraw = calc.overdraw;
     openModal('Close of Day', `
       <div class="stack">
         <div class="form-grid three">
@@ -1188,7 +1227,7 @@
           <div class="field"><label>Field Paper Upload</label><input id="codFiles" class="entry-input" type="file" multiple accept="image/*,.pdf"></div>
           <div class="field"><label>Note</label><textarea id="codNote" class="entry-input"></textarea></div>
         </div>
-        <div class="note">Shortage or excess requires note. Overdraw occurs when approved postings exceed opening balance.</div>
+        <div class="note">Shortage or excess requires note. Overdraw occurs when approved credits exceed available teller cash for the day.</div>
         <div id="codUploads" class="upload-list"></div>
       </div>
     `, [
@@ -1297,14 +1336,14 @@
   }
 
   function openMyCODModal() {
-    const rows = staffCODRecords((currentStaff()||{}).id).map(c => `<tr><td>${fmtDate(c.date)}</td><td>${money(c.expectedCash)}</td><td>${money(c.actualCash||0)}</td><td>${money(c.variance||0)}</td><td><small class="${c.status==='flagged' ? 'status-flagged' : 'status-balanced'}">${c.status || 'balanced'}</small></td><td>${c.resolutionNote || c.note || '—'}</td>${c.status==='flagged' && hasPermission('approval_queue') ? `<td><span class="linklike" data-resolve-cod="${c.id}">Resolve</span></td>` : '<td>—</td>'}</tr>`).join('') || '<tr><td colspan="6">No close of day records</td></tr>';
+    const rows = staffCODRecords((currentStaff()||{}).id).map(c => `<tr><td>${fmtDate(c.date)}</td><td>${money(c.expectedCash)}</td><td>${money(c.actualCash||0)}</td><td>${money(c.variance||0)}</td><td><small class="${c.status==='flagged' ? 'status-flagged' : 'status-balanced'}">${c.status || 'balanced'}</small></td><td>${c.resolutionNote || c.note || '—'}</td><td>${c.status==='flagged' ? 'Awaiting Administrative Resolution' : '—'}</td></tr>`).join('') || '<tr><td colspan="7">No close of day records</td></tr>';
     openModal('My Close of Day', `<div class="table-wrap"><table class="table"><thead><tr><th>Date</th><th>Expected</th><th>Actual</th><th>Variance</th><th>Status</th><th>Note / Resolution</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div>`, [{label:'Close', className:'secondary', onClick: closeModal}]);
-    qq('[data-resolve-cod]').forEach(el => el.onclick = ()=> openCODResolutionModal(el.dataset.resolveCod));
   }
 
   function openCODResolutionModal(codId) {
     const cod = state.cod.find(c => c.id === codId);
     if (!cod) return;
+    if (currentStaff()?.role !== 'admin_officer') return showToast('Administrative Officer resolves close of day');
     openModal('Resolve Close of Day', `
       <div class="stack">
         <div class="kpi-row">
@@ -1337,8 +1376,14 @@
     ]);
   }
 
+  function isTxBlockedByCOD(tx) {
+    const staffId = tx.postedById || tx.actorId || '';
+    const d = String(tx.date||'').slice(0,10);
+    return state.cod.some(c => c.staffId===staffId && c.date===d && c.status==='flagged');
+  }
+
   function flattenBusinessEntries() {
-    const txRows = flattenCustomerTx().map(t => ({
+    const txRows = flattenCustomerTx().filter(t => !isTxBlockedByCOD(t)).map(t => ({
       date: t.date,
       accountNumber: t.customer.accountNumber,
       details: t.details,
@@ -1364,10 +1409,10 @@
     });
     byId(`${kind}CustomApply`).onclick = () => { state.ui[`${kind}Filter`] = { preset:'custom', from:byId(`${kind}From`).value, to:byId(`${kind}To`).value }; save(); renderWorkspace(); };
     byId(`${kind}ExportCsv`).onclick = () => {
-      const rows = kind === 'business' ? filterByDate(flattenBusinessEntries(), state.ui.businessFilter || { preset: 'all', from: '', to: '' }) : filterByDate(state.operations.entries || [], state.ui.operationalFilter || { preset: 'all', from: '', to: '' });
-      exportCsv(rows, `${kind}_balance.csv`);
+      const rows = kind === 'business' ? filterByDate(flattenBusinessEntries(), state.ui.businessFilter || { preset: 'daily', from: '', to: '' }) : filterByDate(state.operations.entries || [], state.ui.operationalFilter || { preset: 'all', from: '', to: '' });
+      exportCsvWithTotals(rows, kind, `${kind}_balance.csv`);
     };
-    byId(`${kind}PrintSummary`).onclick = () => printHtml(byId('workspace').innerHTML);
+    byId(`${kind}PrintSummary`).onclick = () => printSummary(kind);
   }
 
   function filterByDate(rows, filter) {
@@ -1395,6 +1440,44 @@
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
     a.download = filename; a.click();
+  }
+
+  function summarizeRows(rows, kind) {
+    if (kind === 'business') {
+      const credits = rows.filter(r=>r.kind==='credit').reduce((s,r)=>s+Number(r.amount||0),0);
+      const debits = rows.filter(r=>r.kind==='debit').reduce((s,r)=>s+Number(r.amount||0),0);
+      return { 'Total Credit': credits, 'Total Debit': debits, 'Entries': rows.length, 'Net Book Balance': credits - debits };
+    }
+    const income = rows.filter(r=>r.kind==='income').reduce((s,r)=>s+Number(r.amount||0),0);
+    const expense = rows.filter(r=>r.kind==='expense').reduce((s,r)=>s+Number(r.amount||0),0);
+    return { 'Total Income': income, 'Total Expense': expense, 'Entries': rows.length, 'Net Operational': income - expense };
+  }
+
+  function exportCsvWithTotals(rows, kind, filename) {
+    if (!rows.length) return showToast('Nothing to export');
+    const cols = Object.keys(rows[0]);
+    const lines = [cols.join(',')].concat(rows.map(r => cols.map(k => JSON.stringify(r[k] ?? '')).join(',')));
+    lines.push('');
+    lines.push(`Summary for ${kind}`);
+    Object.entries(summarizeRows(rows, kind)).forEach(([k,v]) => lines.push(`${k},${v}`));
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([lines.join('\n')], {type:'text/csv'}));
+    a.download = filename; a.click();
+  }
+
+  function printSummary(kind) {
+    const filter = state.ui[`${kind}Filter`] || { preset: kind==='business' ? 'daily' : 'all', from:'', to:'' };
+    const rows = kind === 'business' ? filterByDate(flattenBusinessEntries(), filter) : filterByDate(state.operations.entries || [], filter);
+    const totals = summarizeRows(rows, kind);
+    const title = kind === 'business' ? 'Business Balance Summary' : 'Operational Balance Summary';
+    const filterLabel = filter.preset === 'custom' ? `${filter.from || 'start'} to ${filter.to || 'end'}` : filter.preset.toUpperCase();
+    const headers = kind === 'business'
+      ? '<tr><th>Date</th><th>Account</th><th>Details</th><th>Debit</th><th>Credit</th><th>Balance</th><th>Received/Paid By</th><th>Posted By</th></tr>'
+      : '<tr><th>Date</th><th>Account</th><th>Type</th><th>Amount</th><th>Note</th><th>Posted By</th><th>Approved By</th></tr>';
+    const body = kind === 'business'
+      ? rows.map(t=>`<tr><td>${fmtDate(t.date)}</td><td>${t.accountNumber || '—'}</td><td>${t.details||'—'}</td><td>${t.kind==='debit'?money(t.amount):''}</td><td>${t.kind==='credit'?money(t.amount):''}</td><td>${money(t.balanceAfter || 0)}</td><td>${t.receivedOrPaidBy || '—'}</td><td>${t.postedBy || '—'}</td></tr>`).join('')
+      : rows.map(e=>`<tr><td>${fmtDate(e.date)}</td><td>${e.accountName}</td><td>${e.kind}</td><td>${money(e.amount)}</td><td>${e.note||'—'}</td><td>${e.postedBy||'—'}</td><td>${e.approvedBy||'—'}</td></tr>`).join('');
+    printHtml(`<div class="print-sheet"><h2>${title}</h2><p><strong>Filter:</strong> ${filterLabel}</p><div class="kpi-row">${Object.entries(totals).map(([k,v])=>`<div class="kpi"><div class="label">${k}</div><div class="number">${money(v)}</div></div>`).join('')}</div><div class="table-wrap"><table class="table"><thead>${headers}</thead><tbody>${body || `<tr><td colspan="8">No entries</td></tr>`}</tbody></table></div></div>`);
   }
 
   function printHtml(html) {
