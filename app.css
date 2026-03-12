@@ -18,7 +18,7 @@
 body {
   margin: 0;
   font-family: Inter, system-ui, sans-serif;
-  background: linear-gradient(180deg, #eef2f6 0%, #f7f7f8 100%);
+  background: var(--bg);
   color: var(--text);
 }
 button, input, select, textarea { font: inherit; }
@@ -190,10 +190,12 @@ body[data-theme="dark-slate"]{--bg:#0f1720;--panel:#16202b;--line:#243241;--text
 body[data-theme="dark-slate"] .display-field, body[data-theme="dark-slate"] select, body[data-theme="dark-slate"] input, body[data-theme="dark-slate"] textarea {background:#1b2734;color:var(--text);border-color:var(--line)}
 body[data-theme="neutral-stone"]{--bg:#f1f0ec;--panel:#fffdfa;--line:#d8d2c6;--text:#2c2a27;--muted:#726d64;--brand:#77614b;--brand-2:#9a8165;--accent:#ebe5da;--entry:#e2d3b8;--soft:#faf7f1;--shadow:0 12px 24px rgba(80,64,40,.08)}
 
+.negative{color:var(--danger)!important}
 
-.theme-button { min-width: 170px; }
-.camera-video { width: 100%; max-height: 320px; border-radius: 14px; background: #111; }
-.photo-box.small { min-height: 92px; display:flex; align-items:center; justify-content:center; overflow:hidden; }
-.photo-box.small img { width: 100%; height: 100%; object-fit: cover; }
-.print-summary .kpi-row { margin: 12px 0 18px; }
-.print-summary h2 { margin: 0 0 8px; }
+body[data-theme="dark-slate"] button.secondary, body[data-theme="dark-slate"] .tool-tab, body[data-theme="dark-slate"] .filter-chip, body[data-theme="dark-slate"] .icon-btn, body[data-theme="dark-slate"] .ghost-btn{background:#213243;color:#eef2f7;border-color:#3b5165}
+body[data-theme="dark-slate"] .tool-tab.active, body[data-theme="dark-slate"] .filter-chip.active{background:linear-gradient(135deg,var(--brand),var(--brand-2));color:#fff}
+body[data-theme="ducess-sheet"]{--bg:#ececec;--panel:#0c0c0c;--line:#4a0a0a;--text:#f4f0e6;--muted:#cfc8b8;--brand:#7e0000;--brand-2:#00d8e8;--accent:#2b1124;--entry:#efcfd0;--soft:#140e0e;--danger:#ff6767;--success:#7bf0a0;--warning:#ffd166;--shadow:none}
+body[data-theme="ducess-sheet"] .logo{background:linear-gradient(135deg,#7e0000,#00d8e8)}
+body[data-theme="ducess-sheet"] .table th{background:#4b0000;color:#00e8f0}
+body[data-theme="ducess-sheet"] .display-field, body[data-theme="ducess-sheet"] select, body[data-theme="ducess-sheet"] input, body[data-theme="ducess-sheet"] textarea{background:#efcfd0;color:#111;border-color:#000}
+body[data-theme="ducess-sheet"] .module-icon{background:#1b1b1b;color:#00d8e8}
