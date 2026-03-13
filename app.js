@@ -1,6 +1,8 @@
 (() => {
   const STORAGE_KEY = 'duces_enterprise_ledger_v1';
   const DATE_FMT = new Intl.DateTimeFormat('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+  const THEMES = ['classic','ducess-sheet','ocean','dark-slate','neutral-stone'];
+  const THEME_LABELS = { classic:'Classic', 'ducess-sheet':'Ducess Sheet', ocean:'Ocean', 'dark-slate':'Dark Slate', 'neutral-stone':'Neutral Stone' };
   const money = (n) => Number(n || 0).toLocaleString();
   const uid = (p='id') => `${p}_${Math.random().toString(36).slice(2,9)}${Date.now().toString(36).slice(-4)}`;
   const today = () => new Date().toISOString().slice(0,10);
@@ -361,7 +363,7 @@
       }
       case 'customer_credit': {
         const c = state.customers.find(x => x.id === req.payload.customerId);
-        if (!c) break;
+        if (!c || isCustomerFrozen(c)) break;
         c.transactions.push(txObj('credit', req.payload.amount, req.payload.details, req.requestedByName, req.requestedBy, currentStaff()?.name || '', 'customer', req.payload.date, {
           receivedOrPaidBy: req.payload.receivedOrPaidBy,
           postedBy: req.requestedByName,
@@ -373,7 +375,7 @@
       }
       case 'customer_debit': {
         const c = state.customers.find(x => x.id === req.payload.customerId);
-        if (!c) break;
+        if (!c || isCustomerFrozen(c)) break;
         c.transactions.push(txObj('debit', req.payload.amount, req.payload.details, req.requestedByName, req.requestedBy, currentStaff()?.name || '', 'customer', req.payload.date, {
           receivedOrPaidBy: req.payload.receivedOrPaidBy,
           postedBy: req.requestedByName,
@@ -458,17 +460,19 @@
     const map = {
       name: customer?.name || '',
       phone: customer?.phone || '',
-      balance: customer ? money(customer.balance) : '',
+      balance: customer ? balanceHtml(customer.balance) : '—',
       address: customer?.address || '',
       nin: customer?.nin || '',
       bvn: customer?.bvn || ''
     };
     Object.entries(map).forEach(([k,v]) => {
       const el = q(`[data-fill="${k}"]`, root);
-      if (el) el.textContent = v || '—';
+      if (el) { if(k==='balance') el.innerHTML = v || '—'; else el.textContent = v || '—'; }
     });
     const photo = q('[data-fill="photo"]', root);
     if (photo) photo.innerHTML = customer?.photo ? `<img src="${customer.photo}" alt="photo">` : '<span>No Photo</span>';
+    const nm = q('[data-fill="name"]', root);
+    if (nm && customer && isCustomerFrozen(customer)) nm.innerHTML = `${customer.name} <span class="badge rejected">Frozen</span>`;
   }
 
   function render() {
@@ -486,10 +490,17 @@
     byId('btnTodayFloat').onclick = openFloatModal;
     byId('btnCOD').onclick = openCODModal;
     byId('btnAudit').onclick = openAuditModal;
-    const themeSel = byId('themeSelect');
-    if (themeSel) themeSel.value = state.ui.theme || 'classic';
-    if (themeSel) themeSel.onchange = () => applyTheme(themeSel.value, false);
-    byId('btnThemeSave').onclick = () => { applyTheme(themeSel.value, true); showToast('Theme saved'); };
+    const themeBtn = byId('btnThemeCycle');
+    if (themeBtn) {
+      themeBtn.textContent = `Theme: ${THEME_LABELS[state.ui.theme || 'classic'] || 'Classic'}`;
+      themeBtn.onclick = () => {
+        const curr = state.ui.theme || 'classic';
+        const idx = THEMES.indexOf(curr);
+        const next = THEMES[(idx + 1) % THEMES.length];
+        applyTheme(next, true);
+        showToast(`Theme: ${THEME_LABELS[next]}`);
+      };
+    }
     byId('globalNameSearch').oninput = (e) => {
       const results = searchCustomersByName(e.target.value);
       if (!e.target.value.trim()) return;
@@ -518,7 +529,7 @@
       const act = el.dataset.heroCard;
       if (act === 'my-balance') openMyBalanceModal();
       if (act === 'my-cod') openMyCODModal();
-      if (act === 'operational-balance') { state.ui.module = 'balances'; state.ui.tool = 'operational_balance'; save(); render(); }
+      if (act === 'operational-balance') { state.ui.module = 'balances'; state.ui.tool = 'operational_balance'; save(); render(); setTimeout(()=>byId('workspace')?.scrollIntoView({behavior:'smooth', block:'start'}),80); }
     });
   }
 
@@ -712,21 +723,34 @@
   }
 
   function renderApprovals() {
-    const rows = state.approvals.map((a, i) => `
+    const limit = state.ui.approvalsLimit || 20;
+    const approvals = state.approvals.slice(0, limit);
+    const rows = approvals.map((a, i) => `
       <tr>
         <td>${i+1}</td>
         <td>${prettyApprovalType(a.type)}</td>
-        <td>${a.requestedByName}</td>
-        <td>${requestSummary(a)}</td>
+        <td>${approvalSubmittedBy(a)}</td>
+        <td>${approvalDetails(a)}</td>
         <td>${fmtDate(a.requestedAt)}</td>
         <td><span class="badge ${a.status}">${a.status}</span></td>
         <td>${a.status === 'pending' ? `<button data-approve="${a.id}" class="success">Approve</button> <button data-reject="${a.id}" class="danger">Reject</button>` : a.approvedBy || '—'}</td>
       </tr>`).join('');
-    return `
-      <div class="table-card">
-        <h3>Approval Queue</h3>
-        <div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Request</th><th>Submitted By</th><th>Details</th><th>Date</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows || '<tr><td colspan="7" class="muted">No requests yet</td></tr>'}</tbody></table></div>
-      </div>`;
+    const codRows = (state.cod||[]).filter(c=>c.status==='flagged').map((c,i)=>`<tr><td>${i+1}</td><td>${fmtDate(c.date)}</td><td>${c.staffName}</td><td>${money(c.expectedCash||0)}</td><td>${money(c.actualCash||0)}</td><td class="${Number(c.variance||0)<0?'balance-negative':''}">${money(c.variance||0)}</td><td>${money(c.overdraw||0)}</td><td>${c.note||'—'}</td><td>${(currentStaff()?.role==='admin_officer') ? `<button data-cod-resolve="${c.id}" class="warning">Resolve</button>` : 'Awaiting Administrative Resolution'}</td></tr>`).join('');
+    return `<div class="stack">${codRows ? `<div class="table-card"><h3>COD Resolution Queue</h3><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Date</th><th>Staff</th><th>Expected</th><th>Actual</th><th>Variance</th><th>Overdraw</th><th>Note</th><th>Action</th></tr></thead><tbody>${codRows}</tbody></table></div></div>` : ''}<div class="table-card"><h3>Approval Queue</h3><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Request</th><th>Submitted By</th><th>Details</th><th>Date</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows || '<tr><td colspan="7" class="muted">No requests yet</td></tr>'}</tbody></table></div>${state.approvals.length > limit ? `<div class="action-row"><button id="approvalsMore" class="secondary">More</button></div>`:''}</div></div>`;
+  }
+
+  function approvalSubmittedBy(a) {
+    const p = a.payload || {};
+    if (a.type === 'customer_credit' || a.type === 'customer_debit') return `${a.requestedByName || staffName(p.staffId)} (${p.accountNumber || '—'})`;
+    return a.requestedByName || '—';
+  }
+  function approvalDetails(a) {
+    const p = a.payload || {};
+    if (a.type === 'customer_credit') return `${money(p.amount)} to ${customerName(p.customerId) || p.accountNumber}${p.details ? ' • ' + p.details : ''}`;
+    if (a.type === 'customer_debit') return `${money(p.amount)} from ${customerName(p.customerId) || p.accountNumber}${p.details ? ' • ' + p.details : ''}`;
+    if (a.type === 'wallet_fund') return `${staffName(p.staffId)} • Wallet fund • ${money(p.amount)}`;
+    if (a.type === 'debt_repayment') return `${staffName(p.staffId)} • Debt repayment • ${money(p.amount)}`;
+    return requestSummary(a);
   }
 
   function prettyApprovalType(type) {
@@ -822,7 +846,9 @@
   }
 
   function renderBusinessBalance() {
-    const filtered = filterByDate(flattenBusinessEntries(), state.ui.businessFilter || { preset: 'all', from: '', to: '' });
+    const rawBusiness = filterByDate(flattenBusinessEntries(), state.ui.businessFilter || { preset: 'all', from: '', to: '' });
+    const typeFilter = state.ui.businessType || 'all';
+    const filtered = rawBusiness.filter(t => typeFilter==='all' ? true : t.kind===typeFilter);
     const credits = filtered.filter(t => t.kind === 'credit').reduce((s,t)=>s+Number(t.amount||0),0);
     const debits = filtered.filter(t => t.kind === 'debit').reduce((s,t)=>s+Number(t.amount||0),0);
     return `
@@ -839,7 +865,9 @@
   }
 
   function renderOperationalBalance() {
-    const filtered = filterByDate(state.operations.entries || [], state.ui.operationalFilter || { preset: 'all', from: '', to: '' });
+    const rawOperational = filterByDate(state.operations.entries || [], state.ui.operationalFilter || { preset: 'all', from: '', to: '' });
+    const kindFilter = state.ui.operationalType || 'all';
+    const filtered = rawOperational.filter(e => kindFilter==='all' ? true : e.kind===kindFilter);
     const income = filtered.filter(e=>e.kind==='income');
     const expense = filtered.filter(e=>e.kind==='expense');
     return `
@@ -898,10 +926,11 @@
       lookupFill(byId('workspace'), c);
     };
     byId('lookupBtn').onclick = doLookup;
+    byId('lookupAcc').onchange = doLookup;
     byId('openStatementBtn').onclick = () => { state.ui.tool = 'account_statement'; renderWorkspace(); setTimeout(()=>{ byId('stmtAcc').value = getSelectedCustomer()?.accountNumber || ''; }, 30); };
     byId('searchByNameBtn').onclick = () => openCustomerSearchModal(state.customers);
     const selected = getSelectedCustomer();
-    if (selected) lookupFill(byId('workspace'), selected);
+    if (selected && state.ui.selectedCustomerId) lookupFill(byId('workspace'), selected); else lookupFill(byId('workspace'), null);
   }
 
   function bindAccountOpening() {
@@ -934,6 +963,7 @@
     const search = () => {
       const c = getCustomerByAccountNo(byId(`${prefix}Acc`).value);
       if (!c) return showToast('Customer not found');
+      if (prefix==='reactivation' && !isCustomerFrozen(c)) return showToast('Account is not frozen');
       state.ui.selectedCustomerId = c.id;
       save();
       byId(`${prefix}Name`).value = c.name;
@@ -944,7 +974,7 @@
       byId(`${prefix}OldAccount`).value = c.oldAccountNumber || '';
       byId(`${prefix}DisplayName`).textContent = c.name;
       byId(`${prefix}DisplayPhone`).textContent = c.phone;
-      byId(`${prefix}DisplayStatus`).textContent = c.active ? 'Active' : 'Inactive';
+      byId(`${prefix}DisplayStatus`).textContent = isCustomerFrozen(c) ? 'Frozen' : (c.active ? 'Active' : 'Inactive');
     };
     byId(`${prefix}Search`).onclick = search;
     byId(`${prefix}Submit`).onclick = () => {
@@ -1015,66 +1045,54 @@
 
   function currentFloatAvailable(staffId, date=today()) {
     const acc = ensureStaffAccount(staffId);
-    return acc.balance;
+    return Math.max(0, Number(acc.balance||0));
   }
 
   function bindJournal(kind) {
-    const journal = state.ui[`${kind}Journal`] ||= [];
+    const staff = currentStaff();
+    state.ui.staffJournals ||= {};
+    const key = `${staff.id}:${kind}`;
+    const journal = state.ui.staffJournals[key] ||= [];
+    const resetFields = () => {
+      if (byId('txAcc')) byId('txAcc').value = '';
+      if (byId('txAmount')) byId('txAmount').value = '';
+      if (byId('txDetails')) byId('txDetails').value = '';
+      if (byId('txCounterparty')) byId('txCounterparty').value = '';
+      if (byId('txName')) byId('txName').textContent = '—';
+      if (byId('txBalance')) byId('txBalance').innerHTML = '—';
+      state.ui.selectedCustomerId = null;
+    };
     const rerenderJournal = () => {
       byId('journalRows').innerHTML = journal.map((row, i) => `<tr><td>${i+1}</td><td>${row.customerName}</td><td>${row.accountNumber}</td><td>${money(row.amount)}</td><td><span class="linklike" data-remove-row="${row.id}">Remove</span></td></tr>`).join('') || '<tr><td colspan="5">No journal entries yet</td></tr>';
-      qq('[data-remove-row]').forEach(el => el.onclick = () => {
-        const idx = journal.findIndex(r => r.id === el.dataset.removeRow);
-        if (idx >= 0) { journal.splice(idx,1); rerenderJournal(); }
-      });
+      qq('[data-remove-row]').forEach(el => el.onclick = () => { const idx = journal.findIndex(r => r.id === el.dataset.removeRow); if (idx >= 0) { journal.splice(idx,1); save(); rerenderJournal(); } });
     };
     const search = () => {
       const c = getCustomerByAccountNo(byId('txAcc').value);
       if (!c) return showToast('Customer not found');
+      if (isCustomerFrozen(c)) return showToast('Account is frozen');
       state.ui.selectedCustomerId = c.id; save();
       byId('txName').textContent = c.name;
-      byId('txBalance').textContent = money(c.balance);
+      byId('txBalance').innerHTML = balanceHtml(c.balance);
     };
     byId('txSearch').onclick = search;
-    if (byId('globalNameSearch')) byId('globalNameSearch').oninput = (e) => {
-      const results = searchCustomersByName(e.target.value);
-      if (!e.target.value.trim()) return;
-      openCustomerSearchModal(results);
-    };
+    if (byId('txAcc')) byId('txAcc').onchange = search;
     byId('txJournalAdd').onclick = () => {
       const customer = getSelectedCustomer() || getCustomerByAccountNo(byId('txAcc').value);
       if (!customer) return showToast('Search for customer first');
+      if (isCustomerFrozen(customer)) return showToast('Frozen account cannot accept transactions');
       const amount = Number(byId('txAmount').value || 0);
       if (!(amount > 0)) return showToast('Enter a valid amount');
-      journal.push({
-        id: uid('jr'), customerId: customer.id, customerName: customer.name, accountNumber: customer.accountNumber,
-        amount, details: byId('txDetails').value.trim(), receivedOrPaidBy: byId('txCounterparty').value.trim(),
-        payoutSource: byId('txPayoutSource')?.value || 'teller', date: today()
-      });
-      rerenderJournal();
+      journal.push({ id: uid('jr'), customerId: customer.id, customerName: customer.name, accountNumber: customer.accountNumber, amount, details: byId('txDetails').value.trim(), receivedOrPaidBy: byId('txCounterparty').value.trim(), payoutSource: byId('txPayoutSource')?.value || 'teller', date: today() });
+      save(); rerenderJournal(); resetFields();
     };
-    byId('journalClear').onclick = () => { journal.splice(0); rerenderJournal(); };
+    byId('journalClear').onclick = () => { journal.splice(0); save(); rerenderJournal(); resetFields(); };
     byId('journalSubmit').onclick = () => {
-      const st = currentStaff();
       if (!hasPermission(kind)) return showToast('No access to post');
-      if (!hasApprovedFloat(st.id)) return showToast('Approved opening balance required before posting');
+      if (!hasApprovedFloat(staff.id)) return showToast('Approved opening balance required before posting');
       if (!journal.length) return showToast('Generate journal first');
       confirmAction(`Submit ${kind} journal for approval?`, () => {
-        journal.forEach(row => {
-          createRequest(kind === 'credit' ? 'customer_credit' : 'customer_debit', {
-            customerId: row.customerId,
-            accountNumber: row.accountNumber,
-            amount: row.amount,
-            details: row.details,
-            receivedOrPaidBy: row.receivedOrPaidBy,
-            payoutSource: row.payoutSource,
-            staffId: st.id,
-            date: row.date
-          });
-        });
-        journal.splice(0);
-        rerenderJournal();
-        showToast(`${kind === 'credit' ? 'Credit' : 'Debit'} requests sent for approval`);
-        render();
+        journal.forEach(row => createRequest(kind === 'credit' ? 'customer_credit' : 'customer_debit', { customerId: row.customerId, accountNumber: row.accountNumber, amount: row.amount, details: row.details, receivedOrPaidBy: row.receivedOrPaidBy, payoutSource: row.payoutSource, staffId: staff.id, date: row.date }));
+        journal.splice(0); save(); rerenderJournal(); resetFields(); showToast(`${kind === 'credit' ? 'Credit' : 'Debit'} requests sent for approval`); render();
       });
     };
     rerenderJournal();
@@ -1089,6 +1107,9 @@
       if (!hasPermission('approval_queue')) return showToast('No approval rights');
       confirmAction('Reject this request?', () => rejectRequest(btn.dataset.reject));
     });
+    qq('[data-cod-resolve]').forEach(btn => btn.onclick = () => openCODResolutionModal(btn.dataset.codResolve));
+    const more = byId('approvalsMore');
+    if (more) more.onclick = () => { state.ui.approvalsLimit = (state.ui.approvalsLimit || 20) + 20; save(); renderWorkspace(); };
   }
 
   function bindPermissions() {
@@ -1176,7 +1197,8 @@
     const st = currentStaff();
     if (!(hasPermission('credit') || hasPermission('debit'))) return showToast('Current staff does not submit close of day');
     if (!hasApprovedFloat(st.id)) return showToast('Approved opening balance required before closing day');
-    const expectedCash = currentFloatAvailable(st.id);
+    if ((state.cod||[]).some(c=>c.staffId===st.id && c.date===today())) return showToast('Close of Day already submitted for today');
+    const expectedCash = Math.max(0, currentFloatAvailable(st.id));
     const overdraw = expectedCash < 0 ? Math.abs(expectedCash) : 0;
     openModal('Close of Day', `
       <div class="stack">
@@ -1188,7 +1210,7 @@
           <div class="field"><label>Field Paper Upload</label><input id="codFiles" class="entry-input" type="file" multiple accept="image/*,.pdf"></div>
           <div class="field"><label>Note</label><textarea id="codNote" class="entry-input"></textarea></div>
         </div>
-        <div class="note">Shortage or excess requires note. Overdraw occurs when approved postings exceed opening balance.</div>
+        <div id="codStatus" class="note">Balanced</div><div class="note">Shortage or excess requires note. Overdraw occurs when approved postings exceed opening balance.</div>
         <div id="codUploads" class="upload-list"></div>
       </div>
     `, [
@@ -1207,6 +1229,7 @@
           showToast('Close of Day sent for approval');
       }}
     ]);
+    const syncCodStatus = () => { const actual = Number(byId('codActual').value || 0); const variance = actual - expectedCash; const el = byId('codStatus'); if(!el) return; if(variance===0 && !(overdraw>0)) { el.textContent='Balanced'; el.className='note'; } else if(variance<0) { el.textContent=`Shortage ${money(Math.abs(variance))}${overdraw>0 ? ' • Overdraw '+money(overdraw): ''}`; el.className='note balance-negative'; } else { el.textContent=`Excess ${money(variance)}${overdraw>0 ? ' • Overdraw '+money(overdraw): ''}`; el.className='note'; }}; byId('codActual').oninput = syncCodStatus; syncCodStatus();
     byId('codFiles').onchange = () => {
       const files = Array.from(byId('codFiles').files || []);
       byId('codUploads').innerHTML = files.map(f => `<div class="upload-pill">${f.name}</div>`).join('');
@@ -1214,20 +1237,28 @@
   }
 
   function openAuditModal() {
-    openModal('Audit Trail', `<div class="table-wrap"><table class="table"><thead><tr><th>Date</th><th>Actor</th><th>Action</th><th>Details</th></tr></thead><tbody>${state.audit.map(a=>`<tr><td>${fmtDate(a.at)}</td><td>${a.actor}</td><td>${a.action}</td><td>${a.details}</td></tr>`).join('')}</tbody></table></div>`, [{label:'Close', onClick: closeModal}]);
+    const st = currentStaff();
+    const rows = state.audit.filter(a => st?.role === 'admin_officer' || a.actorId === st?.id || a.actor === st?.name).map(a=>`<tr><td>${fmtDate(a.at)}</td><td>${a.actor}</td><td>${a.action}</td><td>${a.details}</td></tr>`).join('');
+    openModal('Audit Trail', `<div class="table-wrap"><table class="table"><thead><tr><th>Date</th><th>Actor</th><th>Action</th><th>Details</th></tr></thead><tbody>${rows || '<tr><td colspan="4">No audit records</td></tr>'}</tbody></table></div>`, [{label:'Close', onClick: closeModal}]);
   }
 
   function staffName(id) { return state.staff.find(s=>s.id===id)?.name || id; }
+  function customerName(id) { return state.customers.find(c=>c.id===id)?.name || ''; }
   function getSelectedCustomer() { return state.customers.find(c => c.id === state.ui.selectedCustomerId) || null; }
+  function balanceHtml(n){ return `<span class="${Number(n)<0 ? 'balance-negative' : ''}">${money(n)}</span>`; }
+  function isCustomerFrozen(c){ if(!c) return false; if(c.frozen) return true; const last=(c.transactions||[]).slice().sort((a,b)=>new Date(b.date)-new Date(a.date))[0]; if(!last) return false; const days=(Date.now()-new Date(last.date).getTime())/86400000; return days>=90; }
 
   function openCustomerSearchModal(list) {
-    openModal('Customer Search', `<div class="table-wrap"><table class="table"><thead><tr><th>Account Number</th><th>Name</th><th>Phone</th><th></th></tr></thead><tbody>${list.map(c=>`<tr><td>${c.accountNumber}</td><td>${c.name}</td><td>${c.phone}</td><td><span class="linklike" data-pick="${c.id}">Select</span></td></tr>`).join('')}</tbody></table></div>`, [{label:'Close', className:'secondary', onClick: closeModal}]);
-    qq('[data-pick]').forEach(el => el.onclick = () => {
-      state.ui.selectedCustomerId = el.dataset.pick;
-      save();
-      closeModal();
-      applySelectedCustomerToActiveTool();
-    });
+    const renderRows = arr => arr.map(c=>`<tr><td>${c.accountNumber}</td><td>${c.name}</td><td>${c.phone}</td><td><span class="linklike" data-pick="${c.id}">Select</span></td></tr>`).join('');
+    openModal('Customer Search', `<div class="stack"><input id="modalCustomerSearch" class="entry-input" placeholder="Search customer by name or account number"><div class="table-wrap"><table class="table"><thead><tr><th>Account Number</th><th>Name</th><th>Phone</th><th></th></tr></thead><tbody id="modalCustomerRows">${renderRows(list)}</tbody></table></div></div>`, [{label:'Close', className:'secondary', onClick: closeModal}]);
+    const bindPicks = () => qq('[data-pick]').forEach(el => el.onclick = () => { state.ui.selectedCustomerId = el.dataset.pick; save(); closeModal(); applySelectedCustomerToActiveTool(); });
+    bindPicks();
+    const search = byId('modalCustomerSearch');
+    if (search) search.oninput = () => {
+      const qv = search.value.trim().toLowerCase();
+      const filtered = !qv ? list : list.filter(c => String(c.accountNumber).includes(qv) || c.name.toLowerCase().includes(qv));
+      byId('modalCustomerRows').innerHTML = renderRows(filtered); bindPicks();
+    };
   }
 
   async function toBase64(file) {
@@ -1243,6 +1274,7 @@
   function applyTheme(theme, persist=true) {
     state.ui.theme = theme || 'classic';
     document.body.setAttribute('data-theme', state.ui.theme === 'classic' ? '' : state.ui.theme);
+    const b = byId('btnThemeCycle'); if (b) b.textContent = `Theme: ${THEME_LABELS[state.ui.theme] || 'Classic'}`;
     if (persist) save();
   }
 
@@ -1271,9 +1303,9 @@
       <div class="stack">
         <div class="kpi-row">
           <div class="kpi"><div class="label">Wallet Balance</div><div class="number">${money(acc.walletBalance||0)}</div></div>
-          <div class="kpi"><div class="label">Debt Balance</div><div class="number">${money(acc.debtBalance||0)}</div></div>
+          <div class="kpi"><div class="label">Debt Balance</div><div class="number ${Number(acc.debtBalance||0)>0 ? 'balance-negative' : ''}">${money(acc.debtBalance||0)}</div></div>
           <div class="kpi"><div class="label">Today's Opening Balance</div><div class="number">${money(getOpeningBalanceForDate(st.id, today()))}</div></div>
-          <div class="kpi"><div class="label">Remaining Float Today</div><div class="number">${money(acc.balance||0)}</div></div>
+          <div class="kpi"><div class="label">Remaining Float Today</div><div class="number">${money(Math.max(0, Number(acc.balance||0)))}</div></div>
         </div>
         <div class="form-grid three">
           <div class="field"><label>Wallet Funding Amount</label><input id="walletFundAmt" class="entry-input" type="number"></div>
@@ -1310,8 +1342,12 @@
         <div class="kpi-row">
           <div class="kpi"><div class="label">Expected Cash</div><div class="number">${money(cod.expectedCash)}</div></div>
           <div class="kpi"><div class="label">Actual Cash</div><div class="number">${money(cod.actualCash)}</div></div>
-          <div class="kpi"><div class="label">Variance</div><div class="number">${money(cod.variance)}</div></div>
+          <div class="kpi"><div class="label">Variance</div><div class="number ${Number(cod.variance||0)<0?'balance-negative':''}">${money(cod.variance)}</div></div>
           <div class="kpi"><div class="label">Overdraw</div><div class="number">${money(cod.overdraw||0)}</div></div>
+        </div>
+        <div class="form-grid two">
+          <div class="field"><label>Resolved Amount</label><input id="codResolvedAmount" class="entry-input" type="number" value="${Math.max(0, Number(cod.actualCash||0))}"></div>
+          <div class="field"><label>Create Teller Debt</label><select id="codCreateDebt" class="entry-input"><option value="yes">Yes</option><option value="no">No</option></select></div>
         </div>
         <div class="field"><label>Resolution Note</label><textarea id="codResolutionNote" class="entry-input"></textarea></div>
       </div>
@@ -1319,20 +1355,12 @@
       {label:'Close', className:'secondary', onClick: closeModal},
       {label:'Resolve', onClick: ()=> {
         const note = byId('codResolutionNote').value.trim();
+        const resolvedAmount = Number(byId('codResolvedAmount').value || 0);
         if (!note) return showToast('Resolution note required');
-        cod.status = 'resolved';
-        cod.resolutionNote = note;
-        cod.resolvedBy = currentStaff()?.name || 'System';
-        cod.resolvedAt = new Date().toISOString();
-        const shortage = Math.max(0, -(Number(cod.variance||0)));
-        const overdraw = Number(cod.overdraw||0);
-        const debtAmt = shortage + overdraw;
-        if (debtAmt > 0) {
-          const acc = ensureStaffAccount(cod.staffId);
-          acc.debtBalance = Number(acc.debtBalance||0) + debtAmt;
-          addStaffEntry(cod.staffId, 'cod_resolution_debt', debtAmt, 0, `COD debt recorded: ${note}`);
-        }
-        save(); closeModal(); showToast('COD resolved');
+        cod.status = 'resolved'; cod.resolutionNote = note; cod.resolvedBy = currentStaff()?.name || 'System'; cod.resolvedAt = new Date().toISOString(); cod.resolvedAmount = resolvedAmount;
+        state.businessExtras ||= []; state.businessExtras.unshift({ date:new Date().toISOString(), accountNumber:'COD', details:`COD resolved for ${cod.staffName}`, kind:'credit', amount:resolvedAmount, balanceAfter:0, receivedOrPaidBy:cod.staffName, postedBy:currentStaff()?.name || 'System' });
+        if (byId('codCreateDebt').value === 'yes') { const debtAmt = Math.max(0, -(Number(cod.variance||0))) + Math.max(0, Number(cod.overdraw||0)); if (debtAmt > 0) { const acc = ensureStaffAccount(cod.staffId); acc.debtBalance = Number(acc.debtBalance||0) + debtAmt; addStaffEntry(cod.staffId, 'cod_resolution_debt', debtAmt, 0, `COD debt recorded: ${note}`); } }
+        save(); closeModal(); render(); showToast('COD resolved');
       }}
     ]);
   }
@@ -1355,7 +1383,7 @@
   function renderBalanceFilters(kind) {
     const filter = state.ui[`${kind}Filter`] || { preset:'all', from:'', to:'' };
     const presets = [['daily','Daily'],['weekly','Weekly'],['monthly','Monthly'],['all','All']];
-    return `<div class="form-card"><div class="action-inline">${presets.map(([k,l])=>`<button class="filter-chip ${filter.preset===k?'active':'secondary'}" data-filter-kind="${kind}" data-filter-preset="${k}">${l}</button>`).join('')}<label class="inline-field"><span>From</span><input id="${kind}From" type="date" value="${filter.from||''}"></label><label class="inline-field"><span>To</span><input id="${kind}To" type="date" value="${filter.to||''}"></label><button class="secondary" id="${kind}CustomApply">Apply Custom</button><button class="secondary" id="${kind}ExportCsv">Export CSV</button><button class="secondary" id="${kind}PrintSummary">Print Summary</button></div></div>`;
+    const types = kind==='business' ? [['all','All'],['credit','Credit'],['debit','Debit']] : [['all','All'],['income','Income'],['expense','Expense']]; const activeType = state.ui[`${kind}Type`] || 'all'; return `<div class="form-card"><div class="action-inline">${presets.map(([k,l])=>`<button class="filter-chip ${filter.preset===k?'active':'secondary'}" data-filter-kind="${kind}" data-filter-preset="${k}">${l}</button>`).join('')}<label class="inline-field"><span>From</span><input id="${kind}From" type="date" value="${filter.from||''}"></label><label class="inline-field"><span>To</span><input id="${kind}To" type="date" value="${filter.to||''}"></label><button class="secondary" id="${kind}CustomApply">Apply Custom</button><button class="secondary" id="${kind}ExportCsv">Export CSV</button><button class="secondary" id="${kind}PrintSummary">Print Summary</button></div><div class="action-inline" style="margin-top:10px">${types.map(([k,l])=>`<button class="filter-chip ${activeType===k?'active':'secondary'}" data-type-kind="${kind}" data-type-filter="${k}">${l}</button>`).join('')}</div></div>`;
   }
 
   function bindBalanceFilters(kind) {
@@ -1363,6 +1391,7 @@
       state.ui[`${kind}Filter`] = { preset: btn.dataset.filterPreset, from:'', to:'' }; save(); renderWorkspace();
     });
     byId(`${kind}CustomApply`).onclick = () => { state.ui[`${kind}Filter`] = { preset:'custom', from:byId(`${kind}From`).value, to:byId(`${kind}To`).value }; save(); renderWorkspace(); };
+    qq(`[data-type-kind="${kind}"]`).forEach(btn => btn.onclick = () => { state.ui[`${kind}Type`] = btn.dataset.typeFilter; save(); renderWorkspace(); });
     byId(`${kind}ExportCsv`).onclick = () => {
       const rows = kind === 'business' ? filterByDate(flattenBusinessEntries(), state.ui.businessFilter || { preset: 'all', from: '', to: '' }) : filterByDate(state.operations.entries || [], state.ui.operationalFilter || { preset: 'all', from: '', to: '' });
       exportCsv(rows, `${kind}_balance.csv`);
@@ -1439,419 +1468,6 @@
     });
   }
 
-
-  // ==== PATCH BATCH 4 OVERRIDES ====
-  function ensurePatchState(){
-    state.ui ||= {};
-    state.ui.approvalLimit = state.ui.approvalLimit || 20;
-    state.ui.businessFilter = Object.assign({preset:'daily', from:'', to:'', type:'all'}, state.ui.businessFilter||{});
-    state.ui.operationalFilter = Object.assign({preset:'all', from:'', to:'', type:'all'}, state.ui.operationalFilter||{});
-    state.ui.staffJournals = state.ui.staffJournals || {};
-    state.cod ||= [];
-    autoFreezeInactiveAccounts();
-  }
-
-  function getStaffJournal(kind, staffId){
-    ensurePatchState();
-    const sid = staffId || (currentStaff()||{}).id || 'none';
-    state.ui.staffJournals[sid] ||= {credit:[], debit:[]};
-    return state.ui.staffJournals[sid][kind];
-  }
-
-  function resetJournalFields(){
-    ['txAcc','txAmount','txCounterparty','txDetails'].forEach(id=>{ const el=byId(id); if(el) el.value=''; });
-    if(byId('txName')) byId('txName').textContent='—';
-    if(byId('txBalance')) byId('txBalance').textContent='—';
-    state.ui.selectedCustomerId = null; save();
-  }
-
-  function getStaffCreditsAffectingFloat(staffId, date=today()){
-    return (state.approvals||[]).filter(r => r.type==='customer_credit' && r.status==='approved' && r.payload.staffId===staffId && r.payload.date===date)
-      .reduce((s,r)=> s + Number(r.payload.amount||0),0);
-  }
-
-  function currentFloatAvailable(staffId, date=today()) {
-    const opening = getOpeningBalanceForDate(staffId, date);
-    const credits = getStaffCreditsAffectingFloat(staffId, date);
-    return Math.max(0, opening - credits);
-  }
-
-  function getStaffDebtForDate(staffId, date=today()){
-    const opening = getOpeningBalanceForDate(staffId, date);
-    const credits = getStaffCreditsAffectingFloat(staffId, date);
-    return Math.max(0, credits - opening);
-  }
-
-  function recalcStaffBalance(staffId) {
-    const acc = ensureStaffAccount(staffId);
-    acc.walletBalance = Number(acc.walletBalance||0);
-    acc.debtBalance = Number(acc.debtBalance||0);
-    const todayOpening = getOpeningBalanceForDate(staffId, today());
-    acc.balance = Math.max(0, todayOpening - getStaffCreditsAffectingFloat(staffId, today()));
-    acc.debtBalance = Math.max(acc.debtBalance, getStaffDebtForDate(staffId, today()));
-    let bal = 0;
-    acc.entries.sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(e => { bal += Number(e.delta || 0); e.balanceAfter = bal;});
-  }
-
-  function createBusinessExtra(entry){
-    state.businessExtras ||= [];
-    state.businessExtras.unshift(entry);
-  }
-
-  const _oldApplyRequest = applyRequest;
-  applyRequest = function(req){
-    if(req.type==='customer_credit' || req.type==='customer_debit'){
-      const c = state.customers.find(x => x.id === req.payload.customerId);
-      if(c && !c.active) return;
-    }
-    _oldApplyRequest(req);
-    if(req.type==='close_of_day'){
-      const cod = state.cod[0];
-      if(cod){
-        cod.expectedCash = Number(req.payload.expectedCash||0);
-        cod.actualCash = Number(req.payload.actualCash||0);
-        cod.variance = cod.actualCash - cod.expectedCash;
-        cod.overdraw = Number(req.payload.overdraw||0);
-        cod.status = (cod.variance===0 && cod.overdraw===0) ? 'balanced' : 'flagged';
-      }
-    }
-    if(req.type==='account_reactivation'){
-      const c = state.customers.find(x => x.id === req.payload.customerId);
-      if(c) c.active = true;
-    }
-  }
-
-  function autoFreezeInactiveAccounts(){
-    const now = new Date();
-    state.customers.forEach(c=>{
-      const txs = c.transactions||[];
-      const last = txs.length ? new Date(txs.map(t=>t.date).sort().slice(-1)[0]) : new Date(c.createdAt||Date.now());
-      const diff = (now - last)/(1000*60*60*24);
-      if(diff > 90) c.active = false;
-    });
-  }
-
-  function renderApprovals() {
-    ensurePatchState();
-    const all = state.approvals || [];
-    const limit = state.ui.approvalLimit || 20;
-    const visible = all.slice(0, limit);
-    const codRows = (state.cod||[]).filter(c=>c.status==='flagged' || c.status==='awaiting_resolution').map((c,i)=>`
-      <tr>
-        <td>${i+1}</td><td>${fmtDate(c.date)}</td><td>${c.staffName}</td><td>${money(c.expectedCash||0)}</td><td>${money(c.actualCash||0)}</td><td>${money(c.variance||0)}</td><td>${money(c.overdraw||0)}</td><td>${c.note||'—'}</td>
-        <td>${hasPermission('approval_queue') && currentStaff()?.role==='admin_officer' ? `<button data-resolve-cod="${c.id}" class="warning">Resolve</button>` : 'Awaiting Administrative Resolution'}</td>
-      </tr>`).join('') || '<tr><td colspan="9" class="muted">No COD resolution items</td></tr>';
-    const rows = visible.map((a, i) => {
-      const submitted = approvalSubmittedBy(a);
-      return `<tr>
-        <td>${i+1}</td><td>${prettyApprovalType(a.type)}</td><td>${submitted}</td><td>${requestSummary(a)}</td><td>${fmtDate(a.requestedAt)}</td><td><span class="badge ${a.status}">${a.status}</span></td>
-        <td>${a.status === 'pending' ? `<button data-approve="${a.id}" class="success">Approve</button> <button data-reject="${a.id}" class="danger">Reject</button>` : a.approvedBy || '—'}</td>
-      </tr>`;
-    }).join('');
-    const more = all.length>limit ? `<div class="action-row"><button class="secondary" id="moreApprovalsBtn">More</button></div>` : '';
-    return `
-      <div class="stack">
-        <div class="table-card">
-          <h3>COD Resolution Queue</h3>
-          <div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Date</th><th>Staff</th><th>Expected</th><th>Actual</th><th>Variance</th><th>Overdraw</th><th>Note</th><th>Action</th></tr></thead><tbody>${codRows}</tbody></table></div>
-        </div>
-        <div class="table-card">
-          <h3>Approval Queue</h3>
-          <div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Request</th><th>Submitted By</th><th>Details</th><th>Date</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows || '<tr><td colspan="7" class="muted">No requests yet</td></tr>'}</tbody></table></div>
-          ${more}
-        </div>
-      </div>`;
-  }
-
-  function approvalSubmittedBy(a){
-    const p = a.payload||{};
-    if((a.type==='customer_credit' || a.type==='customer_debit') && p.accountNumber){ return `${a.requestedByName} (${p.accountNumber})`; }
-    return a.requestedByName;
-  }
-
-  function requestSummary(a) {
-    const p = a.payload || {};
-    const cust = p.customerId ? state.customers.find(c=>c.id===p.customerId) : null;
-    if (a.type === 'float_declaration') return `${money(p.amount)} for ${p.date}`;
-    if (a.type === 'customer_credit') return `${money(p.amount)}${cust ? ' from ' + cust.name : ''}${p.details ? ' • ' + p.details : ''}`;
-    if (a.type === 'customer_debit') return `${money(p.amount)}${cust ? ' to ' + cust.name : ''}${p.details ? ' • ' + p.details : ''}`;
-    if (a.type === 'account_opening') return `${p.name} • ${p.generatedAccountNumber}`;
-    if (a.type === 'account_maintenance') return `${p.accountNumber} • update`; 
-    if (a.type === 'account_reactivation') return `${p.accountNumber} • reactivate`; 
-    if (a.type === 'operational_entry') return `${p.accountName} • ${money(p.amount)}${p.note ? ' • ' + p.note : ''}`;
-    if (a.type === 'create_operational_account') return `${p.category} • ${p.name}`;
-    if (a.type === 'close_of_day') return `${p.staffName} • Actual ${money(p.actualCash)} • Expected ${money(p.expectedCash)}`;
-    if (a.type === 'temp_grant') return `${staffName(p.staffId)} • ${TOOL_LABELS[p.tool]} = ${p.enabled ? 'ON' : 'OFF'}`;
-    if (a.type === 'wallet_fund') return `${staffName(p.staffId)} • Wallet fund • ${money(p.amount)}`;
-    if (a.type === 'debt_repayment') return `${staffName(p.staffId)} • Debt repayment • ${money(p.amount)}`;
-    return '—';
-  }
-
-  function bindApprovals() {
-    qq('[data-approve]').forEach(btn => btn.onclick = () => { if (!hasPermission('approval_queue')) return showToast('No approval rights'); confirmAction('Approve this request?', () => approveRequest(btn.dataset.approve)); });
-    qq('[data-reject]').forEach(btn => btn.onclick = () => { if (!hasPermission('approval_queue')) return showToast('No approval rights'); confirmAction('Reject this request?', () => rejectRequest(btn.dataset.reject)); });
-    const more = byId('moreApprovalsBtn'); if(more) more.onclick = ()=>{ state.ui.approvalLimit = (state.ui.approvalLimit||20)+20; save(); renderWorkspace(); };
-    qq('[data-resolve-cod]').forEach(btn => btn.onclick = ()=> openCODResolutionModal(btn.dataset.resolveCod));
-  }
-
-  function openCODResolutionModal(codId) {
-    const cod = state.cod.find(c => c.id === codId); if (!cod) return;
-    const defaultResolved = cod.actualCash || Math.max(0, cod.expectedCash - Math.max(0, cod.overdraw||0));
-    openModal('Resolve Close of Day', `
-      <div class="stack">
-        <div class="kpi-row">
-          <div class="kpi"><div class="label">Expected Cash</div><div class="number">${money(cod.expectedCash)}</div></div>
-          <div class="kpi"><div class="label">Actual Cash</div><div class="number">${money(cod.actualCash)}</div></div>
-          <div class="kpi"><div class="label">Variance</div><div class="number ${cod.variance<0?'danger-text':''}">${money(cod.variance)}</div></div>
-          <div class="kpi"><div class="label">Overdraw</div><div class="number ${cod.overdraw>0?'danger-text':''}">${money(cod.overdraw||0)}</div></div>
-        </div>
-        <div class="form-grid two">
-          <div class="field"><label>Resolved Amount</label><input id="codResolvedAmount" class="entry-input" type="number" value="${defaultResolved}"></div>
-          <div class="field"><label>Create Teller Debt</label><select id="codCreateDebt" class="entry-input"><option value="auto">Auto based on variance</option><option value="yes">Yes</option><option value="no">No</option></select></div>
-        </div>
-        <div class="field"><label>Resolution Note</label><textarea id="codResolutionNote" class="entry-input"></textarea></div>
-      </div>
-    `,[
-      {label:'Close', className:'secondary', onClick: closeModal},
-      {label:'Resolve', onClick: ()=> {
-        const note = byId('codResolutionNote').value.trim(); if(!note) return showToast('Resolution note required');
-        const resolvedAmount = Number(byId('codResolvedAmount').value||0); if(resolvedAmount<0) return showToast('Invalid resolved amount');
-        cod.status = 'resolved'; cod.resolutionNote = note; cod.resolvedBy = currentStaff()?.name || 'System'; cod.resolvedAt = new Date().toISOString(); cod.resolvedAmount = resolvedAmount;
-        createBusinessExtra({date:new Date().toISOString(), accountNumber:'COD', details:`COD resolved for ${cod.staffName}`, kind:'credit', amount:resolvedAmount, balanceAfter:0, receivedOrPaidBy:cod.staffName, postedBy: currentStaff()?.name || 'System'});
-        const debtCandidate = Math.max(0, (cod.expectedCash||0) - resolvedAmount);
-        const mode = byId('codCreateDebt').value;
-        if ((mode==='yes' || (mode==='auto' && debtCandidate>0)) && cod.staffId) {
-          const acc = ensureStaffAccount(cod.staffId); acc.debtBalance = Number(acc.debtBalance||0) + debtCandidate;
-        }
-        save(); closeModal(); render(); showToast('COD resolved');
-      }}
-    ]);
-  }
-
-  function renderBalanceFilters(kind) {
-    const filter = state.ui[`${kind}Filter`] || { preset:'all', from:'', to:'', type:'all' };
-    const presets = [['daily','Daily'],['weekly','Weekly'],['monthly','Monthly'],['all','All']];
-    const typePresets = kind==='business' ? [['all','All'],['credit','Credit'],['debit','Debit']] : [['all','All'],['income','Income'],['expense','Expense']];
-    return `<div class="form-card"><div class="action-inline">${presets.map(([k,l])=>`<button class="filter-chip ${filter.preset===k?'active':'secondary'}" data-filter-kind="${kind}" data-filter-preset="${k}">${l}</button>`).join('')}<label class="inline-field"><span>From</span><input id="${kind}From" type="date" value="${filter.from||''}"></label><label class="inline-field"><span>To</span><input id="${kind}To" type="date" value="${filter.to||''}"></label><button class="secondary" id="${kind}CustomApply">Apply Custom</button><button class="secondary" id="${kind}ExportCsv">Export CSV</button><button class="secondary" id="${kind}PrintSummary">Print Summary</button></div><div class="action-inline" style="margin-top:10px">${typePresets.map(([k,l])=>`<button class="filter-chip ${filter.type===k?'active':'secondary'}" data-type-filter-kind="${kind}" data-type-filter="${k}">${l}</button>`).join('')}</div></div>`;
-  }
-
-  function bindBalanceFilters(kind) {
-    qq(`[data-filter-kind="${kind}"]`).forEach(btn => btn.onclick = () => { state.ui[`${kind}Filter`] = Object.assign({}, state.ui[`${kind}Filter`]||{}, { preset: btn.dataset.filterPreset, from:'', to:'' }); save(); renderWorkspace(); });
-    qq(`[data-type-filter-kind="${kind}"]`).forEach(btn => btn.onclick = () => { state.ui[`${kind}Filter`] = Object.assign({}, state.ui[`${kind}Filter`]||{}, { type: btn.dataset.typeFilter }); save(); renderWorkspace(); });
-    byId(`${kind}CustomApply`).onclick = () => { state.ui[`${kind}Filter`] = Object.assign({}, state.ui[`${kind}Filter`]||{}, { preset:'custom', from:byId(`${kind}From`).value, to:byId(`${kind}To`).value }); save(); renderWorkspace(); };
-    byId(`${kind}ExportCsv`).onclick = () => {
-      let rows = kind === 'business' ? flattenBusinessEntries() : (state.operations.entries || []);
-      rows = applyTypeFilter(filterByDate(rows, state.ui[`${kind}Filter`] || {}), kind, state.ui[`${kind}Filter`] || {});
-      exportCsvWithTotals(rows, `${kind}_balance.csv`, kind);
-    };
-    byId(`${kind}PrintSummary`).onclick = () => printBalanceSummary(kind);
-  }
-
-  function applyTypeFilter(rows, kind, filter){
-    const t=(filter&&filter.type)||'all';
-    if(t==='all') return rows;
-    if(kind==='business') return rows.filter(r=>r.kind===t);
-    return rows.filter(r=>r.kind===t);
-  }
-
-  function renderBusinessBalance() {
-    let filtered = filterByDate(flattenBusinessEntries(), state.ui.businessFilter || { preset: 'daily', from: '', to: '', type:'all' });
-    filtered = applyTypeFilter(filtered,'business', state.ui.businessFilter||{});
-    const credits = filtered.filter(t => t.kind === 'credit').reduce((s,t)=>s+Number(t.amount||0),0);
-    const debits = filtered.filter(t => t.kind === 'debit').reduce((s,t)=>s+Number(t.amount||0),0);
-    return `
-      <div class="stack">
-        ${renderBalanceFilters('business')}
-        <div class="kpi-row">
-          <div class="kpi"><div class="label">Total Credit</div><div class="number">${money(credits)}</div></div>
-          <div class="kpi"><div class="label">Total Debit</div><div class="number">${money(debits)}</div></div>
-          <div class="kpi"><div class="label">Entries</div><div class="number">${filtered.length}</div></div>
-          <div class="kpi"><div class="label">Net Book Balance</div><div class="number ${credits-debits<0?'danger-text':''}">${money(credits-debits)}</div></div>
-        </div>
-        <div class="table-card"><h3>Business Entries</h3><div class="table-wrap"><table class="table"><thead><tr><th>Date</th><th>Account</th><th>Details</th><th>Debit</th><th>Credit</th><th>Balance</th><th>Received/Paid By</th><th>Posted By</th></tr></thead><tbody>${filtered.slice(0,500).map(t=>`<tr><td>${fmtDate(t.date)}</td><td>${t.accountNumber || '—'}</td><td>${t.details}</td><td>${t.kind==='debit'?money(t.amount):''}</td><td>${t.kind==='credit'?money(t.amount):''}</td><td class="${Number(t.balanceAfter||0)<0?'danger-text':''}">${money(t.balanceAfter || 0)}</td><td>${t.receivedOrPaidBy || '—'}</td><td>${t.postedBy || '—'}</td></tr>`).join('') || '<tr><td colspan="8">No entries</td></tr>'}</tbody></table></div></div>
-      </div>`;
-  }
-
-  function renderOperationalBalance() {
-    let filtered = filterByDate(state.operations.entries || [], state.ui.operationalFilter || { preset: 'all', from: '', to: '', type:'all' });
-    filtered = applyTypeFilter(filtered,'operational', state.ui.operationalFilter||{});
-    const income = filtered.filter(e=>e.kind==='income');
-    const expense = filtered.filter(e=>e.kind==='expense');
-    return `
-      <div class="stack" id="operationalSection">
-        ${renderBalanceFilters('operational')}
-        <div class="kpi-row">
-          <div class="kpi"><div class="label">Total Income</div><div class="number">${money(income.reduce((s,e)=>s+Number(e.amount||0),0))}</div></div>
-          <div class="kpi"><div class="label">Total Expense</div><div class="number">${money(expense.reduce((s,e)=>s+Number(e.amount||0),0))}</div></div>
-          <div class="kpi"><div class="label">Net Operational</div><div class="number ${income.reduce((s,e)=>s+Number(e.amount||0),0)-expense.reduce((s,e)=>s+Number(e.amount||0),0)<0?'danger-text':''}">${money(income.reduce((s,e)=>s+Number(e.amount||0),0)-expense.reduce((s,e)=>s+Number(e.amount||0),0))}</div></div>
-          <div class="kpi"><div class="label">Entries</div><div class="number">${filtered.length}</div></div>
-        </div>
-        <div class="table-card"><h3>Operational Entries</h3><div class="table-wrap"><table class="table"><thead><tr><th>Date</th><th>Account</th><th>Type</th><th>Amount</th><th>Note</th><th>Posted By</th><th>Approved By</th></tr></thead><tbody>${filtered.map(e=>`<tr><td>${fmtDate(e.date)}</td><td>${e.accountName}</td><td>${e.kind}</td><td>${money(e.amount)}</td><td>${e.note||'—'}</td><td>${e.postedBy}</td><td>${e.approvedBy}</td></tr>`).join('') || '<tr><td colspan="7">No entries</td></tr>'}</tbody></table></div></div>
-      </div>`;
-  }
-
-  function exportCsvWithTotals(rows, filename, kind){
-    if (!rows.length) return showToast('Nothing to export');
-    const cols = Object.keys(rows[0]);
-    let totalCredit=0,totalDebit=0,totalAmount=0;
-    rows.forEach(r=>{ if(r.kind==='credit' || r.kind==='income') totalCredit += Number(r.amount||0); if(r.kind==='debit' || r.kind==='expense') totalDebit += Number(r.amount||0); totalAmount += Number(r.amount||0); });
-    const csv = [cols.join(',')].concat(rows.map(r => cols.map(k => JSON.stringify(r[k] ?? '')).join(','))).concat(['','','','TOTAL CREDIT', totalCredit],['','','','TOTAL DEBIT', totalDebit],['','','','TOTAL ENTRIES', rows.length]).join('\n');
-    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'})); a.download = filename; a.click();
-  }
-
-  function printBalanceSummary(kind){
-    let rows = kind === 'business' ? flattenBusinessEntries() : (state.operations.entries || []);
-    rows = applyTypeFilter(filterByDate(rows, state.ui[`${kind}Filter`] || {}), kind, state.ui[`${kind}Filter`] || {});
-    const credits = rows.filter(r=>r.kind==='credit' || r.kind==='income').reduce((s,r)=>s+Number(r.amount||0),0);
-    const debits = rows.filter(r=>r.kind==='debit' || r.kind==='expense').reduce((s,r)=>s+Number(r.amount||0),0);
-    const title = kind==='business' ? 'Business Balance Summary' : 'Operational Balance Summary';
-    const headCols = kind==='business' ? '<th>Date</th><th>Account</th><th>Details</th><th>Debit</th><th>Credit</th><th>Balance</th>' : '<th>Date</th><th>Account</th><th>Type</th><th>Amount</th><th>Note</th>';
-    const bodyRows = kind==='business' ? rows.map(r=>`<tr><td>${fmtDate(r.date)}</td><td>${r.accountNumber||'—'}</td><td>${r.details||'—'}</td><td>${r.kind==='debit'?money(r.amount):''}</td><td>${r.kind==='credit'?money(r.amount):''}</td><td>${money(r.balanceAfter||0)}</td></tr>`).join('') : rows.map(r=>`<tr><td>${fmtDate(r.date)}</td><td>${r.accountName||'—'}</td><td>${r.kind}</td><td>${money(r.amount)}</td><td>${r.note||'—'}</td></tr>`).join('');
-    printHtml(`<div class="print-summary"><h2>${title}</h2><div class="kpi-row"><div class="kpi"><div class="label">Total Credit/Income</div><div class="number">${money(credits)}</div></div><div class="kpi"><div class="label">Total Debit/Expense</div><div class="number">${money(debits)}</div></div><div class="kpi"><div class="label">Entries</div><div class="number">${rows.length}</div></div></div><div class="table-wrap" style="margin-top:12px"><table class="table"><thead><tr>${headCols}</tr></thead><tbody>${bodyRows}</tbody></table></div></div>`);
-  }
-
-  function openCustomerSearchModal(list) {
-    openModal('Customer Search', `<div class="field"><label>Search customer by name or account number</label><input id="modalCustomerSearch" class="entry-input" placeholder="Type name or account number"></div><div class="table-wrap" style="margin-top:12px"><table class="table"><thead><tr><th>Account Number</th><th>Name</th><th>Phone</th><th></th></tr></thead><tbody id="customerSearchRows"></tbody></table></div>`, [{label:'Close', className:'secondary', onClick: closeModal}]);
-    const renderRows = (rows)=>{ byId('customerSearchRows').innerHTML = rows.map(c=>`<tr><td>${c.accountNumber}</td><td>${c.name}${c.active===false?' <span class="badge rejected">Frozen</span>':''}</td><td>${c.phone}</td><td><span class="linklike" data-pick="${c.id}">Select</span></td></tr>`).join('') || '<tr><td colspan="4">No matching customers</td></tr>'; qq('[data-pick]').forEach(el=> el.onclick = ()=>{ state.ui.selectedCustomerId = el.dataset.pick; save(); closeModal(); applySelectedCustomerToActiveTool();}); };
-    renderRows(list);
-    byId('modalCustomerSearch').oninput = (e)=>{ const term = e.target.value.trim().toLowerCase(); if(!term) return renderRows(list); renderRows(state.customers.filter(c=> c.name.toLowerCase().includes(term) || c.accountNumber.includes(term))); };
-  }
-
-  function bindCheckBalance() {
-    const doLookup = () => {
-      const c = getCustomerByAccountNo(byId('lookupAcc').value);
-      if (!c) return showToast('Customer not found. Use name search.');
-      state.ui.selectedCustomerId = c.id; save(); lookupFill(byId('workspace'), c);
-    };
-    byId('lookupBtn').onclick = doLookup;
-    byId('lookupAcc').onkeydown = (e)=>{ if(e.key==='Enter') doLookup(); };
-    byId('openStatementBtn').onclick = () => { state.ui.tool = 'account_statement'; renderWorkspace(); setTimeout(()=>{ byId('stmtAcc').value = getSelectedCustomer()?.accountNumber || ''; }, 30); };
-    byId('searchByNameBtn').onclick = () => openCustomerSearchModal(state.customers);
-  }
-
-  function bindMaintenance(prefix) {
-    const search = () => {
-      const c = getCustomerByAccountNo(byId(`${prefix}Acc`).value);
-      if (!c) return showToast('Customer not found');
-      if(prefix==='reactivation' && c.active!==false) return showToast('Only frozen accounts can be reactivated');
-      state.ui.selectedCustomerId = c.id; save();
-      byId(`${prefix}Name`).value = c.name; byId(`${prefix}Address`).value = c.address; byId(`${prefix}Phone`).value = c.phone; byId(`${prefix}Nin`).value = c.nin; byId(`${prefix}Bvn`).value = c.bvn; byId(`${prefix}OldAccount`).value = c.oldAccountNumber || '';
-      byId(`${prefix}DisplayName`).textContent = c.name; byId(`${prefix}DisplayPhone`).textContent = c.phone; byId(`${prefix}DisplayStatus`).textContent = c.active ? 'Active' : 'Frozen';
-    };
-    byId(`${prefix}Search`).onclick = search;
-    byId(`${prefix}Submit`).onclick = () => {
-      const c = getSelectedCustomer() || getCustomerByAccountNo(byId(`${prefix}Acc`).value); if (!c) return showToast('Search for an account first');
-      if (prefix === 'maintenance') {
-        createRequest('account_maintenance', { customerId: c.id, accountNumber: c.accountNumber, patch: { name: byId(`${prefix}Name`).value.trim(), address: byId(`${prefix}Address`).value.trim(), phone: byId(`${prefix}Phone`).value.trim(), nin: byId(`${prefix}Nin`).value.trim(), bvn: byId(`${prefix}Bvn`).value.trim(), oldAccountNumber: byId(`${prefix}OldAccount`).value.trim() } });
-        showToast('Maintenance request sent for approval');
-      } else {
-        if(c.active!==false) return showToast('Only frozen accounts can be reactivated');
-        createRequest('account_reactivation', { customerId: c.id, accountNumber: c.accountNumber }); showToast('Reactivation request sent for approval');
-      }
-      render();
-    };
-  }
-
-  function bindJournal(kind) {
-    ensurePatchState();
-    const st = currentStaff();
-    const journal = getStaffJournal(kind, st.id);
-    const rerenderJournal = () => {
-      byId('journalRows').innerHTML = journal.map((row, i) => `<tr><td>${i+1}</td><td>${row.customerName}</td><td>${row.accountNumber}</td><td>${money(row.amount)}</td><td><span class="linklike" data-remove-row="${row.id}">Remove</span></td></tr>`).join('') || '<tr><td colspan="5">No journal entries yet</td></tr>';
-      qq('[data-remove-row]').forEach(el => el.onclick = () => { const idx = journal.findIndex(r => r.id === el.dataset.removeRow); if (idx >= 0) { journal.splice(idx,1); rerenderJournal(); save(); } });
-    };
-    const search = () => {
-      const c = getCustomerByAccountNo(byId('txAcc').value);
-      if (!c) return showToast('Customer not found');
-      if(c.active===false) return showToast('Account is frozen');
-      state.ui.selectedCustomerId = c.id; save();
-      byId('txName').textContent = c.name + (c.active===false ? ' (Frozen)' : '');
-      byId('txBalance').innerHTML = `<span class="${Number(c.balance||0)<0?'danger-text':''}">${money(c.balance)}</span>`;
-    };
-    byId('txSearch').onclick = search;
-    if(byId('txAcc')) byId('txAcc').onkeydown = (e)=>{ if(e.key==='Enter') search(); };
-    byId('txJournalAdd').onclick = () => {
-      const customer = getSelectedCustomer() || getCustomerByAccountNo(byId('txAcc').value);
-      if (!customer) return showToast('Search for customer first');
-      if (customer.active===false) return showToast('Frozen account cannot accept transactions');
-      const amount = Number(byId('txAmount').value || 0); if (!(amount > 0)) return showToast('Enter a valid amount');
-      journal.push({ id: uid('jr'), customerId: customer.id, customerName: customer.name, accountNumber: customer.accountNumber, amount, details: byId('txDetails').value.trim(), receivedOrPaidBy: byId('txCounterparty').value.trim(), payoutSource: byId('txPayoutSource')?.value || 'teller', date: today() });
-      rerenderJournal(); save(); resetJournalFields();
-    };
-    byId('journalClear').onclick = () => { journal.splice(0); rerenderJournal(); save(); resetJournalFields(); };
-    byId('journalSubmit').onclick = () => {
-      const st = currentStaff(); if (!hasPermission(kind)) return showToast('No access to post'); if (!hasApprovedFloat(st.id)) return showToast('Approved opening balance required before posting'); if (!journal.length) return showToast('Generate journal first');
-      confirmAction(`Submit ${kind} journal for approval?`, () => {
-        journal.forEach(row => {
-          createRequest(kind === 'credit' ? 'customer_credit' : 'customer_debit', { customerId: row.customerId, accountNumber: row.accountNumber, amount: row.amount, details: row.details, receivedOrPaidBy: row.receivedOrPaidBy, payoutSource: row.payoutSource, staffId: st.id, date: row.date });
-        });
-        journal.splice(0); save(); rerenderJournal(); resetJournalFields(); render(); showToast(`${kind[0].toUpperCase()+kind.slice(1)} journal submitted for approval`);
-      });
-    };
-    rerenderJournal();
-  }
-
-  function applySelectedCustomerToActiveTool() {
-    const c = getSelectedCustomer(); if (!c) return;
-    if (state.ui.tool === 'check_balance') { lookupFill(byId('workspace'), c); return; }
-    if (state.ui.tool === 'credit' || state.ui.tool === 'debit') {
-      if (byId('txAcc')) byId('txAcc').value = c.accountNumber;
-      if (byId('txName')) byId('txName').textContent = c.name + (c.active===false ? ' (Frozen)' : '');
-      if (byId('txBalance')) byId('txBalance').innerHTML = `<span class="${Number(c.balance||0)<0?'danger-text':''}">${money(c.balance)}</span>`;
-      return;
-    }
-    if (state.ui.tool === 'account_statement') { if (byId('stmtAcc')) byId('stmtAcc').value = c.accountNumber; return; }
-  }
-
-  function lookupFill(root, customer) {
-    const map = { name: customer?.name || '—', phone: customer?.phone || '—', balance: customer ? `<span class="${Number(customer.balance||0)<0?'danger-text':''}">${money(customer.balance||0)}</span>` : '—', address: customer?.address || '—' };
-    Object.entries(map).forEach(([k,v]) => { const el=q(`[data-fill="${k}"]`, root); if(el) el.innerHTML = v; });
-    const photo = q('[data-fill="photo"]', root); if(photo){ photo.innerHTML = customer?.photo ? `<img src="${customer.photo}" alt="${customer.name}">` : '<span>No Photo</span>'; }
-  }
-
-  function renderAccountOpening(){
-    const nextNo = nextCustomerAccountNumber();
-    return `
-      <div class="form-card">
-        <h3>Account Opening</h3>
-        <div class="form-grid three">
-          <div class="field"><label>Account Name</label><input id="openName" class="entry-input"></div>
-          <div class="field"><label>Address</label><input id="openAddress" class="entry-input"></div>
-          <div class="field"><label>Phone Number</label><input id="openPhone" class="entry-input"></div>
-          <div class="field"><label>NIN</label><input id="openNin" class="entry-input"></div>
-          <div class="field"><label>BVN</label><input id="openBvn" class="entry-input"></div>
-          <div class="field"><label>Old Account Number</label><input id="openOldAccount" class="entry-input"></div>
-          <div class="field"><label>New Account Number</label><div class="display-field" id="generatedAccountNumber">${nextNo}</div></div>
-          <div class="field"><label>Photo Upload</label><input id="openPhoto" class="entry-input" type="file" accept="image/*"></div>
-          <div class="field"><label>Live Capture</label><button class="secondary" id="openCaptureBtn">Capture Photo</button></div>
-        </div>
-        <div class="action-row"><button id="submitOpening">Submit for Approval</button></div>
-      </div>`;
-  }
-
-  function bindAccountOpening() {
-    byId('openPhoto').onchange = async (e) => { const f = e.target.files?.[0]; if (!f) return; byId('openPhoto').dataset.base64 = await toBase64(f); };
-    const cap = byId('openCaptureBtn'); if(cap) cap.onclick = async ()=> {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({video:true});
-        openModal('Capture Photo', `<video id="camVideo" autoplay playsinline style="width:100%;border-radius:12px;background:black"></video><canvas id="camCanvas" style="display:none"></canvas>`, [
-          {label:'Cancel', className:'secondary', onClick: ()=>{ stream.getTracks().forEach(t=>t.stop()); closeModal(); }},
-          {label:'Capture', onClick: ()=>{ const v=byId('camVideo'); const c=byId('camCanvas'); c.width=v.videoWidth||320; c.height=v.videoHeight||240; c.getContext('2d').drawImage(v,0,0,c.width,c.height); byId('openPhoto').dataset.base64 = c.toDataURL('image/png'); stream.getTracks().forEach(t=>t.stop()); closeModal(); showToast('Photo captured'); }}
-        ]); byId('camVideo').srcObject = stream;
-      } catch(e){ showToast('Camera unavailable'); }
-    };
-    byId('submitOpening').onclick = () => {
-      const payload = { name: byId('openName').value.trim(), address: byId('openAddress').value.trim(), phone: byId('openPhone').value.trim(), nin: byId('openNin').value.trim(), bvn: byId('openBvn').value.trim(), oldAccountNumber: byId('openOldAccount').value.trim(), generatedAccountNumber: byId('generatedAccountNumber').textContent.trim(), photo: byId('openPhoto').dataset.base64 || '' };
-      if (!payload.name || !payload.address || !payload.phone || !payload.nin || !payload.bvn) return showToast('Complete all required fields');
-      confirmAction('Submit account opening request?', () => { createRequest('account_opening', payload); render(); showToast('Account opening sent for approval'); });
-    };
-  }
-
-  function bindGlobalSearch(){
-    const gs=byId('globalNameSearch'); if(gs) gs.oninput=(e)=>{ const val=e.target.value.trim(); if(!val) return; openCustomerSearchModal(searchCustomersByName(val)); };
-  }
-
-  ensurePatchState();
   applyTheme(state.ui.theme || 'classic', false);
   render();
 })();
