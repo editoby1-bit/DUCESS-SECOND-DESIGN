@@ -744,9 +744,10 @@
       return `<tr><td>${i+1}</td><td>${s.name}</td><td>${ROLE_LABELS[s.role]||s.role}</td><td>${status}</td><td>${rec ? money(rec.expectedCash||0) : '—'}</td><td>${rec ? money(rec.actualCash||0) : '—'}</td></tr>`;
     }).join('');
     return `<div class="stack">
+      <div class="table-card"><h3>Approval Queue</h3><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Request</th><th>Submitted By</th><th>Details</th><th>Date</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows || '<tr><td colspan="7" class="muted">No requests yet</td></tr>'}</tbody></table></div>${state.approvals.length > limit ? `<div class="action-row"><button id="approvalsMore" class="secondary">More</button></div>`:''}</div>
       ${(currentStaff()?.role==='admin_officer') ? `<div class="table-card"><h3>COD Daily Submission Status</h3><div class="action-inline"><div class="inline-field compact"><span>COD Date</span><input type="date" id="codAdminDate" value="${selected}"></div></div><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Staff</th><th>Office</th><th>Status</th><th>Expected</th><th>Actual</th></tr></thead><tbody>${codStatusRows}</tbody></table></div></div>` : ''}
       ${codRows ? `<div class="table-card"><h3>COD Resolution Queue</h3><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Date</th><th>Staff</th><th>Expected</th><th>Actual</th><th>Variance</th><th>Overdraw</th><th>Note</th><th>Action</th></tr></thead><tbody>${codRows}</tbody></table></div></div>` : ''}
-      <div class="table-card"><h3>Approval Queue</h3><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Request</th><th>Submitted By</th><th>Details</th><th>Date</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows || '<tr><td colspan="7" class="muted">No requests yet</td></tr>'}</tbody></table></div>${state.approvals.length > limit ? `<div class="action-row"><button id="approvalsMore" class="secondary">More</button></div>`:''}</div></div>`;
+      </div>`;
   }
 
   function approvalSubmittedBy(a) {
@@ -1318,6 +1319,11 @@
       .reduce((s,r)=>s+Number(r.payload?.amount||0),0);
   }
 
+  function approvedDebitTotalForDate(staffId, dateStr) {
+    return (state.approvals||[]).filter(r => r.type === 'customer_debit' && r.status === 'approved' && r.payload?.staffId === staffId && r.payload?.date === dateStr)
+      .reduce((s,r)=>s+Number(r.payload?.amount||0),0);
+  }
+
   function currentFloatAvailable(staffId, date=today()) {
     const opening = getOpeningBalanceForDate(staffId, date);
     const used = approvedCreditTotalForDate(staffId, date);
@@ -1375,13 +1381,15 @@
   function openCODResolutionModal(codId) {
     const cod = state.cod.find(c => c.id === codId);
     if (!cod) return;
+    const totalCredits = approvedCreditTotalForDate(cod.staffId, cod.date);
+    const totalDebits = approvedDebitTotalForDate(cod.staffId, cod.date);
     openModal('Resolve Close of Day', `
       <div class="stack">
         <div class="kpi-row">
-          <div class="kpi"><div class="label">Expected Cash</div><div class="number">${money(cod.expectedCash)}</div></div>
-          <div class="kpi"><div class="label">Actual Cash</div><div class="number">${money(cod.actualCash)}</div></div>
+          <div class="kpi"><div class="label">Total Credits</div><div class="number">${money(totalCredits)}</div></div>
+          <div class="kpi"><div class="label">Total Debits</div><div class="number">${money(totalDebits)}</div></div>
           <div class="kpi"><div class="label">Variance</div><div class="number ${Number(cod.variance||0)<0?'balance-negative':''}">${money(cod.variance)}</div></div>
-          <div class="kpi"><div class="label">Overdraw</div><div class="number">${money(cod.overdraw||0)}</div></div>
+          <div class="kpi"><div class="label">Overdraw</div><div class="number ${Number(cod.overdraw||0)>0?'balance-negative':''}">${money(cod.overdraw||0)}</div></div>
         </div>
         <div class="form-grid two">
           <div class="field"><label>Resolved Amount</label><input id="codResolvedAmount" class="entry-input" type="number" value="${Math.max(0, Number(cod.actualCash||0))}"></div>
@@ -1397,7 +1405,20 @@
         if (!note) return showToast('Resolution note required');
         cod.status = 'resolved'; cod.resolutionNote = note; cod.resolvedBy = currentStaff()?.name || 'System'; cod.resolvedAt = new Date().toISOString(); cod.resolvedAmount = resolvedAmount;
         state.businessExtras ||= []; state.businessExtras.unshift({ date:new Date().toISOString(), accountNumber:'COD', details:`COD resolved for ${cod.staffName}`, kind:'credit', amount:resolvedAmount, balanceAfter:0, receivedOrPaidBy:cod.staffName, postedBy:currentStaff()?.name || 'System' });
-        if (byId('codCreateDebt').value === 'yes') { const debtAmt = Math.max(0, -(Number(cod.variance||0))) + Math.max(0, Number(cod.overdraw||0)); if (debtAmt > 0) { const acc = ensureStaffAccount(cod.staffId); acc.debtBalance = Number(acc.debtBalance||0) + debtAmt; addStaffEntry(cod.staffId, 'cod_resolution_debt', debtAmt, 0, `COD debt recorded: ${note}`); } }
+        const acc = ensureStaffAccount(cod.staffId);
+        const existingDebtEntries = (acc.entries||[]).filter(e => e.type === 'cod_resolution_debt' && e.codId === cod.id);
+        if (existingDebtEntries.length) {
+          const existingAmt = existingDebtEntries.reduce((s,e)=>s+Number(e.amount||0),0);
+          acc.entries = (acc.entries||[]).filter(e => !(e.type === 'cod_resolution_debt' && e.codId === cod.id));
+          acc.debtBalance = Math.max(0, Number(acc.debtBalance||0) - existingAmt);
+        }
+        if (byId('codCreateDebt').value === 'yes') {
+          const debtAmt = Math.max(0, -(Number(cod.variance||0))) + Math.max(0, Number(cod.overdraw||0));
+          if (debtAmt > 0) {
+            acc.debtBalance = Number(acc.debtBalance||0) + debtAmt;
+            addStaffEntry(cod.staffId, 'cod_resolution_debt', debtAmt, 0, `COD debt recorded: ${note}`, { codId: cod.id });
+          }
+        }
         save(); closeModal(); render(); showToast('COD resolved');
       }}
     ]);
