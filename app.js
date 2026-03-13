@@ -518,7 +518,7 @@
     const pending = state.approvals.filter(a => a.status === 'pending').length;
     const acc = ensureStaffAccount(currentStaff()?.id || '');
     const openingToday = getOpeningBalanceForDate(currentStaff()?.id, today());
-    const remaining = Number(acc.balance || 0);
+    const remaining = currentFloatAvailable(currentStaff()?.id, today());
     byId('heroStats').innerHTML = [
       cardMetric('My Balance', money(Number(acc.walletBalance||0)), `Wallet ${money(acc.walletBalance||0)} • Debt ${money(acc.debtBalance||0)} • Opening ${money(openingToday)} • Remaining ${money(remaining)}`, 'my-balance'),
       cardMetric('My Close of Day', money(staffCODRecords((currentStaff()||{}).id).length), `${pending} pending approvals`, 'my-cod'),
@@ -723,6 +723,7 @@
   }
 
   function renderApprovals() {
+    state.ui.codAdminDate ||= today();
     const limit = state.ui.approvalsLimit || 20;
     const approvals = state.approvals.slice(0, limit);
     const rows = approvals.map((a, i) => `
@@ -736,7 +737,16 @@
         <td>${a.status === 'pending' ? `<button data-approve="${a.id}" class="success">Approve</button> <button data-reject="${a.id}" class="danger">Reject</button>` : a.approvedBy || '—'}</td>
       </tr>`).join('');
     const codRows = (state.cod||[]).filter(c=>c.status==='flagged').map((c,i)=>`<tr><td>${i+1}</td><td>${fmtDate(c.date)}</td><td>${c.staffName}</td><td>${money(c.expectedCash||0)}</td><td>${money(c.actualCash||0)}</td><td class="${Number(c.variance||0)<0?'balance-negative':''}">${money(c.variance||0)}</td><td>${money(c.overdraw||0)}</td><td>${c.note||'—'}</td><td>${(currentStaff()?.role==='admin_officer') ? `<button data-cod-resolve="${c.id}" class="warning">Resolve</button>` : 'Awaiting Administrative Resolution'}</td></tr>`).join('');
-    return `<div class="stack">${codRows ? `<div class="table-card"><h3>COD Resolution Queue</h3><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Date</th><th>Staff</th><th>Expected</th><th>Actual</th><th>Variance</th><th>Overdraw</th><th>Note</th><th>Action</th></tr></thead><tbody>${codRows}</tbody></table></div></div>` : ''}<div class="table-card"><h3>Approval Queue</h3><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Request</th><th>Submitted By</th><th>Details</th><th>Date</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows || '<tr><td colspan="7" class="muted">No requests yet</td></tr>'}</tbody></table></div>${state.approvals.length > limit ? `<div class="action-row"><button id="approvalsMore" class="secondary">More</button></div>`:''}</div></div>`;
+    const selected = state.ui.codAdminDate;
+    const codStatusRows = state.staff.filter(s => (DEFAULT_PERMS[s.role]||[]).includes('credit') || (DEFAULT_PERMS[s.role]||[]).includes('debit')).map((s,i) => {
+      const rec = (state.cod||[]).find(c => c.staffId===s.id && c.date===selected);
+      const status = rec ? (rec.status==='resolved' ? 'Resolved' : rec.status==='flagged' ? 'Flagged' : 'Submitted') : 'Missing';
+      return `<tr><td>${i+1}</td><td>${s.name}</td><td>${ROLE_LABELS[s.role]||s.role}</td><td>${status}</td><td>${rec ? money(rec.expectedCash||0) : '—'}</td><td>${rec ? money(rec.actualCash||0) : '—'}</td></tr>`;
+    }).join('');
+    return `<div class="stack">
+      ${(currentStaff()?.role==='admin_officer') ? `<div class="table-card"><h3>COD Daily Submission Status</h3><div class="action-inline"><div class="inline-field compact"><span>COD Date</span><input type="date" id="codAdminDate" value="${selected}"></div></div><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Staff</th><th>Office</th><th>Status</th><th>Expected</th><th>Actual</th></tr></thead><tbody>${codStatusRows}</tbody></table></div></div>` : ''}
+      ${codRows ? `<div class="table-card"><h3>COD Resolution Queue</h3><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Date</th><th>Staff</th><th>Expected</th><th>Actual</th><th>Variance</th><th>Overdraw</th><th>Note</th><th>Action</th></tr></thead><tbody>${codRows}</tbody></table></div></div>` : ''}
+      <div class="table-card"><h3>Approval Queue</h3><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Request</th><th>Submitted By</th><th>Details</th><th>Date</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows || '<tr><td colspan="7" class="muted">No requests yet</td></tr>'}</tbody></table></div>${state.approvals.length > limit ? `<div class="action-row"><button id="approvalsMore" class="secondary">More</button></div>`:''}</div></div>`;
   }
 
   function approvalSubmittedBy(a) {
@@ -1043,10 +1053,6 @@
     return acc.entries.some(e => e.type === 'approved_float' && e.floatDate === date);
   }
 
-  function currentFloatAvailable(staffId, date=today()) {
-    const acc = ensureStaffAccount(staffId);
-    return Math.max(0, Number(acc.balance||0));
-  }
 
   function bindJournal(kind) {
     const staff = currentStaff();
@@ -1110,6 +1116,8 @@
     qq('[data-cod-resolve]').forEach(btn => btn.onclick = () => openCODResolutionModal(btn.dataset.codResolve));
     const more = byId('approvalsMore');
     if (more) more.onclick = () => { state.ui.approvalsLimit = (state.ui.approvalsLimit || 20) + 20; save(); renderWorkspace(); };
+    const codDate = byId('codAdminDate');
+    if (codDate) codDate.onchange = () => { state.ui.codAdminDate = codDate.value || today(); save(); renderWorkspace(); };
   }
 
   function bindPermissions() {
@@ -1196,16 +1204,13 @@
   async function openCODModal() {
     const st = currentStaff();
     if (!(hasPermission('credit') || hasPermission('debit'))) return showToast('Current staff does not submit close of day');
-    if (!hasApprovedFloat(st.id)) return showToast('Approved opening balance required before closing day');
-    if ((state.cod||[]).some(c=>c.staffId===st.id && c.date===today())) return showToast('Close of Day already submitted for today');
-    const expectedCash = Math.max(0, currentFloatAvailable(st.id));
-    const overdraw = expectedCash < 0 ? Math.abs(expectedCash) : 0;
+    const initDate = state.ui.codSubmitDate || today();
     openModal('Close of Day', `
       <div class="stack">
         <div class="form-grid three">
           <div class="field"><label>Staff</label><div class="display-field">${st.name}</div></div>
-          <div class="field"><label>Date</label><div class="display-field">${today()}</div></div>
-          <div class="field"><label>Expected Cash</label><div class="display-field">${money(expectedCash)}</div></div>
+          <div class="field"><label>COD Date</label><input id="codDate" class="entry-input" type="date" value="${initDate}" max="${today()}"></div>
+          <div class="field"><label>Expected Cash</label><div class="display-field" id="codExpected">0</div></div>
           <div class="field"><label>Actual Cash Count</label><input id="codActual" class="entry-input" type="number"></div>
           <div class="field"><label>Field Paper Upload</label><input id="codFiles" class="entry-input" type="file" multiple accept="image/*,.pdf"></div>
           <div class="field"><label>Note</label><textarea id="codNote" class="entry-input"></textarea></div>
@@ -1216,6 +1221,11 @@
     `, [
       { label: 'Cancel', className:'secondary', onClick: closeModal },
       { label: 'Submit', onClick: async () => {
+          const selDate = byId('codDate').value || today();
+          if (!hasApprovedFloat(st.id, selDate)) return showToast('Approved opening balance required for selected COD date');
+          if ((state.cod||[]).some(c=>c.staffId===st.id && c.date===selDate)) return showToast('Close of Day already submitted for this date');
+          const expectedCash = currentFloatAvailable(st.id, selDate);
+          const overdraw = currentFloatOverdraw(st.id, selDate);
           const actualCash = Number(byId('codActual').value || 0);
           const note = byId('codNote').value.trim();
           if (actualCash < 0) return showToast('Enter valid actual cash count');
@@ -1223,13 +1233,24 @@
           const fieldPapers = await Promise.all(files.map(toBase64));
           const variance = actualCash - expectedCash;
           if ((variance !== 0 || overdraw > 0) && !note) return showToast('Add note for shortage, excess or overdraw');
-          createRequest('close_of_day', { staffId: st.id, staffName: st.name, date: today(), actualCash, expectedCash, variance, overdraw, note, fieldPapers });
+          createRequest('close_of_day', { staffId: st.id, staffName: st.name, date: selDate, actualCash, expectedCash, variance, overdraw, note, fieldPapers });
           closeModal();
           render();
           showToast('Close of Day sent for approval');
       }}
     ]);
-    const syncCodStatus = () => { const actual = Number(byId('codActual').value || 0); const variance = actual - expectedCash; const el = byId('codStatus'); if(!el) return; if(variance===0 && !(overdraw>0)) { el.textContent='Balanced'; el.className='note'; } else if(variance<0) { el.textContent=`Shortage ${money(Math.abs(variance))}${overdraw>0 ? ' • Overdraw '+money(overdraw): ''}`; el.className='note balance-negative'; } else { el.textContent=`Excess ${money(variance)}${overdraw>0 ? ' • Overdraw '+money(overdraw): ''}`; el.className='note'; }}; byId('codActual').oninput = syncCodStatus; syncCodStatus();
+    const syncCodStatus = () => {
+      const selDate = byId('codDate').value || today();
+      state.ui.codSubmitDate = selDate; save();
+      const expectedCash = hasApprovedFloat(st.id, selDate) ? currentFloatAvailable(st.id, selDate) : 0;
+      const overdraw = hasApprovedFloat(st.id, selDate) ? currentFloatOverdraw(st.id, selDate) : 0;
+      const expEl = byId('codExpected'); if (expEl) expEl.textContent = money(expectedCash);
+      const actual = Number(byId('codActual').value || 0); const variance = actual - expectedCash; const el = byId('codStatus'); if(!el) return;
+      if (!hasApprovedFloat(st.id, selDate)) { el.textContent='No approved opening balance for selected date'; el.className='note balance-negative'; return; }
+      if ((state.cod||[]).some(c=>c.staffId===st.id && c.date===selDate)) { el.textContent='COD already submitted for selected date'; el.className='note balance-negative'; return; }
+      if(variance===0 && !(overdraw>0)) { el.textContent='Balanced'; el.className='note'; } else if(variance<0) { el.textContent=`Shortage ${money(Math.abs(variance))}${overdraw>0 ? ' • Overdraw '+money(overdraw): ''}`; el.className='note balance-negative'; } else { el.textContent=`Excess ${money(variance)}${overdraw>0 ? ' • Overdraw '+money(overdraw): ''}`; el.className='note'; }
+    };
+    byId('codActual').oninput = syncCodStatus; byId('codDate').onchange = syncCodStatus; syncCodStatus();
     byId('codFiles').onchange = () => {
       const files = Array.from(byId('codFiles').files || []);
       byId('codUploads').innerHTML = files.map(f => `<div class="upload-pill">${f.name}</div>`).join('');
@@ -1292,6 +1313,23 @@
     return acc.entries.filter(e => e.type === 'approved_float' && e.floatDate === dateStr).reduce((s,e)=>s+Number(e.amount||0),0);
   }
 
+  function approvedCreditTotalForDate(staffId, dateStr) {
+    return (state.approvals||[]).filter(r => r.type === 'customer_credit' && r.status === 'approved' && r.payload?.staffId === staffId && r.payload?.date === dateStr)
+      .reduce((s,r)=>s+Number(r.payload?.amount||0),0);
+  }
+
+  function currentFloatAvailable(staffId, date=today()) {
+    const opening = getOpeningBalanceForDate(staffId, date);
+    const used = approvedCreditTotalForDate(staffId, date);
+    return Math.max(0, opening - used);
+  }
+
+  function currentFloatOverdraw(staffId, date=today()) {
+    const opening = getOpeningBalanceForDate(staffId, date);
+    const used = approvedCreditTotalForDate(staffId, date);
+    return Math.max(0, used - opening);
+  }
+
   function staffCODRecords(staffId) {
     return (state.cod || []).filter(c => c.staffId === staffId);
   }
@@ -1305,7 +1343,7 @@
           <div class="kpi"><div class="label">Wallet Balance</div><div class="number">${money(acc.walletBalance||0)}</div></div>
           <div class="kpi"><div class="label">Debt Balance</div><div class="number ${Number(acc.debtBalance||0)>0 ? 'balance-negative' : ''}">${money(acc.debtBalance||0)}</div></div>
           <div class="kpi"><div class="label">Today's Opening Balance</div><div class="number">${money(getOpeningBalanceForDate(st.id, today()))}</div></div>
-          <div class="kpi"><div class="label">Remaining Float Today</div><div class="number">${money(Math.max(0, Number(acc.balance||0)))}</div></div>
+          <div class="kpi"><div class="label">Remaining Float Today</div><div class="number">${money(currentFloatAvailable(st.id, today()))}</div></div>
         </div>
         <div class="form-grid three">
           <div class="field"><label>Wallet Funding Amount</label><input id="walletFundAmt" class="entry-input" type="number"></div>

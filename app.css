@@ -200,3 +200,16 @@ body[data-theme="ducess-sheet"] button.ghost-btn, body[data-theme="ducess-sheet"
 body[data-theme="dark-slate"] button.secondary, body[data-theme="dark-slate"] .tool-tab, body[data-theme="dark-slate"] .filter-chip{background:#253243;color:#f6fbff;border:1px solid #3b4d62;}
 body[data-theme="dark-slate"] .icon-btn, body[data-theme="dark-slate"] button.ghost-btn{color:#f6fbff;border-color:#4b637d;background:#1b2734;}
 body[data-theme="dark-slate"] .linklike{color:#8fd8ff;}
+
+body[data-theme="ducess-sheet"] select,
+body[data-theme="ducess-sheet"] input,
+body[data-theme="ducess-sheet"] textarea,
+body[data-theme="ducess-sheet"] .display-field{background:#1a1111;color:#f7f4ea;border-color:#7a2a2a;}
+body[data-theme="ducess-sheet"] select option{background:#1a1111;color:#f7f4ea;}
+body[data-theme="ducess-sheet"] .kpi{background:#130b0b;border-color:#7a2a2a;}
+body[data-theme="ducess-sheet"] .kpi .label, body[data-theme="ducess-sheet"] .kpi .number{color:#f7f4ea;}
+body[data-theme="ducess-sheet"] .table th{background:#f5eded;color:#4e0e0e;}
+body[data-theme="ducess-sheet"] .table tr:hover td{background:#201414;color:#f7f4ea;}
+body[data-theme="ducess-sheet"] .table td{color:#f7f4ea;}
+body[data-theme="ducess-sheet"] .inline-field span{color:#f0dede;}
+body[data-theme="ducess-sheet"] ::placeholder{color:#d9c9c9;opacity:1;}
