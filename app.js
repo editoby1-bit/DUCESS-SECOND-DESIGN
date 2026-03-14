@@ -743,10 +743,11 @@
       const status = rec ? (rec.status==='resolved' ? 'Resolved' : rec.status==='flagged' ? 'Flagged' : 'Submitted') : 'Missing';
       return `<tr><td>${i+1}</td><td>${s.name}</td><td>${ROLE_LABELS[s.role]||s.role}</td><td>${status}</td><td>${rec ? money(rec.expectedCash||0) : '—'}</td><td>${rec ? money(rec.actualCash||0) : '—'}</td></tr>`;
     }).join('');
+    const approvalControls = state.approvals.length > 20 ? `<div class="action-row"><button id="approvalsMore" class="secondary">Show More</button>${limit > 20 ? `<button id="approvalsLess" class="secondary">Show Less</button>` : ''}</div>` : '';
     return `<div class="stack">
-      <div class="table-card"><h3>Approval Queue</h3><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Request</th><th>Submitted By</th><th>Details</th><th>Date</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows || '<tr><td colspan="7" class="muted">No requests yet</td></tr>'}</tbody></table></div>${state.approvals.length > limit ? `<div class="action-row"><button id="approvalsMore" class="secondary">More</button></div>`:''}</div>
-      ${(currentStaff()?.role==='admin_officer') ? `<div class="table-card"><h3>COD Daily Submission Status</h3><div class="action-inline"><div class="inline-field compact"><span>COD Date</span><input type="date" id="codAdminDate" value="${selected}"></div></div><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Staff</th><th>Office</th><th>Status</th><th>Expected</th><th>Actual</th></tr></thead><tbody>${codStatusRows}</tbody></table></div></div>` : ''}
       ${codRows ? `<div class="table-card"><h3>COD Resolution Queue</h3><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Date</th><th>Staff</th><th>Expected</th><th>Actual</th><th>Variance</th><th>Overdraw</th><th>Note</th><th>Action</th></tr></thead><tbody>${codRows}</tbody></table></div></div>` : ''}
+      <div class="table-card"><h3>Approval Queue</h3><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Request</th><th>Submitted By</th><th>Details</th><th>Date</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows || '<tr><td colspan="7" class="muted">No requests yet</td></tr>'}</tbody></table></div>${approvalControls}</div>
+      ${(currentStaff()?.role==='admin_officer') ? `<div class="table-card"><h3>COD Daily Submission Status</h3><div class="action-inline"><div class="inline-field compact"><span>COD Date</span><input type="date" id="codAdminDate" value="${selected}"></div></div><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Staff</th><th>Office</th><th>Status</th><th>Expected</th><th>Actual</th></tr></thead><tbody>${codStatusRows}</tbody></table></div></div>` : ''}
       </div>`;
   }
 
@@ -862,6 +863,9 @@
     const filtered = rawBusiness.filter(t => typeFilter==='all' ? true : t.kind===typeFilter);
     const credits = filtered.filter(t => t.kind === 'credit').reduce((s,t)=>s+Number(t.amount||0),0);
     const debits = filtered.filter(t => t.kind === 'debit').reduce((s,t)=>s+Number(t.amount||0),0);
+    const limit = state.ui.businessLimit || 20;
+    const visible = filtered.slice(0, limit);
+    const pager = filtered.length > 20 ? `<div class="action-row"><button id="businessMore" class="secondary">Show More</button>${limit > 20 ? `<button id="businessLess" class="secondary">Show Less</button>` : ''}</div>` : '';
     return `
       <div class="stack">
         ${renderBalanceFilters('business')}
@@ -871,7 +875,7 @@
           <div class="kpi"><div class="label">Entries</div><div class="number">${filtered.length}</div></div>
           <div class="kpi"><div class="label">Net Book Balance</div><div class="number">${money(credits-debits)}</div></div>
         </div>
-        <div class="table-card"><h3>Business Entries</h3><div class="table-wrap"><table class="table"><thead><tr><th>Date</th><th>Account</th><th>Details</th><th>Debit</th><th>Credit</th><th>Balance</th><th>Received/Paid By</th><th>Posted By</th></tr></thead><tbody>${filtered.slice(0,500).map(t=>`<tr><td>${fmtDate(t.date)}</td><td>${t.accountNumber || '—'}</td><td>${t.details}</td><td>${t.kind==='debit'?money(t.amount):''}</td><td>${t.kind==='credit'?money(t.amount):''}</td><td>${money(t.balanceAfter || 0)}</td><td>${t.receivedOrPaidBy || '—'}</td><td>${t.postedBy || '—'}</td></tr>`).join('') || '<tr><td colspan="8">No entries</td></tr>'}</tbody></table></div></div>
+        <div class="table-card"><h3>Business Entries</h3><div class="table-wrap"><table class="table"><thead><tr><th>Date</th><th>Account</th><th>Details</th><th>Debit</th><th>Credit</th><th>Balance</th><th>Received/Paid By</th><th>Posted By</th></tr></thead><tbody>${visible.map(t=>`<tr><td>${fmtDate(t.date)}</td><td>${t.accountNumber || '—'}</td><td>${t.details}</td><td>${t.kind==='debit'?money(t.amount):''}</td><td>${t.kind==='credit'?money(t.amount):''}</td><td>${money(t.balanceAfter || 0)}</td><td>${t.receivedOrPaidBy || '—'}</td><td>${t.postedBy || '—'}</td></tr>`).join('') || '<tr><td colspan="8">No entries</td></tr>'}</tbody></table></div>${pager}</div>
       </div>`;
   }
 
@@ -881,6 +885,9 @@
     const filtered = rawOperational.filter(e => kindFilter==='all' ? true : e.kind===kindFilter);
     const income = filtered.filter(e=>e.kind==='income');
     const expense = filtered.filter(e=>e.kind==='expense');
+    const limit = state.ui.operationalLimit || 20;
+    const visible = filtered.slice(0, limit);
+    const pager = filtered.length > 20 ? `<div class="action-row"><button id="operationalMore" class="secondary">Show More</button>${limit > 20 ? `<button id="operationalLess" class="secondary">Show Less</button>` : ''}</div>` : '';
     return `
       <div class="stack">
         ${renderBalanceFilters('operational')}
@@ -890,7 +897,7 @@
           <div class="kpi"><div class="label">Net Operational</div><div class="number">${money(income.reduce((s,e)=>s+Number(e.amount||0),0)-expense.reduce((s,e)=>s+Number(e.amount||0),0))}</div></div>
           <div class="kpi"><div class="label">Entries</div><div class="number">${filtered.length}</div></div>
         </div>
-        <div class="table-card"><h3>Operational Entries</h3><div class="table-wrap"><table class="table"><thead><tr><th>Date</th><th>Account</th><th>Type</th><th>Amount</th><th>Note</th><th>Posted By</th><th>Approved By</th></tr></thead><tbody>${filtered.map(e=>`<tr><td>${fmtDate(e.date)}</td><td>${e.accountName}</td><td>${e.kind}</td><td>${money(e.amount)}</td><td>${e.note||'—'}</td><td>${e.postedBy}</td><td>${e.approvedBy}</td></tr>`).join('') || '<tr><td colspan="7">No entries</td></tr>'}</tbody></table></div></div>
+        <div class="table-card"><h3>Operational Entries</h3><div class="table-wrap"><table class="table"><thead><tr><th>Date</th><th>Account</th><th>Type</th><th>Amount</th><th>Note</th><th>Posted By</th><th>Approved By</th></tr></thead><tbody>${visible.map(e=>`<tr><td>${fmtDate(e.date)}</td><td>${e.accountName}</td><td>${e.kind}</td><td>${money(e.amount)}</td><td>${e.note||'—'}</td><td>${e.postedBy}</td><td>${e.approvedBy}</td></tr>`).join('') || '<tr><td colspan="7">No entries</td></tr>'}</tbody></table></div>${pager}</div>
       </div>`;
   }
 
@@ -1117,6 +1124,8 @@
     qq('[data-cod-resolve]').forEach(btn => btn.onclick = () => openCODResolutionModal(btn.dataset.codResolve));
     const more = byId('approvalsMore');
     if (more) more.onclick = () => { state.ui.approvalsLimit = (state.ui.approvalsLimit || 20) + 20; save(); renderWorkspace(); };
+    const less = byId('approvalsLess');
+    if (less) less.onclick = () => { state.ui.approvalsLimit = Math.max(20, (state.ui.approvalsLimit || 20) - 20); save(); renderWorkspace(); };
     const codDate = byId('codAdminDate');
     if (codDate) codDate.onchange = () => { state.ui.codAdminDate = codDate.value || today(); save(); renderWorkspace(); };
   }
@@ -1290,6 +1299,15 @@
       reader.onerror = reject;
       reader.readAsDataURL(file);
     });
+
+    const businessMore = byId('businessMore');
+    if (businessMore) businessMore.onclick = () => { state.ui.businessLimit = (state.ui.businessLimit || 20) + 20; save(); renderWorkspace(); };
+    const businessLess = byId('businessLess');
+    if (businessLess) businessLess.onclick = () => { state.ui.businessLimit = Math.max(20, (state.ui.businessLimit || 20) - 20); save(); renderWorkspace(); };
+    const operationalMore = byId('operationalMore');
+    if (operationalMore) operationalMore.onclick = () => { state.ui.operationalLimit = (state.ui.operationalLimit || 20) + 20; save(); renderWorkspace(); };
+    const operationalLess = byId('operationalLess');
+    if (operationalLess) operationalLess.onclick = () => { state.ui.operationalLimit = Math.max(20, (state.ui.operationalLimit || 20) - 20); save(); renderWorkspace(); };
   }
 
 
@@ -1316,11 +1334,6 @@
 
   function approvedCreditTotalForDate(staffId, dateStr) {
     return (state.approvals||[]).filter(r => r.type === 'customer_credit' && r.status === 'approved' && r.payload?.staffId === staffId && r.payload?.date === dateStr)
-      .reduce((s,r)=>s+Number(r.payload?.amount||0),0);
-  }
-
-  function approvedDebitTotalForDate(staffId, dateStr) {
-    return (state.approvals||[]).filter(r => r.type === 'customer_debit' && r.status === 'approved' && r.payload?.staffId === staffId && r.payload?.date === dateStr)
       .reduce((s,r)=>s+Number(r.payload?.amount||0),0);
   }
 
@@ -1381,15 +1394,13 @@
   function openCODResolutionModal(codId) {
     const cod = state.cod.find(c => c.id === codId);
     if (!cod) return;
-    const totalCredits = approvedCreditTotalForDate(cod.staffId, cod.date);
-    const totalDebits = approvedDebitTotalForDate(cod.staffId, cod.date);
     openModal('Resolve Close of Day', `
       <div class="stack">
         <div class="kpi-row">
-          <div class="kpi"><div class="label">Total Credits</div><div class="number">${money(totalCredits)}</div></div>
-          <div class="kpi"><div class="label">Total Debits</div><div class="number">${money(totalDebits)}</div></div>
+          <div class="kpi"><div class="label">Expected Cash</div><div class="number">${money(cod.expectedCash)}</div></div>
+          <div class="kpi"><div class="label">Actual Cash</div><div class="number">${money(cod.actualCash)}</div></div>
           <div class="kpi"><div class="label">Variance</div><div class="number ${Number(cod.variance||0)<0?'balance-negative':''}">${money(cod.variance)}</div></div>
-          <div class="kpi"><div class="label">Overdraw</div><div class="number ${Number(cod.overdraw||0)>0?'balance-negative':''}">${money(cod.overdraw||0)}</div></div>
+          <div class="kpi"><div class="label">Overdraw</div><div class="number">${money(cod.overdraw||0)}</div></div>
         </div>
         <div class="form-grid two">
           <div class="field"><label>Resolved Amount</label><input id="codResolvedAmount" class="entry-input" type="number" value="${Math.max(0, Number(cod.actualCash||0))}"></div>
@@ -1405,20 +1416,7 @@
         if (!note) return showToast('Resolution note required');
         cod.status = 'resolved'; cod.resolutionNote = note; cod.resolvedBy = currentStaff()?.name || 'System'; cod.resolvedAt = new Date().toISOString(); cod.resolvedAmount = resolvedAmount;
         state.businessExtras ||= []; state.businessExtras.unshift({ date:new Date().toISOString(), accountNumber:'COD', details:`COD resolved for ${cod.staffName}`, kind:'credit', amount:resolvedAmount, balanceAfter:0, receivedOrPaidBy:cod.staffName, postedBy:currentStaff()?.name || 'System' });
-        const acc = ensureStaffAccount(cod.staffId);
-        const existingDebtEntries = (acc.entries||[]).filter(e => e.type === 'cod_resolution_debt' && e.codId === cod.id);
-        if (existingDebtEntries.length) {
-          const existingAmt = existingDebtEntries.reduce((s,e)=>s+Number(e.amount||0),0);
-          acc.entries = (acc.entries||[]).filter(e => !(e.type === 'cod_resolution_debt' && e.codId === cod.id));
-          acc.debtBalance = Math.max(0, Number(acc.debtBalance||0) - existingAmt);
-        }
-        if (byId('codCreateDebt').value === 'yes') {
-          const debtAmt = Math.max(0, -(Number(cod.variance||0))) + Math.max(0, Number(cod.overdraw||0));
-          if (debtAmt > 0) {
-            acc.debtBalance = Number(acc.debtBalance||0) + debtAmt;
-            addStaffEntry(cod.staffId, 'cod_resolution_debt', debtAmt, 0, `COD debt recorded: ${note}`, { codId: cod.id });
-          }
-        }
+        if (byId('codCreateDebt').value === 'yes') { const debtAmt = Math.max(0, -(Number(cod.variance||0))) + Math.max(0, Number(cod.overdraw||0)); if (debtAmt > 0) { const acc = ensureStaffAccount(cod.staffId); acc.debtBalance = Number(acc.debtBalance||0) + debtAmt; addStaffEntry(cod.staffId, 'cod_resolution_debt', debtAmt, 0, `COD debt recorded: ${note}`); } }
         save(); closeModal(); render(); showToast('COD resolved');
       }}
     ]);
