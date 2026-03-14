@@ -277,3 +277,22 @@ body[data-theme="dark-slate"] .modal .kpi .number{color:#f5fbff;}
 body[data-theme="dark-slate"] .modal .entry-input{background:#1b2734;color:var(--text);border-color:#314255;}
 body[data-theme="dark-slate"] .modal button.secondary{background:#253243;color:#f6fbff;border:1px solid #3b4d62;}
 body[data-theme="dark-slate"] .modal .icon-btn{background:#1b2734;color:#f6fbff;border-color:#4b637d;}
+
+
+/* Final dark-theme consistency fixes */
+.layout-grid.two > * { min-width: 0; }
+.table-card, .form-card, .record-card, .workspace-card { min-width: 0; }
+.table-wrap { max-width: 100%; }
+
+body[data-theme="dark-slate"] .lookup-card{background:#13202b;border-color:#314255;}
+body[data-theme="dark-slate"] .photo-box{background:#1b2734;border-color:#314255;color:#cdd8e4;}
+body[data-theme="dark-slate"] .info-item{background:#1b2734;border-color:#314255;color:#f6fbff;}
+body[data-theme="dark-slate"] .info-item .k{color:#cdd8e4;}
+body[data-theme="dark-slate"] .info-item .v{color:#f6fbff;}
+body[data-theme="dark-slate"] .kpi{background:#1b2734;border-color:#314255;}
+body[data-theme="dark-slate"] .kpi .label{color:#cdd8e4;}
+body[data-theme="dark-slate"] .kpi .number{color:#f6fbff;}
+body[data-theme="dark-slate"] .modal h3, body[data-theme="dark-slate"] .modal .field label, body[data-theme="dark-slate"] .modal .note{color:#e7eef6;}
+body[data-theme="dark-slate"] .table th{background:#eef2f7;color:#6b7c8d;}
+body[data-theme="dark-slate"] .table tr:hover td, body[data-theme="dark-slate"] .table tr:hover td *{background:#223344;color:#f6fbff !important;}
+body[data-theme="dark-slate"] .display-field{color:#f6fbff;}

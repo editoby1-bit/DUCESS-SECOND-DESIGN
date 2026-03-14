@@ -931,15 +931,18 @@
   }
 
   function bindCheckBalance() {
-    const doLookup = () => {
-      const c = getCustomerByAccountNo(byId('lookupAcc').value);
-      if (!c) return showToast('Customer not found. Use name search.');
+    const doLookup = (quiet=false) => {
+      const val = (byId('lookupAcc')?.value || "").trim();
+      if (!val) return lookupFill(byId('workspace'), null);
+      const c = getCustomerByAccountNo(val);
+      if (!c) { if (!quiet) showToast('Customer not found. Use name search.'); return; }
       state.ui.selectedCustomerId = c.id;
       save();
       lookupFill(byId('workspace'), c);
     };
-    byId('lookupBtn').onclick = doLookup;
-    byId('lookupAcc').onchange = doLookup;
+    byId('lookupBtn').onclick = () => doLookup(false);
+    byId('lookupAcc').onchange = () => doLookup(true);
+    byId('lookupAcc').onkeyup = (e) => { if (e.key === "Enter") doLookup(false); };
     byId('openStatementBtn').onclick = () => { state.ui.tool = 'account_statement'; renderWorkspace(); setTimeout(()=>{ byId('stmtAcc').value = getSelectedCustomer()?.accountNumber || ''; }, 30); };
     byId('searchByNameBtn').onclick = () => openCustomerSearchModal(state.customers);
     const selected = getSelectedCustomer();
@@ -1518,7 +1521,11 @@
   function applySelectedCustomerToActiveTool() {
     const c = getSelectedCustomer();
     if (!c) return;
-    if (state.ui.tool === 'check_balance') { render(); return; }
+    if (state.ui.tool === 'check_balance') {
+      const ws = byId('workspace');
+      if (ws) lookupFill(ws, c); else render();
+      return;
+    }
     if (state.ui.tool === 'credit' || state.ui.tool === 'debit') {
       if (byId('txAcc')) byId('txAcc').value = c.accountNumber;
       if (byId('txName')) byId('txName').textContent = c.name;
