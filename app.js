@@ -387,6 +387,24 @@
         }
         break;
       }
+      case 'customer_credit_journal': {
+        (req.payload.rows || []).forEach(row => applyRequest({
+          type:'customer_credit',
+          payload:{...row, staffId:req.payload.staffId, date:req.payload.date},
+          requestedByName:req.requestedByName,
+          requestedBy:req.requestedBy
+        }));
+        break;
+      }
+      case 'customer_debit_journal': {
+        (req.payload.rows || []).forEach(row => applyRequest({
+          type:'customer_debit',
+          payload:{...row, staffId:req.payload.staffId, date:req.payload.date},
+          requestedByName:req.requestedByName,
+          requestedBy:req.requestedBy
+        }));
+        break;
+      }
       case 'operational_entry': {
         state.operations.entries.unshift({
           id: uid('op'),
@@ -699,28 +717,30 @@
         <div class="stack">
           <div class="form-card">
             <h3>${title}</h3>
-            <div class="form-grid three journal-grid">
-              <div class="field"><label>Account Number</label><input id="txAcc" class="entry-input"></div>
-              <div class="field"><label>Search</label><button id="txSearch">Search</button></div>
-              <div class="field"><label>Generate Journal</label><button class="secondary" id="txJournalAdd">Generate Journal</button></div>
+            <div class="form-grid three journal-grid compact-journal-grid">
+              <div class="field short"><label>Account Number</label><input id="txAcc" class="entry-input"></div>
+              <div class="field action-field"><label>Search</label><button id="txSearch">Search</button></div>
+              <div class="field short"><label>Amount</label><input id="txAmount" class="entry-input" type="number"></div>
               <div class="field"><label>Account Name</label><div class="display-field" id="txName">—</div></div>
               <div class="field"><label>Available Balance</label><div class="display-field" id="txBalance">—</div></div>
-              <div class="field"><label>Amount</label><input id="txAmount" class="entry-input" type="number"></div>
+              <div class="field action-field"><label>Post Single</label><button id="txPostSingle">Post Single</button></div>
               <div class="field"><label>Received or Paid By</label><input id="txCounterparty" class="entry-input"></div>
               <div class="field span-two"><label>Details</label><input id="txDetails" class="entry-input"></div>
-              ${kind === 'debit' ? `<div class="field"><label>Payout Source</label><select id="txPayoutSource" class="entry-input"><option value="teller">Teller Cash</option><option value="other">Other Source</option></select></div>` : `<div class="field"><label>Date</label><div class="display-field">${today()}</div></div>`}
+              ${kind === 'debit' ? `<div class="field short"><label>Payout Source</label><select id="txPayoutSource" class="entry-input"><option value="teller">Teller Cash</option><option value="other">Other Source</option></select></div>` : `<div class="field short"><label>Date</label><div class="display-field">${today()}</div></div>`}
             </div>
+            <div class="action-row"><button class="secondary" id="txJournalAdd">Add to Journal</button></div>
             <div class="note">Posting is blocked until the posting staff has approved float for today.</div>
           </div>
         </div>
         <div class="table-card journal-card">
           <h3>Journal Generated</h3>
           <div class="table-wrap"><table class="table journal-table"><thead><tr><th>S/N</th><th>Account Name</th><th>Account Number</th><th>Amount</th><th></th></tr></thead><tbody id="journalRows"></tbody></table></div>
-          <div class="action-row"><button id="journalSubmit">Post</button><button class="secondary" id="journalClear">Clear Journal</button></div>
-          <div class="note">The journal only submits requests. Approval officers finalize them.</div>
+          <div class="action-row"><button id="journalSubmit">Submit Journal</button><button class="secondary" id="journalClear">Clear Journal</button></div>
+          <div class="note">Single post sends one request. Journal submission sends the whole journal as one approval.</div>
         </div>
       </div>`;
   }
+
 
   function renderApprovals() {
     state.ui.codAdminDate ||= today();
@@ -754,12 +774,19 @@
   function approvalSubmittedBy(a) {
     const p = a.payload || {};
     if (a.type === 'customer_credit' || a.type === 'customer_debit') return `${a.requestedByName || staffName(p.staffId)} (${p.accountNumber || '—'})`;
+    if (a.type === 'customer_credit_journal' || a.type === 'customer_debit_journal') return `${a.requestedByName || staffName(p.staffId)} • Journal`;
     return a.requestedByName || '—';
   }
   function approvalDetails(a) {
     const p = a.payload || {};
     if (a.type === 'customer_credit') return `${money(p.amount)} to ${customerName(p.customerId) || p.accountNumber}${p.details ? ' • ' + p.details : ''}`;
     if (a.type === 'customer_debit') return `${money(p.amount)} from ${customerName(p.customerId) || p.accountNumber}${p.details ? ' • ' + p.details : ''}`;
+    if (a.type === 'customer_credit_journal' || a.type === 'customer_debit_journal') {
+      const rows = p.rows || [];
+      const total = rows.reduce((s,r)=>s+Number(r.amount||0),0);
+      const names = Array.from(new Set(rows.map(r => r.customerName).filter(Boolean))).slice(0,3).join(', ');
+      return `${rows.length} item${rows.length===1?'':'s'} • ${money(total)}${names ? ' • ' + names : ''}`;
+    }
     if (a.type === 'wallet_fund') return `${staffName(p.staffId)} • Wallet fund • ${money(p.amount)}`;
     if (a.type === 'debt_repayment') return `${staffName(p.staffId)} • Debt repayment • ${money(p.amount)}`;
     return requestSummary(a);
@@ -768,7 +795,7 @@
   function prettyApprovalType(type) {
     return {
       account_opening:'Account Opening', account_maintenance:'Account Maintenance', account_reactivation:'Account Reactivation',
-      customer_credit:'Credit', customer_debit:'Debit', float_declaration:'Opening Float', operational_entry:'Operational Entry',
+      customer_credit:'Credit', customer_debit:'Debit', customer_credit_journal:'Credit Journal', customer_debit_journal:'Debit Journal', float_declaration:'Opening Float', operational_entry:'Operational Entry',
       create_operational_account:'Operational Account', close_of_day:'Close of Day', temp_grant:'Temporary Grant'
     }[type] || type;
   }
@@ -777,7 +804,7 @@
     const p = a.payload || {};
     if (a.type === 'float_declaration') return `${money(p.amount)} for ${p.date}`;
     if (a.type === 'customer_credit' || a.type === 'customer_debit') return `${p.accountNumber} • ${money(p.amount)}`;
-    if (a.type === 'account_opening') return `${p.name} • ${p.generatedAccountNumber}`;
+    if (a.type === 'account_opening') return `${p.name} • ${p.phone || '—'} • ${p.address || '—'} • ${p.generatedAccountNumber}`;
     if (a.type === 'account_maintenance') return `${p.accountNumber} • update`; 
     if (a.type === 'account_reactivation') return `${p.accountNumber} • reactivate`; 
     if (a.type === 'operational_entry') return `${p.accountName} • ${money(p.amount)}`;
@@ -1098,13 +1125,30 @@
       save(); rerenderJournal(); resetFields();
     };
     byId('journalClear').onclick = () => { journal.splice(0); save(); rerenderJournal(); resetFields(); };
+    byId('txPostSingle').onclick = () => {
+      if (!hasPermission(kind)) return showToast('No access to post');
+      if (!hasApprovedFloat(staff.id)) return showToast('Approved opening balance required before posting');
+      const customer = getSelectedCustomer() || getCustomerByAccountNo(byId('txAcc').value);
+      if (!customer) return showToast('Search for customer first');
+      if (isCustomerFrozen(customer)) return showToast('Frozen account cannot accept transactions');
+      const amount = Number(byId('txAmount').value || 0);
+      if (!(amount > 0)) return showToast('Enter a valid amount');
+      confirmAction(`Submit single ${kind} request for approval?`, () => {
+        createRequest(kind === 'credit' ? 'customer_credit' : 'customer_debit', { customerId: customer.id, accountNumber: customer.accountNumber, amount, details: byId('txDetails').value.trim(), receivedOrPaidBy: byId('txCounterparty').value.trim(), payoutSource: byId('txPayoutSource')?.value || 'teller', staffId: staff.id, date: today() });
+        resetFields(); showToast(`${kind === 'credit' ? 'Credit' : 'Debit'} request sent for approval`); render();
+      });
+    };
     byId('journalSubmit').onclick = () => {
       if (!hasPermission(kind)) return showToast('No access to post');
       if (!hasApprovedFloat(staff.id)) return showToast('Approved opening balance required before posting');
       if (!journal.length) return showToast('Generate journal first');
       confirmAction(`Submit ${kind} journal for approval?`, () => {
-        journal.forEach(row => createRequest(kind === 'credit' ? 'customer_credit' : 'customer_debit', { customerId: row.customerId, accountNumber: row.accountNumber, amount: row.amount, details: row.details, receivedOrPaidBy: row.receivedOrPaidBy, payoutSource: row.payoutSource, staffId: staff.id, date: row.date }));
-        journal.splice(0); save(); rerenderJournal(); resetFields(); showToast(`${kind === 'credit' ? 'Credit' : 'Debit'} requests sent for approval`); render();
+        createRequest(kind === 'credit' ? 'customer_credit_journal' : 'customer_debit_journal', {
+          staffId: staff.id,
+          date: today(),
+          rows: journal.map(row => ({ customerId: row.customerId, customerName: row.customerName, accountNumber: row.accountNumber, amount: row.amount, details: row.details, receivedOrPaidBy: row.receivedOrPaidBy, payoutSource: row.payoutSource }))
+        });
+        journal.splice(0); save(); rerenderJournal(); resetFields(); showToast(`${kind === 'credit' ? 'Credit' : 'Debit'} journal sent for approval`); render();
       });
     };
     rerenderJournal();

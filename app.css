@@ -320,3 +320,25 @@ body[data-theme="dark-slate"] .photo-box{background:#1b2734;border-color:#314255
 .journal-card .journal-table th:nth-child(4),.journal-card .journal-table td:nth-child(4){width:18%;}
 .journal-card .journal-table th:nth-child(5),.journal-card .journal-table td:nth-child(5){width:90px;text-align:right;}
 @media (max-width: 1120px){.journal-layout{grid-template-columns:1fr;}}
+
+/* Journal approval patch */
+.journal-layout{grid-template-columns:minmax(300px,.78fr) minmax(0,1.22fr);align-items:start;gap:18px;}
+.compact-journal-grid{grid-template-columns:minmax(120px,.9fr) minmax(110px,.8fr) minmax(120px,.9fr);gap:14px 16px;align-items:start;}
+.compact-journal-grid .field.short .entry-input,.compact-journal-grid .field.short .display-field{max-width:180px;}
+.compact-journal-grid .action-field button{width:100%;white-space:nowrap;}
+.compact-journal-grid .span-two{grid-column: span 2;}
+.journal-card .table-wrap{overflow-x:auto;}
+.journal-card .journal-table{min-width:640px;width:100%;table-layout:auto;}
+.journal-card .journal-table th,.journal-card .journal-table td{white-space:nowrap;}
+.journal-card .journal-table th:nth-child(2),.journal-card .journal-table td:nth-child(2){min-width:180px;}
+.journal-card .journal-table th:nth-child(3),.journal-card .journal-table td:nth-child(3){min-width:130px;}
+.journal-card .journal-table th:nth-child(4),.journal-card .journal-table td:nth-child(4){min-width:90px;}
+body[data-theme="dark-slate"] .table tr:hover td button,
+body[data-theme="dark-slate"] .table tr:hover td .success,
+body[data-theme="dark-slate"] .table tr:hover td .danger,
+body[data-theme="dark-slate"] .table tr:hover td .warning{opacity:1;filter:none;}
+body[data-theme="dark-slate"] .table tr:hover td .success{background:#53c68c;color:#10211a;}
+body[data-theme="dark-slate"] .table tr:hover td .danger{background:#ef6b6b;color:#2b0e0e;}
+body[data-theme="dark-slate"] .table tr:hover td .warning{background:#f3a65a;color:#241608;}
+@media (max-width: 1120px){.journal-layout{grid-template-columns:1fr;}.compact-journal-grid{grid-template-columns:1fr 1fr;}.compact-journal-grid .span-two{grid-column:1 / -1;}}
+@media (max-width: 760px){.compact-journal-grid{grid-template-columns:1fr;}}
