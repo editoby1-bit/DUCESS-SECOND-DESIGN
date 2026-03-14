@@ -605,8 +605,7 @@
           <div class="action-row"><button class="secondary" id="searchByNameBtn">Search by Name</button><button class="ghost-btn" id="openStatementBtn">Statement</button></div>
         </div>
         <div class="record-card">
-          <div class="lookup-card">
-            <div class="photo-box" data-fill="photo"><span>No Photo</span></div>
+          <div class="lookup-card right-photo">
             <div class="stack">
               <div class="info-grid">
                 <div class="info-item"><div class="k">Account Name</div><div class="v" data-fill="name">—</div></div>
@@ -615,7 +614,8 @@
                 <div class="info-item"><div class="k">Address</div><div class="v" data-fill="address">—</div></div>
               </div>
               <div class="note">Coloured spaces are for input. White spaces are auto-filled by the system.</div>
-            </div>
+            <div class="photo-box" data-fill="photo"><span>No Photo</span></div>
+          </div>
           </div>
         </div>
       </div>`;
@@ -695,7 +695,7 @@
   function renderJournalTool(kind) {
     const title = kind === 'credit' ? 'Credit' : 'Debit';
     return `
-      <div class="layout-grid two">
+      <div class="layout-grid two journal-layout">
         <div class="stack">
           <div class="form-card">
             <h3>${title}</h3>
@@ -713,9 +713,9 @@
             <div class="note">Posting is blocked until the posting staff has approved float for today.</div>
           </div>
         </div>
-        <div class="table-card">
+        <div class="table-card journal-card">
           <h3>Journal Generated</h3>
-          <div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Account Name</th><th>Account Number</th><th>Amount</th><th></th></tr></thead><tbody id="journalRows"></tbody></table></div>
+          <div class="table-wrap"><table class="table journal-table"><thead><tr><th>S/N</th><th>Account Name</th><th>Account Number</th><th>Amount</th><th></th></tr></thead><tbody id="journalRows"></tbody></table></div>
           <div class="action-row"><button id="journalSubmit">Post</button><button class="secondary" id="journalClear">Clear Journal</button></div>
           <div class="note">The journal only submits requests. Approval officers finalize them.</div>
         </div>
