@@ -699,7 +699,7 @@
         <div class="stack">
           <div class="form-card">
             <h3>${title}</h3>
-            <div class="form-grid three">
+            <div class="form-grid three journal-grid">
               <div class="field"><label>Account Number</label><input id="txAcc" class="entry-input"></div>
               <div class="field"><label>Search</label><button id="txSearch">Search</button></div>
               <div class="field"><label>Generate Journal</label><button class="secondary" id="txJournalAdd">Generate Journal</button></div>
@@ -707,7 +707,7 @@
               <div class="field"><label>Available Balance</label><div class="display-field" id="txBalance">—</div></div>
               <div class="field"><label>Amount</label><input id="txAmount" class="entry-input" type="number"></div>
               <div class="field"><label>Received or Paid By</label><input id="txCounterparty" class="entry-input"></div>
-              <div class="field"><label>Details</label><input id="txDetails" class="entry-input"></div>
+              <div class="field span-two"><label>Details</label><input id="txDetails" class="entry-input"></div>
               ${kind === 'debit' ? `<div class="field"><label>Payout Source</label><select id="txPayoutSource" class="entry-input"><option value="teller">Teller Cash</option><option value="other">Other Source</option></select></div>` : `<div class="field"><label>Date</label><div class="display-field">${today()}</div></div>`}
             </div>
             <div class="note">Posting is blocked until the posting staff has approved float for today.</div>
@@ -1119,6 +1119,8 @@
     qq('[data-cod-resolve]').forEach(btn => btn.onclick = () => openCODResolutionModal(btn.dataset.codResolve));
     const more = byId('approvalsMore');
     if (more) more.onclick = () => { state.ui.approvalsLimit = (state.ui.approvalsLimit || 20) + 20; save(); renderWorkspace(); };
+    const less = byId('approvalsLess');
+    if (less) less.onclick = () => { state.ui.approvalsLimit = Math.max(20, (state.ui.approvalsLimit || 20) - 20); save(); renderWorkspace(); };
     const codDate = byId('codAdminDate');
     if (codDate) codDate.onchange = () => { state.ui.codAdminDate = codDate.value || today(); save(); renderWorkspace(); };
   }
@@ -1453,6 +1455,20 @@
     });
     byId(`${kind}CustomApply`).onclick = () => { state.ui[`${kind}Filter`] = { preset:'custom', from:byId(`${kind}From`).value, to:byId(`${kind}To`).value }; save(); renderWorkspace(); };
     qq(`[data-type-kind="${kind}"]`).forEach(btn => btn.onclick = () => { state.ui[`${kind}Type`] = btn.dataset.typeFilter; save(); renderWorkspace(); });
+    const moreBtn = byId(`${kind}More`);
+    if (moreBtn) moreBtn.onclick = () => {
+      const key = kind === 'business' ? 'businessEntriesLimit' : 'operationalEntriesLimit';
+      state.ui[key] = (state.ui[key] || 20) + 20; save(); renderWorkspace();
+    };
+    const lessBtn = byId(`${kind}Less`);
+    if (lessBtn) lessBtn.onclick = () => {
+      const key = kind === 'business' ? 'businessEntriesLimit' : 'operationalEntriesLimit';
+      state.ui[key] = Math.max(20, (state.ui[key] || 20) - 20); save(); renderWorkspace();
+    };
+    const tellerMore = byId('tellerMore');
+    if (tellerMore) tellerMore.onclick = () => { state.ui.tellerEntriesLimit = (state.ui.tellerEntriesLimit || 20) + 20; save(); renderWorkspace(); };
+    const tellerLess = byId('tellerLess');
+    if (tellerLess) tellerLess.onclick = () => { state.ui.tellerEntriesLimit = Math.max(20, (state.ui.tellerEntriesLimit || 20) - 20); save(); renderWorkspace(); };
     byId(`${kind}ExportCsv`).onclick = () => {
       const rows = kind === 'business' ? filterByDate(flattenBusinessEntries(), state.ui.businessFilter || { preset: 'all', from: '', to: '' }) : filterByDate(state.operations.entries || [], state.ui.operationalFilter || { preset: 'all', from: '', to: '' });
       exportCsv(rows, `${kind}_balance.csv`);

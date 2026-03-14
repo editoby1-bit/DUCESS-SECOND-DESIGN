@@ -263,3 +263,17 @@ body[data-theme="ducess-sheet"] .kpi .number{color:#f7f4ea;}
 .workspace-card .form-grid.three .field:nth-child(8){grid-column:span 2}
 .workspace-card .form-grid.three .field:nth-child(9){grid-column:span 1}
 .workspace-card .form-grid.three input#txDetails{min-width:100%;}
+
+
+.field label{white-space:nowrap;}
+.journal-grid{align-items:start;}
+.journal-grid .span-two{grid-column: span 2;}
+body[data-theme="dark-slate"] .modal{background:var(--panel);color:var(--text);border-color:var(--line);}
+body[data-theme="dark-slate"] .modal-head, body[data-theme="dark-slate"] .modal-actions{border-color:var(--line);}
+body[data-theme="dark-slate"] .modal h3, body[data-theme="dark-slate"] .modal .field label, body[data-theme="dark-slate"] .modal .note, body[data-theme="dark-slate"] .modal .display-field{color:var(--text);}
+body[data-theme="dark-slate"] .modal .kpi{background:#1b2734;border-color:#314255;}
+body[data-theme="dark-slate"] .modal .kpi .label{color:#cdd8e4;}
+body[data-theme="dark-slate"] .modal .kpi .number{color:#f5fbff;}
+body[data-theme="dark-slate"] .modal .entry-input{background:#1b2734;color:var(--text);border-color:#314255;}
+body[data-theme="dark-slate"] .modal button.secondary{background:#253243;color:#f6fbff;border:1px solid #3b4d62;}
+body[data-theme="dark-slate"] .modal .icon-btn{background:#1b2734;color:#f6fbff;border-color:#4b637d;}
