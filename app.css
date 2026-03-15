@@ -383,3 +383,5 @@ body[data-theme="ducess-sheet"] .sheet-grid .entry-input{background:#efcfd1;colo
   .check-grid{grid-template-columns:160px 1fr 140px 140px 140px;}
   .tellering-lower.compact-layout{grid-template-columns:1fr;}
 }
+
+.stack-actions{display:flex;flex-direction:column;gap:8px;align-items:flex-start}.inline-actions{display:flex;gap:8px;flex-wrap:wrap}
