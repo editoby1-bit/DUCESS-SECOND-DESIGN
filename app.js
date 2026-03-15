@@ -41,13 +41,13 @@
       title: 'Administration',
       desc: 'Manage working tools, temporary grants, operational accounts, and staff settings.',
       icon: '🛠️',
-      tools: ['permissions','operational_accounts','staff_directory']
+      tools: ['permissions','staff_directory']
     },
     balances: {
       title: 'Balances',
       desc: 'Review business balance and operational balance with filters and teller summaries.',
       icon: '📊',
-      tools: ['business_balance','operational_balance','teller_balances']
+      tools: ['business_balance','operational_balance','operational_accounts','teller_balances']
     }
   };
 
@@ -71,13 +71,13 @@
   const DEFAULT_PERMS = {
     customer_service: ['check_balance','account_opening','account_maintenance','account_reactivation','account_statement'],
     teller: ['check_balance','account_statement','credit','debit'],
-    approving_officer: ['check_balance','account_statement','approval_queue','business_balance','operational_balance'],
+    approving_officer: ['check_balance','account_opening','account_maintenance','account_reactivation','account_statement','credit','debit','approval_queue','business_balance','operational_balance'],
     admin_officer: ['check_balance','account_opening','account_maintenance','account_reactivation','account_statement','credit','debit','approval_queue','permissions','operational_accounts','staff_directory','business_balance','operational_balance','teller_balances'],
     report_officer: ['check_balance','account_statement','business_balance','operational_balance','teller_balances']
   };
 
   const state = load() || seed();
-  state.ui = state.ui || { module: 'customer_service', tool: 'check_balance', selectedCustomerId: null, theme: 'classic', businessFilter: { preset: 'all', from: '', to: '' }, operationalFilter: { preset: 'all', from: '', to: '' }, approvalsLimit: 20, businessEntriesLimit: 20, operationalEntriesLimit: 20, tellerEntriesLimit: 20 };
+  state.ui = state.ui || { module: 'customer_service', tool: 'check_balance', selectedCustomerId: null, theme: 'classic', businessFilter: { preset: 'all', from: '', to: '' }, operationalFilter: { preset: 'all', from: '', to: '' }, approvalsLimit: 20, businessEntriesLimit: 20, operationalEntriesLimit: 20, tellerEntriesLimit: 20, approvalsSection:'tellering' };
   ensureState();
 
   function seed() {
@@ -104,6 +104,8 @@
       cod: [],
       tempGrants: [],
       businessExtras: [],
+      businessDate: today(),
+      dayClosures: [],
       activeStaffId: 'st4'
     };
     s.operations.incomeAccounts.push({ id:'ia1', name:'Commission', accountNumber:'INC-2000', createdAt:new Date().toISOString() });
@@ -142,7 +144,10 @@
     state.tempGrants ||= [];
     state.staffAccounts ||= {};
     state.businessExtras ||= [];
-    state.staff.forEach(st => ensureStaffAccount(st.id));
+    state.businessDate ||= today();
+    state.dayClosures ||= [];
+    state.staff.forEach(st => { ensureStaffWalletCustomer(st.id); ensureStaffAccount(st.id); });
+    syncAllStaffWallets();
     recalcAllCustomerBalances();
     recalcAllTellerBalances();
   }
@@ -163,27 +168,50 @@
   function currentStaff() {
     return state.staff.find(s => s.id === state.activeStaffId) || state.staff[0] || null;
   }
+  function businessDate() { return state.businessDate || today(); }
+  function nextDate(iso) { const d=new Date(`${iso}T12:00:00Z`); d.setUTCDate(d.getUTCDate()+1); return d.toISOString().slice(0,10); }
+  function staffPrefix(role){ return role==='admin_officer'?'AD':role==='approving_officer'?'AP':role==='teller'?'TL':'ST'; }
+  function staffById(id){ return state.staff.find(s=>s.id===id) || null; }
+  function customerName(id){ return state.customers.find(c=>c.id===id)?.name || ''; }
+  function getStaffWalletCustomer(staffId){ const acc=ensureStaffAccount(staffId); return state.customers.find(c=>c.id===acc.linkedCustomerId) || null; }
+  function ensureStaffWalletCustomer(staffId, sourceState=state){
+    const st=(sourceState.staff||[]).find(x=>x.id===staffId); if(!st) return null;
+    sourceState.customers ||= [];
+    const existing=sourceState.customers.find(c=>c.staffId===staffId && c.accountType==='staff_wallet');
+    if(existing) return existing;
+    const prefix=staffPrefix(st.role);
+    const idx=sourceState.customers.filter(c=>String(c.accountNumber||'').startsWith(prefix)).length + 1;
+    const c={ id: uid('c'), accountNumber: `${prefix}${String(1000+idx)}`, oldAccountNumber:'', name: st.name, address:'', nin:'', bvn:'', phone:'', photo:'', active:true, createdAt:new Date().toISOString(), transactions:[], staffId, accountType:'staff_wallet'};
+    sourceState.customers.push(c); return c;
+  }
+  function syncStaffWallet(staffId){ const acc=ensureStaffAccount(staffId); const c=getStaffWalletCustomer(staffId); if(c){ acc.walletBalance=Number(c.balance||0); } }
+  function syncAllStaffWallets(){ Object.keys(state.staffAccounts||{}).forEach(syncStaffWallet); }
+  function canCloseBusinessDay(staff=currentStaff()){ return !!staff && ['admin_officer','approving_officer'].includes(staff.role); }
 
   function ensureStaffAccount(staffId, sourceState=state) {
     sourceState.staffAccounts ||= {};
+    const st=(sourceState.staff||[]).find(x=>x.id===staffId);
     if (!sourceState.staffAccounts[staffId]) {
+      const wallet = ensureStaffWalletCustomer(staffId, sourceState);
       sourceState.staffAccounts[staffId] = {
         staffId,
-        accountNumber: String(4000 + Object.keys(sourceState.staffAccounts).length),
+        accountNumber: wallet?.accountNumber || `${staffPrefix(st?.role||'staff')}${4000 + Object.keys(sourceState.staffAccounts).length}`,
+        linkedCustomerId: wallet?.id || null,
         entries: [],
         balance: 0,
-        walletBalance: 0,
+        walletBalance: wallet?.balance || 0,
         debtBalance: 0
       };
     }
     const acc = sourceState.staffAccounts[staffId];
+    if (!acc.linkedCustomerId) acc.linkedCustomerId = ensureStaffWalletCustomer(staffId, sourceState)?.id || null;
     if (typeof acc.walletBalance !== 'number') acc.walletBalance = 0;
     if (typeof acc.debtBalance !== 'number') acc.debtBalance = 0;
     return acc;
   }
 
   function auditEntry(actor, action, details) {
-    return { id: uid('aud'), at: new Date().toISOString(), actor, action, details };
+    return { id: uid('aud'), at: new Date().toISOString(), actorId: currentStaff()?.id || 'system', actor, action, details };
   }
 
   function pushAudit(action, details) {
@@ -194,7 +222,7 @@
 
   function hasPermission(tool, staff=currentStaff()) {
     if (!staff) return false;
-    if (tool === 'check_balance') return true;
+    if (tool === 'check_balance' || tool === 'operational_accounts') return true;
     const base = DEFAULT_PERMS[staff.role] || [];
     const grantOn = state.tempGrants.some(g => g.staffId === staff.id && g.tool === tool && g.enabled);
     return base.includes(tool) || grantOn;
@@ -257,7 +285,7 @@
     });
     acc.balance = bal;
   }
-  function recalcAllTellerBalances() { Object.keys(state.staffAccounts).forEach(recalcStaffBalance); save(); }
+  function recalcAllTellerBalances() { Object.keys(state.staffAccounts).forEach(recalcStaffBalance); syncAllStaffWallets(); save(); }
 
   function addStaffEntry(staffId, type, amount, delta, note, extra={}) {
     const acc = ensureStaffAccount(staffId);
@@ -444,18 +472,17 @@
         break;
       }
       case 'wallet_fund': {
-        const acc = ensureStaffAccount(req.payload.staffId);
-        acc.walletBalance = Number(acc.walletBalance||0) + Number(req.payload.amount||0);
+        const acc = ensureStaffAccount(req.payload.staffId); const wallet=getStaffWalletCustomer(req.payload.staffId);
+        if (wallet) { wallet.transactions.push(txObj('credit', req.payload.amount, req.payload.note || 'Wallet funded', req.requestedByName, req.requestedBy, currentStaff()?.name || '', 'staff_wallet', businessDate())); recalcCustomerBalance(wallet); acc.walletBalance = Number(wallet.balance||0); }
         addStaffEntry(req.payload.staffId, 'wallet_fund', req.payload.amount, 0, req.payload.note || 'Wallet funded');
         break;
       }
       case 'debt_repayment': {
-        const acc = ensureStaffAccount(req.payload.staffId);
-        acc.walletBalance = Math.max(0, Number(acc.walletBalance||0) - Number(req.payload.amount||0));
+        const acc = ensureStaffAccount(req.payload.staffId); const wallet=getStaffWalletCustomer(req.payload.staffId);
+        if (wallet) { wallet.transactions.push(txObj('debit', req.payload.amount, req.payload.note || 'Debt repaid', req.requestedByName, req.requestedBy, currentStaff()?.name || '', 'staff_wallet', businessDate())); recalcCustomerBalance(wallet); acc.walletBalance = Number(wallet.balance||0); }
         acc.debtBalance = Math.max(0, Number(acc.debtBalance||0) - Number(req.payload.amount||0));
         addStaffEntry(req.payload.staffId, 'debt_repayment', req.payload.amount, 0, req.payload.note || 'Debt repaid');
-        state.businessExtras ||= [];
-        state.businessExtras.unshift({ date:new Date().toISOString(), accountNumber: acc.accountNumber, details:'Staff debt repayment', kind:'credit', amount:Number(req.payload.amount||0), balanceAfter:0, receivedOrPaidBy: req.requestedByName, postedBy: currentStaff()?.name || req.requestedByName });
+        state.businessExtras ||= []; state.businessExtras.unshift({ date:new Date().toISOString(), accountNumber: acc.accountNumber, details:'Staff debt repayment', kind:'credit', amount:Number(req.payload.amount||0), balanceAfter:0, receivedOrPaidBy: req.requestedByName, postedBy: currentStaff()?.name || req.requestedByName });
         break;
       }
       case 'temp_grant': {
@@ -507,6 +534,7 @@
     staffSel.onchange = () => { state.activeStaffId = staffSel.value; save(); render(); };
     byId('btnTodayFloat').onclick = openFloatModal;
     byId('btnCOD').onclick = openCODModal;
+    byId('btnCOD').disabled = !canCloseBusinessDay();
     byId('btnAudit').onclick = openAuditModal;
     const themeBtn = byId('btnThemeCycle');
     if (themeBtn) {
@@ -535,18 +563,18 @@
     const operationalExpense = state.operations.entries.filter(e => e.kind === 'expense').reduce((s,e)=>s+Number(e.amount||0),0);
     const pending = state.approvals.filter(a => a.status === 'pending').length;
     const acc = ensureStaffAccount(currentStaff()?.id || '');
-    const openingToday = getOpeningBalanceForDate(currentStaff()?.id, today());
-    const remaining = currentFloatAvailable(currentStaff()?.id, today());
+    const openingToday = getOpeningBalanceForDate(currentStaff()?.id, businessDate());
+    const remaining = currentFloatAvailable(currentStaff()?.id, businessDate());
     byId('heroStats').innerHTML = [
-      cardMetric('My Balance', money(Number(acc.walletBalance||0)), `Wallet ${money(acc.walletBalance||0)} • Debt ${money(acc.debtBalance||0)} • Opening ${money(openingToday)} • Remaining ${money(remaining)}`, 'my-balance'),
-      cardMetric('My Close of Day', money(staffCODRecords((currentStaff()||{}).id).length), `${pending} pending approvals`, 'my-cod'),
+      cardMetric('My Balance', money(Number(acc.walletBalance||0)), `Wallet ${money(acc.walletBalance||0)} • Debt -${money(acc.debtBalance||0)} • Business Day ${businessDate()} • Opening ${money(openingToday)}`, 'my-balance'),
+      cardMetric('My Close of Day', businessDate(), `Only admin or approval officer can close day`, 'my-cod'),
       cardMetric('Operational Income', money(operationalIncome), `${state.operations.incomeAccounts.length} income accounts`, 'operational-balance'),
       cardMetric('Operational Expense', money(operationalExpense), `${state.operations.expenseAccounts.length} expense accounts`, 'operational-balance')
     ].join('');
     qq('[data-hero-card]').forEach(el => el.onclick = () => {
       const act = el.dataset.heroCard;
       if (act === 'my-balance') openMyBalanceModal();
-      if (act === 'my-cod') openMyCODModal();
+      if (act === 'my-cod') { if (canCloseBusinessDay()) openCODModal(); else showToast(`Current business date: ${businessDate()}`); }
       if (act === 'operational-balance') { state.ui.module = 'balances'; state.ui.tool = 'operational_balance'; save(); render(); setTimeout(()=>byId('workspace')?.scrollIntoView({behavior:'smooth', block:'start'}),80); }
     });
   }
@@ -613,29 +641,16 @@
 
   function renderCheckBalance() {
     return `
-      <div class="layout-grid two">
-        <div class="form-card">
-          <h3>Check Balance</h3>
-          <div class="form-grid two">
-            <div class="field"><label>Account Number</label><input id="lookupAcc" class="entry-input" placeholder="Type account number" /></div>
-            <div class="field"><label>Search</label><button id="lookupBtn">Search</button></div>
-          </div>
-          <div class="action-row"><button class="secondary" id="searchByNameBtn">Search by Name</button><button class="ghost-btn" id="openStatementBtn">Statement</button></div>
+      <div class="tellering-sheet check-balance-sheet">
+        <div class="sheet-title">*Check Balance</div>
+        <div class="sheet-grid check-grid">
+          <div class="sheet-label">Account Number</div><input id="lookupAcc" class="entry-input sheet-input short-code" />
+          <button id="lookupBtn" class="sheet-btn">Search</button><button id="searchPhotoBtn" class="sheet-btn secondary">Photo</button><button id="openStatementBtn" class="sheet-btn secondary">Statement</button>
+          <div class="sheet-label">Account Name</div><div class="display-field span-3" data-fill="name">—</div>
+          <div class="sheet-label">Phone Number</div><div class="display-field" data-fill="phone">—</div><div class="sheet-spacer"></div><div class="photo-box inline-photo hidden" data-fill="photo"><span>No Photo</span></div>
+          <div class="sheet-label">Available Balance</div><div class="display-field" data-fill="balance">—</div><div class="sheet-spacer"></div><div class="sheet-spacer"></div>
         </div>
-        <div class="record-card">
-          <div class="lookup-card right-photo">
-            <div class="stack">
-              <div class="info-grid">
-                <div class="info-item"><div class="k">Account Name</div><div class="v" data-fill="name">—</div></div>
-                <div class="info-item"><div class="k">Phone Number</div><div class="v" data-fill="phone">—</div></div>
-                <div class="info-item"><div class="k">Available Balance</div><div class="v" data-fill="balance">—</div></div>
-                <div class="info-item"><div class="k">Address</div><div class="v" data-fill="address">—</div></div>
-              </div>
-              <div class="note">Coloured spaces are for input. White spaces are auto-filled by the system.</div>
-            <div class="photo-box" data-fill="photo"><span>No Photo</span></div>
-          </div>
-          </div>
-        </div>
+        <div class="action-row"><button class="secondary" id="searchByNameBtn">Search by Name</button></div>
       </div>`;
   }
 
@@ -712,63 +727,57 @@
 
   function renderJournalTool(kind) {
     const title = kind === 'credit' ? 'Credit' : 'Debit';
+    const st = currentStaff();
+    const opening = getOpeningBalanceForDate(st?.id, businessDate());
     return `
-      <div class="layout-grid two journal-layout">
-        <div class="stack">
-          <div class="form-card">
-            <h3>${title}</h3>
-            <div class="form-grid three journal-grid compact-journal-grid">
-              <div class="field short"><label>Account Number</label><input id="txAcc" class="entry-input"></div>
-              <div class="field action-field"><label>Search</label><button id="txSearch">Search</button></div>
-              <div class="field short"><label>Amount</label><input id="txAmount" class="entry-input" type="number"></div>
-              <div class="field"><label>Account Name</label><div class="display-field" id="txName">—</div></div>
-              <div class="field"><label>Available Balance</label><div class="display-field" id="txBalance">—</div></div>
-              <div class="field action-field"><label>Post Single</label><button id="txPostSingle">Post Single</button></div>
-              <div class="field"><label>Received or Paid By</label><input id="txCounterparty" class="entry-input"></div>
-              <div class="field span-two"><label>Details</label><input id="txDetails" class="entry-input"></div>
-              ${kind === 'debit' ? `<div class="field short"><label>Payout Source</label><select id="txPayoutSource" class="entry-input"><option value="teller">Teller Cash</option><option value="other">Other Source</option></select></div>` : `<div class="field short"><label>Date</label><div class="display-field">${today()}</div></div>`}
-            </div>
-            <div class="action-row"><button class="secondary" id="txJournalAdd">Add to Journal</button></div>
-            <div class="note">Posting is blocked until the posting staff has approved float for today.</div>
+      <div class="tellering-stack">
+        <div class="tellering-sheet journal-sheet">
+          <div class="sheet-super">TELLERING</div>
+          <div class="sheet-title">${title}</div>
+          <div class="sheet-grid credit-sheet-grid">
+            <div class="sheet-label">Account Number</div><input id="txAcc" class="entry-input sheet-input short-code" />
+            <button id="txSearch" class="sheet-btn">Search</button><button id="txJournalAdd" class="sheet-btn secondary">Generate Journal</button>
+            <div class="sheet-label">Account Name</div><div class="display-field span-3" id="txName">—</div>
+            <div class="sheet-label">Available Balance</div><div class="display-field" id="txBalance">—</div>
+            <div class="sheet-label inline-label">Amount</div><input id="txAmount" class="entry-input sheet-input medium-amt" type="number" /><button id="txPostSingle" class="sheet-btn secondary">Post</button>
           </div>
         </div>
-        <div class="table-card journal-card">
-          <h3>Journal Generated</h3>
-          <div class="table-wrap"><table class="table journal-table"><thead><tr><th>S/N</th><th>Account Name</th><th>Account Number</th><th>Amount</th><th></th></tr></thead><tbody id="journalRows"></tbody></table></div>
-          <div class="action-row"><button id="journalSubmit">Submit Journal</button><button class="secondary" id="journalClear">Clear Journal</button></div>
-          <div class="note">Single post sends one request. Journal submission sends the whole journal as one approval.</div>
+        <div class="tellering-lower compact-layout">
+          <div class="tellering-left form-card compact-left">
+            <div class="form-grid two compact-fields">
+              <div class="field"><label>Received or Paid By</label><input id="txCounterparty" class="entry-input"></div>
+              ${kind === 'debit' ? `<div class="field"><label>Payout Source</label><select id="txPayoutSource" class="entry-input"><option value="teller">Teller</option><option value="other">Other Source</option></select></div>` : `<div class="field"><label>Business Date</label><div class="display-field">${businessDate()}</div></div>`}
+              <div class="field span-two"><label>Details</label><input id="txDetails" class="entry-input"></div>
+            </div>
+          </div>
+          <div class="journal-pane form-card">
+            <div class="journal-kpis">
+              <div class="kpi small"><div class="label">Opening Float</div><div class="number">${money(opening)}</div></div>
+              <div class="kpi small"><div class="label">Running Float</div><div class="number" id="journalRunningFloat">${money(opening)}</div></div>
+              <div class="kpi small"><div class="label">Variance</div><div class="number balance-negative" id="journalVariance">0</div></div>
+            </div>
+            <h3>Journal Generated</h3>
+            <div class="table-wrap"><table class="table journal-table"><thead><tr><th>S/N</th><th>Account Name</th><th>Account Number</th><th>Amount</th><th>Run Float</th><th></th></tr></thead><tbody id="journalRows"></tbody></table></div>
+            <div class="action-row"><button id="journalSubmit">Submit Journal</button><button class="secondary" id="journalClear">Clear Journal</button></div>
+            <div class="note">Single Post creates an individual approval. Generate Journal adds rows, then Submit Journal sends one ledger approval.</div>
+          </div>
         </div>
       </div>`;
   }
 
-
   function renderApprovals() {
-    state.ui.codAdminDate ||= today();
+    state.ui.codAdminDate ||= businessDate();
+    const categories = { customer_service: ['account_opening','account_maintenance','account_reactivation'], tellering: ['customer_credit','customer_debit','customer_credit_journal','customer_debit_journal','float_declaration'], others: ['operational_entry','create_operational_account','close_of_day','temp_grant','wallet_fund','debt_repayment'] };
+    const currentSection = state.ui.approvalsSection || 'tellering';
+    const allRows = state.approvals.filter(a => categories[currentSection].includes(a.type));
     const limit = state.ui.approvalsLimit || 20;
-    const approvals = state.approvals.slice(0, limit);
-    const rows = approvals.map((a, i) => `
-      <tr>
-        <td>${i+1}</td>
-        <td>${prettyApprovalType(a.type)}</td>
-        <td>${approvalSubmittedBy(a)}</td>
-        <td>${approvalDetails(a)}</td>
-        <td>${fmtDate(a.requestedAt)}</td>
-        <td><span class="badge ${a.status}">${a.status}</span></td>
-        <td>${a.status === 'pending' ? `<button data-approve="${a.id}" class="success">Approve</button> <button data-reject="${a.id}" class="danger">Reject</button>` : a.approvedBy || '—'}</td>
-      </tr>`).join('');
-    const codRows = (state.cod||[]).filter(c=>c.status==='flagged').map((c,i)=>`<tr><td>${i+1}</td><td>${fmtDate(c.date)}</td><td>${c.staffName}</td><td>${money(c.expectedCash||0)}</td><td>${money(c.actualCash||0)}</td><td class="${Number(c.variance||0)<0?'balance-negative':''}">${money(c.variance||0)}</td><td>${money(c.overdraw||0)}</td><td>${c.note||'—'}</td><td>${(currentStaff()?.role==='admin_officer') ? `<button data-cod-resolve="${c.id}" class="warning">Resolve</button>` : 'Awaiting Administrative Resolution'}</td></tr>`).join('');
+    const approvals = allRows.slice(0, limit);
+    const rows = approvals.map((a, i) => `<tr><td>${i+1}</td><td>${prettyApprovalType(a.type)}</td><td>${approvalSubmittedBy(a)}</td><td>${approvalDetails(a)}</td><td>${fmtDate(a.requestedAt)}</td><td><span class="badge ${a.status}">${a.status}</span></td><td>${a.type.includes('_journal') ? `<button data-inspect-journal="${a.id}" class="secondary">Inspect</button> `:''}${['account_opening','account_maintenance','account_reactivation'].includes(a.type) ? `<button data-inspect-request="${a.id}" class="secondary">View</button> `:''}${a.status === 'pending' ? `<button data-approve="${a.id}" class="success">Approve</button> <button data-reject="${a.id}" class="danger">Reject</button>` : a.approvedBy || '—'}</td></tr>`).join('');
+    const codRows=(state.cod||[]).filter(c=>c.status==='flagged').map((c,i)=>`<tr><td>${i+1}</td><td>${fmtDate(c.date)}</td><td>${c.staffName}</td><td>${money(c.expectedCash||0)}</td><td>${money(c.actualCash||0)}</td><td class="${Number(c.variance||0)<0?'balance-negative':''}">${money(c.variance||0)}</td><td>${money(c.overdraw||0)}</td><td>${c.note||'—'}</td><td>${(canCloseBusinessDay())?`<button data-cod-resolve="${c.id}" class="warning">Resolve</button>`:'Awaiting Resolution'}</td></tr>`).join('');
     const selected = state.ui.codAdminDate;
-    const codStatusRows = state.staff.filter(s => (DEFAULT_PERMS[s.role]||[]).includes('credit') || (DEFAULT_PERMS[s.role]||[]).includes('debit')).map((s,i) => {
-      const rec = (state.cod||[]).find(c => c.staffId===s.id && c.date===selected);
-      const status = rec ? (rec.status==='resolved' ? 'Resolved' : rec.status==='flagged' ? 'Flagged' : 'Submitted') : 'Missing';
-      return `<tr><td>${i+1}</td><td>${s.name}</td><td>${ROLE_LABELS[s.role]||s.role}</td><td>${status}</td><td>${rec ? money(rec.expectedCash||0) : '—'}</td><td>${rec ? money(rec.actualCash||0) : '—'}</td></tr>`;
-    }).join('');
-    const moreLess = `<div class="action-row">${state.approvals.length > limit ? `<button id="approvalsMore" class="secondary">Show More</button>`:''}${limit > 20 ? `<button id="approvalsLess" class="secondary">Show Less</button>`:''}</div>`;
-    return `<div class="stack">
-      ${codRows ? `<div class="table-card"><h3>COD Resolution Queue</h3><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Date</th><th>Staff</th><th>Expected</th><th>Actual</th><th>Variance</th><th>Overdraw</th><th>Note</th><th>Action</th></tr></thead><tbody>${codRows}</tbody></table></div></div>` : ''}
-      <div class="table-card"><h3>Approval Queue</h3><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Request</th><th>Submitted By</th><th>Details</th><th>Date</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows || '<tr><td colspan="7" class="muted">No requests yet</td></tr>'}</tbody></table></div>${moreLess}</div>
-      ${(currentStaff()?.role==='admin_officer') ? `<div class="table-card"><h3>COD Daily Submission Status</h3><div class="action-inline"><div class="inline-field compact"><span>COD Date</span><input type="date" id="codAdminDate" value="${selected}"></div></div><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Staff</th><th>Office</th><th>Status</th><th>Expected</th><th>Actual</th></tr></thead><tbody>${codStatusRows}</tbody></table></div></div>` : ''}
-      </div>`;
+    const codStatusRows = state.staff.filter(s => (DEFAULT_PERMS[s.role]||[]).includes('credit') || (DEFAULT_PERMS[s.role]||[]).includes('debit')).map((s,i)=>{ const rec=(state.cod||[]).find(c=>c.staffId===s.id && c.date===selected); const status=rec?(rec.status==='resolved'?'Resolved':rec.status==='flagged'?'Flagged':'Submitted'):'Missing'; return `<tr><td>${i+1}</td><td>${s.name}</td><td>${ROLE_LABELS[s.role]||s.role}</td><td>${status}</td><td>${rec?money(rec.expectedCash||0):'—'}</td><td>${rec?money(rec.actualCash||0):'—'}</td></tr>`; }).join('');
+    const moreLess = `<div class="action-row">${allRows.length > limit ? `<button id="approvalsMore" class="secondary">Show More</button>`:''}${limit > 20 ? `<button id="approvalsLess" class="secondary">Show Less</button>`:''}</div>`;
+    return `<div class="stack">${codRows?`<div class="table-card"><h3>COD Resolution Queue</h3><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Date</th><th>Staff</th><th>Expected</th><th>Actual</th><th>Variance</th><th>Overdraw</th><th>Note</th><th>Action</th></tr></thead><tbody>${codRows}</tbody></table></div></div>`:''}<div class="tool-tabs approvals-sections">${[['customer_service','Customer Service'],['tellering','Tellering'],['others','Others']].map(([k,l])=>`<button class="tool-tab ${currentSection===k?'active':''}" data-approval-section="${k}">${l}</button>`).join('')}</div><div class="table-card"><h3>Approval Queue</h3><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Request</th><th>Submitted By</th><th>Details</th><th>Date</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows || '<tr><td colspan="7" class="muted">No requests yet</td></tr>'}</tbody></table></div>${moreLess}</div>${canCloseBusinessDay()?`<div class="table-card"><h3>COD Daily Submission Status</h3><div class="action-inline"><div class="inline-field compact"><span>COD Date</span><input type="date" id="codAdminDate" value="${selected}"></div></div><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Staff</th><th>Office</th><th>Status</th><th>Expected</th><th>Actual</th></tr></thead><tbody>${codStatusRows}</tbody></table></div></div>`:''}</div>`;
   }
 
   function approvalSubmittedBy(a) {
@@ -781,12 +790,7 @@
     const p = a.payload || {};
     if (a.type === 'customer_credit') return `${money(p.amount)} to ${customerName(p.customerId) || p.accountNumber}${p.details ? ' • ' + p.details : ''}`;
     if (a.type === 'customer_debit') return `${money(p.amount)} from ${customerName(p.customerId) || p.accountNumber}${p.details ? ' • ' + p.details : ''}`;
-    if (a.type === 'customer_credit_journal' || a.type === 'customer_debit_journal') {
-      const rows = p.rows || [];
-      const total = rows.reduce((s,r)=>s+Number(r.amount||0),0);
-      const names = Array.from(new Set(rows.map(r => r.customerName).filter(Boolean))).slice(0,3).join(', ');
-      return `${rows.length} item${rows.length===1?'':'s'} • ${money(total)}${names ? ' • ' + names : ''}`;
-    }
+    if (a.type === 'customer_credit_journal' || a.type === 'customer_debit_journal') { const rows = p.rows || []; const total = rows.reduce((s,r)=>s+Number(r.amount||0),0); const names = Array.from(new Set(rows.map(r => r.customerName).filter(Boolean))).slice(0,3).join(', '); return `${rows.length} item${rows.length===1?'':'s'} • Total ${money(total)}${names ? ' • ' + names : ''}`; }
     if (a.type === 'wallet_fund') return `${staffName(p.staffId)} • Wallet fund • ${money(p.amount)}`;
     if (a.type === 'debt_repayment') return `${staffName(p.staffId)} • Debt repayment • ${money(p.amount)}`;
     return requestSummary(a);
@@ -804,7 +808,7 @@
     const p = a.payload || {};
     if (a.type === 'float_declaration') return `${money(p.amount)} for ${p.date}`;
     if (a.type === 'customer_credit' || a.type === 'customer_debit') return `${p.accountNumber} • ${money(p.amount)}`;
-    if (a.type === 'account_opening') return `${p.name} • ${p.phone || '—'} • ${p.address || '—'} • ${p.generatedAccountNumber}`;
+    if (a.type === 'account_opening') return `${p.name} • Phone ${p.phone || '—'} • NIN ${p.nin || '—'} • BVN ${p.bvn || '—'} • ${p.generatedAccountNumber}`;
     if (a.type === 'account_maintenance') return `${p.accountNumber} • update`; 
     if (a.type === 'account_reactivation') return `${p.accountNumber} • reactivate`; 
     if (a.type === 'operational_entry') return `${p.accountName} • ${money(p.amount)}`;
@@ -814,6 +818,21 @@
     if (a.type === 'wallet_fund') return `${staffName(p.staffId)} • Wallet fund • ${money(p.amount)}`;
     if (a.type === 'debt_repayment') return `${staffName(p.staffId)} • Debt repayment • ${money(p.amount)}`;
     return '—';
+  }
+
+  function openJournalApprovalModal(reqId){
+    const req = state.approvals.find(r=>r.id===reqId); if(!req) return;
+    const rows = req.payload?.rows || [];
+    const total = rows.reduce((s,r)=>s+Number(r.amount||0),0);
+    const opening = getOpeningBalanceForDate(req.payload?.staffId, req.payload?.date);
+    let running = opening;
+    const bodyRows = rows.map((r,i)=>{ running += (req.type==='customer_credit_journal' ? -Number(r.amount||0) : Number(r.amount||0)); return `<tr><td>${i+1}</td><td>${r.customerName}</td><td>${r.accountNumber}</td><td>${money(r.amount)}</td><td>${money(running)}</td></tr>`; }).join('');
+    openModal('Journal Approval', `<div class="stack"><div class="kpi-row"><div class="kpi"><div class="label">Posted By</div><div class="number">${req.requestedByName}</div></div><div class="kpi"><div class="label">Opening Float</div><div class="number">${money(opening)}</div></div><div class="kpi"><div class="label">Total</div><div class="number">${money(total)}</div></div><div class="kpi"><div class="label">Variance</div><div class="number ${running<0?'balance-negative':''}">${money(Math.max(0,-running))}</div></div></div><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Customer</th><th>Account</th><th>Amount</th><th>Run Float</th></tr></thead><tbody>${bodyRows}</tbody></table></div></div>`,[{label:'Close', className:'secondary', onClick: closeModal}]);
+  }
+  function openRequestDetailModal(reqId){
+    const req = state.approvals.find(r=>r.id===reqId); if(!req) return; const p=req.payload||{};
+    const html = req.type==='account_opening' ? `<div class="form-grid two"><div class="field"><label>Name</label><div class="display-field">${p.name||'—'}</div></div><div class="field"><label>Phone</label><div class="display-field">${p.phone||'—'}</div></div><div class="field"><label>Address</label><div class="display-field">${p.address||'—'}</div></div><div class="field"><label>NIN</label><div class="display-field">${p.nin||'—'}</div></div><div class="field"><label>BVN</label><div class="display-field">${p.bvn||'—'}</div></div><div class="field"><label>Generated Account</label><div class="display-field">${p.generatedAccountNumber||'—'}</div></div></div>` : `<pre>${JSON.stringify(p,null,2)}</pre>`;
+    openModal(prettyApprovalType(req.type), html, [{label:'Close', className:'secondary', onClick: closeModal}]);
   }
 
   function renderPermissions() {
@@ -859,7 +878,7 @@
             <div class="form-grid three">
               <div class="field"><label>Account</label><select id="oeAccount" class="entry-input">${allAccts.map(a=>`<option value="${a.id}">${a.accountNumber} — ${a.name}</option>`).join('')}</select></div>
               <div class="field"><label>Amount</label><input id="oeAmount" class="entry-input" type="number"></div>
-              <div class="field"><label>Date</label><input id="oeDate" class="entry-input" type="date" value="${today()}"></div>
+              <div class="field"><label>Date</label><input id="oeDate" class="entry-input" type="date" value="${businessDate()}"></div>
               <div class="field"><label>Note</label><input id="oeNote" class="entry-input"></div>
               <div class="field"><label>Type</label><div class="display-field" id="oeKindDisplay">Auto from account</div></div>
             </div>
@@ -971,6 +990,7 @@
     byId('lookupAcc').onchange = () => doLookup(true);
     byId('lookupAcc').onkeyup = (e) => { if (e.key === "Enter") doLookup(false); };
     byId('openStatementBtn').onclick = () => { state.ui.tool = 'account_statement'; renderWorkspace(); setTimeout(()=>{ byId('stmtAcc').value = getSelectedCustomer()?.accountNumber || ''; }, 30); };
+    const photoBtn = byId('searchPhotoBtn'); if (photoBtn) photoBtn.onclick = ()=> { const pb = q('[data-fill="photo"]', byId('workspace')); if(pb) pb.classList.toggle('hidden'); };
     byId('searchByNameBtn').onclick = () => openCustomerSearchModal(state.customers);
     const selected = getSelectedCustomer();
     if (selected && state.ui.selectedCustomerId) lookupFill(byId('workspace'), selected); else lookupFill(byId('workspace'), null);
@@ -1081,7 +1101,7 @@
     };
   }
 
-  function hasApprovedFloat(staffId, date=today()) {
+  function hasApprovedFloat(staffId, date=businessDate()) {
     const acc = ensureStaffAccount(staffId);
     return acc.entries.some(e => e.type === 'approved_float' && e.floatDate === date);
   }
@@ -1090,68 +1110,17 @@
   function bindJournal(kind) {
     const staff = currentStaff();
     state.ui.staffJournals ||= {};
-    const key = `${staff.id}:${kind}`;
+    const key = `${staff.id}:${businessDate()}:${kind}`;
     const journal = state.ui.staffJournals[key] ||= [];
-    const resetFields = () => {
-      if (byId('txAcc')) byId('txAcc').value = '';
-      if (byId('txAmount')) byId('txAmount').value = '';
-      if (byId('txDetails')) byId('txDetails').value = '';
-      if (byId('txCounterparty')) byId('txCounterparty').value = '';
-      if (byId('txName')) byId('txName').textContent = '—';
-      if (byId('txBalance')) byId('txBalance').innerHTML = '—';
-      state.ui.selectedCustomerId = null;
-    };
-    const rerenderJournal = () => {
-      byId('journalRows').innerHTML = journal.map((row, i) => `<tr><td>${i+1}</td><td>${row.customerName}</td><td>${row.accountNumber}</td><td>${money(row.amount)}</td><td><span class="linklike" data-remove-row="${row.id}">Remove</span></td></tr>`).join('') || '<tr><td colspan="5">No journal entries yet</td></tr>';
-      qq('[data-remove-row]').forEach(el => el.onclick = () => { const idx = journal.findIndex(r => r.id === el.dataset.removeRow); if (idx >= 0) { journal.splice(idx,1); save(); rerenderJournal(); } });
-    };
-    const search = () => {
-      const c = getCustomerByAccountNo(byId('txAcc').value);
-      if (!c) return showToast('Customer not found');
-      if (isCustomerFrozen(c)) return showToast('Account is frozen');
-      state.ui.selectedCustomerId = c.id; save();
-      byId('txName').textContent = c.name;
-      byId('txBalance').innerHTML = balanceHtml(c.balance);
-    };
-    byId('txSearch').onclick = search;
-    if (byId('txAcc')) byId('txAcc').onchange = search;
-    byId('txJournalAdd').onclick = () => {
-      const customer = getSelectedCustomer() || getCustomerByAccountNo(byId('txAcc').value);
-      if (!customer) return showToast('Search for customer first');
-      if (isCustomerFrozen(customer)) return showToast('Frozen account cannot accept transactions');
-      const amount = Number(byId('txAmount').value || 0);
-      if (!(amount > 0)) return showToast('Enter a valid amount');
-      journal.push({ id: uid('jr'), customerId: customer.id, customerName: customer.name, accountNumber: customer.accountNumber, amount, details: byId('txDetails').value.trim(), receivedOrPaidBy: byId('txCounterparty').value.trim(), payoutSource: byId('txPayoutSource')?.value || 'teller', date: today() });
-      save(); rerenderJournal(); resetFields();
-    };
-    byId('journalClear').onclick = () => { journal.splice(0); save(); rerenderJournal(); resetFields(); };
-    byId('txPostSingle').onclick = () => {
-      if (!hasPermission(kind)) return showToast('No access to post');
-      if (!hasApprovedFloat(staff.id)) return showToast('Approved opening balance required before posting');
-      const customer = getSelectedCustomer() || getCustomerByAccountNo(byId('txAcc').value);
-      if (!customer) return showToast('Search for customer first');
-      if (isCustomerFrozen(customer)) return showToast('Frozen account cannot accept transactions');
-      const amount = Number(byId('txAmount').value || 0);
-      if (!(amount > 0)) return showToast('Enter a valid amount');
-      confirmAction(`Submit single ${kind} request for approval?`, () => {
-        createRequest(kind === 'credit' ? 'customer_credit' : 'customer_debit', { customerId: customer.id, accountNumber: customer.accountNumber, amount, details: byId('txDetails').value.trim(), receivedOrPaidBy: byId('txCounterparty').value.trim(), payoutSource: byId('txPayoutSource')?.value || 'teller', staffId: staff.id, date: today() });
-        resetFields(); showToast(`${kind === 'credit' ? 'Credit' : 'Debit'} request sent for approval`); render();
-      });
-    };
-    byId('journalSubmit').onclick = () => {
-      if (!hasPermission(kind)) return showToast('No access to post');
-      if (!hasApprovedFloat(staff.id)) return showToast('Approved opening balance required before posting');
-      if (!journal.length) return showToast('Generate journal first');
-      confirmAction(`Submit ${kind} journal for approval?`, () => {
-        createRequest(kind === 'credit' ? 'customer_credit_journal' : 'customer_debit_journal', {
-          staffId: staff.id,
-          date: today(),
-          rows: journal.map(row => ({ customerId: row.customerId, customerName: row.customerName, accountNumber: row.accountNumber, amount: row.amount, details: row.details, receivedOrPaidBy: row.receivedOrPaidBy, payoutSource: row.payoutSource }))
-        });
-        journal.splice(0); save(); rerenderJournal(); resetFields(); showToast(`${kind === 'credit' ? 'Credit' : 'Debit'} journal sent for approval`); render();
-      });
-    };
-    rerenderJournal();
+    const resetFields = () => { ['txAcc','txAmount','txDetails','txCounterparty'].forEach(id=>{ if(byId(id)) byId(id).value=''; }); if (byId('txName')) byId('txName').textContent='—'; if (byId('txBalance')) byId('txBalance').innerHTML='—'; state.ui.selectedCustomerId=null; };
+    const recalcPreview = () => { let running = getOpeningBalanceForDate(staff.id, businessDate()); const rows = journal.map((row, i) => { running += (kind==='credit' ? -Number(row.amount||0) : Number(row.amount||0)); return `<tr><td>${i+1}</td><td>${row.customerName}</td><td>${row.accountNumber}</td><td>${money(row.amount)}</td><td class="${running<0?'balance-negative':''}">${money(running)}</td><td><span class="linklike" data-remove-row="${row.id}">Remove</span></td></tr>`; }).join('') || '<tr><td colspan="6">No journal entries yet</td></tr>'; byId('journalRows').innerHTML = rows; const rf=byId('journalRunningFloat'); if(rf) rf.textContent = money(Math.max(0,running)); const vr=byId('journalVariance'); if(vr) vr.textContent = money(Math.max(0,-running)); qq('[data-remove-row]').forEach(el => el.onclick = () => { const idx = journal.findIndex(r => r.id === el.dataset.removeRow); if (idx >= 0) { journal.splice(idx,1); save(); recalcPreview(); } }); };
+    const search = () => { const c = getCustomerByAccountNo(byId('txAcc').value); if (!c) return showToast('Customer not found'); if (isCustomerFrozen(c)) return showToast('Account is frozen'); state.ui.selectedCustomerId = c.id; save(); byId('txName').textContent = c.name; byId('txBalance').innerHTML = balanceHtml(c.balance); };
+    byId('txSearch').onclick = search; if (byId('txAcc')) { byId('txAcc').onchange = search; byId('txAcc').onkeyup = e => { if(e.key==='Enter') search(); }; }
+    byId('txJournalAdd').onclick = () => { const customer = getSelectedCustomer() || getCustomerByAccountNo(byId('txAcc').value); if (!customer) return showToast('Search for customer first'); if (isCustomerFrozen(customer)) return showToast('Frozen account cannot accept transactions'); const amount = Number(byId('txAmount').value || 0); if (!(amount > 0)) return showToast('Enter a valid amount'); journal.push({ id: uid('jr'), customerId: customer.id, customerName: customer.name, accountNumber: customer.accountNumber, amount, details: byId('txDetails').value.trim(), receivedOrPaidBy: byId('txCounterparty').value.trim(), payoutSource: byId('txPayoutSource')?.value || 'teller', date: businessDate() }); save(); recalcPreview(); resetFields(); };
+    byId('journalClear').onclick = () => { journal.splice(0); save(); recalcPreview(); resetFields(); };
+    byId('txPostSingle').onclick = () => { if (!hasPermission(kind)) return showToast('No access to post'); if (!hasApprovedFloat(staff.id, businessDate())) return showToast('Approved opening balance required before posting'); const customer = getSelectedCustomer() || getCustomerByAccountNo(byId('txAcc').value); if (!customer) return showToast('Search for customer first'); if (isCustomerFrozen(customer)) return showToast('Frozen account cannot accept transactions'); const amount = Number(byId('txAmount').value || 0); if (!(amount > 0)) return showToast('Enter a valid amount'); confirmAction(`Submit single ${kind} request for approval?`, () => { createRequest(kind === 'credit' ? 'customer_credit' : 'customer_debit', { customerId: customer.id, customerName: customer.name, accountNumber: customer.accountNumber, amount, details: byId('txDetails').value.trim(), receivedOrPaidBy: byId('txCounterparty').value.trim(), payoutSource: byId('txPayoutSource')?.value || 'teller', staffId: staff.id, date: businessDate() }); resetFields(); showToast(`${kind === 'credit' ? 'Credit' : 'Debit'} request sent for approval`); render(); }); };
+    byId('journalSubmit').onclick = () => { if (!hasPermission(kind)) return showToast('No access to post'); if (!hasApprovedFloat(staff.id, businessDate())) return showToast('Approved opening balance required before posting'); if (!journal.length) return showToast('Generate journal first'); confirmAction(`Submit ${kind} journal for approval?`, () => { createRequest(kind === 'credit' ? 'customer_credit_journal' : 'customer_debit_journal', { staffId: staff.id, date: businessDate(), openingFloat: getOpeningBalanceForDate(staff.id, businessDate()), rows: journal.map(row => ({ customerId: row.customerId, customerName: row.customerName, accountNumber: row.accountNumber, amount: row.amount, details: row.details, receivedOrPaidBy: row.receivedOrPaidBy, payoutSource: row.payoutSource })) }); journal.splice(0); save(); recalcPreview(); resetFields(); showToast(`${kind === 'credit' ? 'Credit' : 'Debit'} journal sent for approval`); render(); }); };
+    recalcPreview();
   }
 
   function bindApprovals() {
@@ -1169,7 +1138,10 @@
     const less = byId('approvalsLess');
     if (less) less.onclick = () => { state.ui.approvalsLimit = Math.max(20, (state.ui.approvalsLimit || 20) - 20); save(); renderWorkspace(); };
     const codDate = byId('codAdminDate');
-    if (codDate) codDate.onchange = () => { state.ui.codAdminDate = codDate.value || today(); save(); renderWorkspace(); };
+    if (codDate) codDate.onchange = () => { state.ui.codAdminDate = codDate.value || businessDate(); save(); renderWorkspace(); };
+    qq('[data-approval-section]').forEach(btn => btn.onclick = ()=>{ state.ui.approvalsSection = btn.dataset.approvalSection; save(); renderWorkspace(); });
+    qq('[data-inspect-journal]').forEach(btn => btn.onclick = ()=> openJournalApprovalModal(btn.dataset.inspectJournal));
+    qq('[data-inspect-request]').forEach(btn => btn.onclick = ()=> openRequestDetailModal(btn.dataset.inspectRequest));
   }
 
   function bindPermissions() {
@@ -1198,6 +1170,7 @@
     updatePreview();
     byId('oaCategory').onchange = updatePreview;
     byId('oaCreate').onclick = () => {
+      if (currentStaff()?.role !== 'admin_officer') return showToast('Only admin can create operational accounts');
       const category = byId('oaCategory').value;
       const name = byId('oaName').value.trim();
       if (!name) return showToast('Enter account name');
@@ -1231,11 +1204,11 @@
     const st = currentStaff();
     const requiresFloat = hasPermission('credit') || hasPermission('debit');
     if (!requiresFloat) return showToast('Current staff does not need posting float');
-    if (hasFloatDeclaredOrPending(st.id, today())) return showToast('Opening Balance already declared for today');
+    if (hasFloatDeclaredOrPending(st.id, businessDate())) return showToast('Opening Balance already declared for today');
     openModal('Opening Balance', `
       <div class="form-grid three">
         <div class="field"><label>Staff</label><div class="display-field">${st.name}</div></div>
-        <div class="field"><label>Date</label><div class="display-field">${today()}</div></div>
+        <div class="field"><label>Date</label><div class="display-field">${businessDate()}</div></div>
         <div class="field"><label>Amount</label><input id="floatAmount" class="entry-input" type="number"></div>
       </div>
       <div class="note">Posting cannot begin until this float is approved.</div>
@@ -1244,8 +1217,8 @@
       { label: 'Submit', onClick: () => {
           const amount = Number(byId('floatAmount').value || 0);
           if (!(amount > 0)) return showToast('Enter valid float');
-          if (hasFloatDeclaredOrPending(st.id, today())) return showToast('Opening Balance already declared for today');
-          createRequest('float_declaration', { staffId: st.id, amount, date: today() });
+          if (hasFloatDeclaredOrPending(st.id, businessDate())) return showToast('Opening Balance already declared for today');
+          createRequest('float_declaration', { staffId: st.id, amount, date: businessDate() });
           closeModal();
           render();
           showToast('Float declaration sent for approval');
@@ -1253,60 +1226,11 @@
     ]);
   }
 
-  async function openCODModal() {
-    const st = currentStaff();
-    if (!(hasPermission('credit') || hasPermission('debit'))) return showToast('Current staff does not submit close of day');
-    const initDate = state.ui.codSubmitDate || today();
-    openModal('Close of Day', `
-      <div class="stack">
-        <div class="form-grid three">
-          <div class="field"><label>Staff</label><div class="display-field">${st.name}</div></div>
-          <div class="field"><label>COD Date</label><input id="codDate" class="entry-input" type="date" value="${initDate}" max="${today()}"></div>
-          <div class="field"><label>Expected Cash</label><div class="display-field" id="codExpected">0</div></div>
-          <div class="field"><label>Actual Cash Count</label><input id="codActual" class="entry-input" type="number"></div>
-          <div class="field"><label>Field Paper Upload</label><input id="codFiles" class="entry-input" type="file" multiple accept="image/*,.pdf"></div>
-          <div class="field"><label>Note</label><textarea id="codNote" class="entry-input"></textarea></div>
-        </div>
-        <div id="codStatus" class="note">Balanced</div><div class="note">Shortage or excess requires note. Overdraw occurs when approved postings exceed opening balance.</div>
-        <div id="codUploads" class="upload-list"></div>
-      </div>
-    `, [
-      { label: 'Cancel', className:'secondary', onClick: closeModal },
-      { label: 'Submit', onClick: async () => {
-          const selDate = byId('codDate').value || today();
-          if (!hasApprovedFloat(st.id, selDate)) return showToast('Approved opening balance required for selected COD date');
-          if ((state.cod||[]).some(c=>c.staffId===st.id && c.date===selDate)) return showToast('Close of Day already submitted for this date');
-          const expectedCash = currentFloatAvailable(st.id, selDate);
-          const overdraw = currentFloatOverdraw(st.id, selDate);
-          const actualCash = Number(byId('codActual').value || 0);
-          const note = byId('codNote').value.trim();
-          if (actualCash < 0) return showToast('Enter valid actual cash count');
-          const files = Array.from(byId('codFiles').files || []);
-          const fieldPapers = await Promise.all(files.map(toBase64));
-          const variance = actualCash - expectedCash;
-          if ((variance !== 0 || overdraw > 0) && !note) return showToast('Add note for shortage, excess or overdraw');
-          createRequest('close_of_day', { staffId: st.id, staffName: st.name, date: selDate, actualCash, expectedCash, variance, overdraw, note, fieldPapers });
-          closeModal();
-          render();
-          showToast('Close of Day sent for approval');
-      }}
-    ]);
-    const syncCodStatus = () => {
-      const selDate = byId('codDate').value || today();
-      state.ui.codSubmitDate = selDate; save();
-      const expectedCash = hasApprovedFloat(st.id, selDate) ? currentFloatAvailable(st.id, selDate) : 0;
-      const overdraw = hasApprovedFloat(st.id, selDate) ? currentFloatOverdraw(st.id, selDate) : 0;
-      const expEl = byId('codExpected'); if (expEl) expEl.textContent = money(expectedCash);
-      const actual = Number(byId('codActual').value || 0); const variance = actual - expectedCash; const el = byId('codStatus'); if(!el) return;
-      if (!hasApprovedFloat(st.id, selDate)) { el.textContent='No approved opening balance for selected date'; el.className='note balance-negative'; return; }
-      if ((state.cod||[]).some(c=>c.staffId===st.id && c.date===selDate)) { el.textContent='COD already submitted for selected date'; el.className='note balance-negative'; return; }
-      if(variance===0 && !(overdraw>0)) { el.textContent='Balanced'; el.className='note'; } else if(variance<0) { el.textContent=`Shortage ${money(Math.abs(variance))}${overdraw>0 ? ' • Overdraw '+money(overdraw): ''}`; el.className='note balance-negative'; } else { el.textContent=`Excess ${money(variance)}${overdraw>0 ? ' • Overdraw '+money(overdraw): ''}`; el.className='note'; }
-    };
-    byId('codActual').oninput = syncCodStatus; byId('codDate').onchange = syncCodStatus; syncCodStatus();
-    byId('codFiles').onchange = () => {
-      const files = Array.from(byId('codFiles').files || []);
-      byId('codUploads').innerHTML = files.map(f => `<div class="upload-pill">${f.name}</div>`).join('');
-    };
+  function openCODModal() {
+    if (!canCloseBusinessDay()) return showToast('Only Approval Officer or Admin can close day');
+    const postingStaff = state.staff.filter(st => hasPermission('credit', st) || hasPermission('debit', st));
+    const rows = postingStaff.map(st => { const opening=getOpeningBalanceForDate(st.id,businessDate()); const credits=approvedCreditTotalForDate(st.id,businessDate()); const debits=approvedDebitTotalForDate(st.id,businessDate()); const expected=currentFloatAvailable(st.id,businessDate()); const overdraw=currentFloatOverdraw(st.id,businessDate()); return `<tr><td>${st.name}</td><td>${money(opening)}</td><td>${money(credits)}</td><td>${money(debits)}</td><td>${money(expected)}</td><td>${money(overdraw)}</td><td><input class="entry-input" data-cod-actual="${st.id}" type="number" value="${Math.max(0,expected)}"></td><td><input class="entry-input" data-cod-note="${st.id}"></td></tr>`; }).join('');
+    openModal('Central Close of Day', `<div class="stack"><div class="note">You are closing business date <strong>${businessDate()}</strong>. Closing opens the next business date immediately.</div><div class="table-wrap"><table class="table"><thead><tr><th>Staff</th><th>Opening</th><th>Total Credits</th><th>Total Debits</th><th>Running Float</th><th>Variance</th><th>Actual Cash</th><th>Note</th></tr></thead><tbody>${rows}</tbody></table></div></div>`, [{label:'Cancel', className:'secondary', onClick: closeModal}, {label:'Close Business Day', onClick: ()=> { postingStaff.forEach(st => { const expected=currentFloatAvailable(st.id,businessDate()); const actual=Number(q(`[data-cod-actual="${st.id}"]`)?.value||0); const note=q(`[data-cod-note="${st.id}"]`)?.value?.trim()||''; const variance=actual-expected; state.cod.unshift({id:uid('cod'), staffId:st.id, staffName:st.name, date:businessDate(), actualCash:actual, expectedCash:expected, variance, overdraw:currentFloatOverdraw(st.id,businessDate()), note, fieldPapers:[], status: variance===0 && currentFloatOverdraw(st.id,businessDate())===0 ? 'balanced':'flagged', approvedAt:new Date().toISOString(), approvedBy:currentStaff()?.name||''}); }); state.dayClosures.push({date:businessDate(), closedAt:new Date().toISOString(), closedBy:currentStaff()?.name||''}); state.businessDate = nextDate(businessDate()); save(); closeModal(); render(); showToast(`Business day closed. New open date: ${state.businessDate}`); }}]);
   }
 
   function openAuditModal() {
@@ -1366,25 +1290,22 @@
   }
 
   function approvedCreditTotalForDate(staffId, dateStr) {
-    return (state.approvals||[]).filter(r => r.type === 'customer_credit' && r.status === 'approved' && r.payload?.staffId === staffId && r.payload?.date === dateStr)
-      .reduce((s,r)=>s+Number(r.payload?.amount||0),0);
+    return (state.approvals||[]).filter(r => ['customer_credit','customer_credit_journal'].includes(r.type) && r.status === 'approved' && r.payload?.staffId === staffId && r.payload?.date === dateStr).reduce((s,r)=> s + (r.type==='customer_credit_journal' ? (r.payload.rows||[]).reduce((a,x)=>a+Number(x.amount||0),0) : Number(r.payload?.amount||0)), 0);
   }
 
   function approvedDebitTotalForDate(staffId, dateStr) {
-    return (state.approvals||[]).filter(r => r.type === 'customer_debit' && r.status === 'approved' && r.payload?.staffId === staffId && r.payload?.date === dateStr)
-      .reduce((s,r)=>s+Number(r.payload?.amount||0),0);
+    return (state.approvals||[]).filter(r => ['customer_debit','customer_debit_journal'].includes(r.type) && r.status === 'approved' && r.payload?.staffId === staffId && r.payload?.date === dateStr).reduce((s,r)=> s + (r.type==='customer_debit_journal' ? (r.payload.rows||[]).reduce((a,x)=>a+Number(x.amount||0),0) : Number(r.payload?.amount||0)), 0);
   }
 
-  function currentFloatAvailable(staffId, date=today()) {
+  function currentFloatAvailable(staffId, date=businessDate()) {
     const opening = getOpeningBalanceForDate(staffId, date);
     const used = approvedCreditTotalForDate(staffId, date);
-    return Math.max(0, opening - used);
+    const restored = approvedDebitTotalForDate(staffId, date);
+    return opening - used + restored;
   }
 
-  function currentFloatOverdraw(staffId, date=today()) {
-    const opening = getOpeningBalanceForDate(staffId, date);
-    const used = approvedCreditTotalForDate(staffId, date);
-    return Math.max(0, used - opening);
+  function currentFloatOverdraw(staffId, date=businessDate()) {
+    return Math.max(0, -currentFloatAvailable(staffId, date));
   }
 
   function staffCODRecords(staffId) {
