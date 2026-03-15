@@ -147,6 +147,7 @@
     state.businessDate ||= today();
     state.dayClosures ||= [];
     state.staff.forEach(st => { ensureStaffWalletCustomer(st.id); ensureStaffAccount(st.id); });
+    normalizeStaffWalletAccounts();
     syncAllStaffWallets();
     recalcAllCustomerBalances();
     recalcAllTellerBalances();
@@ -184,6 +185,16 @@
   }
   function syncStaffWallet(staffId){ const acc=ensureStaffAccount(staffId); const c=getStaffWalletCustomer(staffId); if(c){ acc.walletBalance=Number(c.balance||0); } }
   function syncAllStaffWallets(){ Object.keys(state.staffAccounts||{}).forEach(syncStaffWallet); }
+  function normalizeStaffWalletAccounts(){
+    (state.staff||[]).forEach((st, idx) => {
+      const wallet = ensureStaffWalletCustomer(st.id);
+      const acctNo = String(4000 + idx);
+      if (wallet) wallet.accountNumber = acctNo;
+      const acc = ensureStaffAccount(st.id);
+      acc.accountNumber = acctNo;
+      acc.linkedCustomerId = wallet?.id || acc.linkedCustomerId || null;
+    });
+  }
   function canCloseBusinessDay(staff=currentStaff()){ return !!staff && ['admin_officer','approving_officer'].includes(staff.role); }
 
   function ensureStaffAccount(staffId, sourceState=state) {
@@ -566,14 +577,15 @@
     byId('heroStats').innerHTML = [
       cardMetric('My Balance', money(Number(acc.walletBalance||0)), `Wallet ${money(acc.walletBalance||0)} • Debt -${money(acc.debtBalance||0)} • Business Day ${businessDate()} • Opening ${money(openingToday)}`, 'my-balance'),
       cardMetric('My Close of Day', businessDate(), `View your close-of-day summaries and manager notes`, 'my-cod'),
-      cardMetric('Operational Income', money(operationalIncome), `${state.operations.incomeAccounts.length} income accounts`, 'operational-balance'),
-      cardMetric('Operational Expense', money(operationalExpense), `${state.operations.expenseAccounts.length} expense accounts`, 'operational-balance')
+      cardMetric('Operational Income', money(operationalIncome), `${state.operations.incomeAccounts.length} income accounts`, 'operational-accounts'),
+      cardMetric('Operational Expense', money(operationalExpense), `${state.operations.expenseAccounts.length} expense accounts`, 'operational-accounts')
     ].join('');
     qq('[data-hero-card]').forEach(el => el.onclick = () => {
       const act = el.dataset.heroCard;
       if (act === 'my-balance') openMyBalanceModal();
       if (act === 'my-cod') { openMyCODModal(); }
       if (act === 'operational-balance') { state.ui.module = 'balances'; state.ui.tool = 'operational_balance'; save(); render(); setTimeout(()=>byId('workspace')?.scrollIntoView({behavior:'smooth', block:'start'}),80); }
+      if (act === 'operational-accounts') { state.ui.module = 'balances'; state.ui.tool = 'operational_accounts'; save(); render(); setTimeout(()=>byId('workspace')?.scrollIntoView({behavior:'smooth', block:'start'}),80); }
     });
   }
 
@@ -1117,7 +1129,7 @@
     const key = `${staff.id}:${businessDate()}:${kind}`;
     const journal = state.ui.staffJournals[key] ||= [];
     const resetFields = () => { ['txAcc','txAmount','txDetails','txCounterparty'].forEach(id=>{ if(byId(id)) byId(id).value=''; }); if (byId('txName')) byId('txName').textContent='—'; if (byId('txBalance')) byId('txBalance').innerHTML='—'; state.ui.selectedCustomerId=null; };
-    const recalcPreview = () => { let running = getOpeningBalanceForDate(staff.id, businessDate()); const rows = journal.map((row, i) => { running += (kind==='credit' ? -Number(row.amount||0) : Number(row.amount||0)); return `<tr><td>${i+1}</td><td>${row.customerName}</td><td>${row.accountNumber}</td><td>${money(row.amount)}</td><td class="${running<0?'balance-negative':''}">${money(running)}</td><td><span class="linklike" data-remove-row="${row.id}">Remove</span></td></tr>`; }).join('') || '<tr><td colspan="6">No journal entries yet</td></tr>'; byId('journalRows').innerHTML = rows; const rf=byId('journalRunningFloat'); if(rf) rf.textContent = money(Math.max(0,running)); const vr=byId('journalVariance'); if(vr) vr.textContent = money(Math.max(0,-running)); qq('[data-remove-row]').forEach(el => el.onclick = () => { const idx = journal.findIndex(r => r.id === el.dataset.removeRow); if (idx >= 0) { journal.splice(idx,1); save(); recalcPreview(); } }); };
+    const recalcPreview = () => { let running = currentFloatAvailable(staff.id, businessDate()); const rows = journal.map((row, i) => { running += (kind==='credit' ? -Number(row.amount||0) : Number(row.amount||0)); return `<tr><td>${i+1}</td><td>${row.customerName}</td><td>${row.accountNumber}</td><td>${money(row.amount)}</td><td class="${running<0?'balance-negative':''}">${money(running)}</td><td><span class="linklike" data-remove-row="${row.id}">Remove</span></td></tr>`; }).join('') || '<tr><td colspan="6">No journal entries yet</td></tr>'; byId('journalRows').innerHTML = rows; const rf=byId('journalRunningFloat'); if(rf) rf.textContent = money(Math.max(0,running)); const vr=byId('journalVariance'); if(vr) vr.textContent = money(Math.max(0,-running)); qq('[data-remove-row]').forEach(el => el.onclick = () => { const idx = journal.findIndex(r => r.id === el.dataset.removeRow); if (idx >= 0) { journal.splice(idx,1); save(); recalcPreview(); } }); };
     const search = () => { const c = getCustomerByAccountNo(byId('txAcc').value); if (!c) return showToast('Customer not found'); if (isCustomerFrozen(c)) return showToast('Account is frozen'); state.ui.selectedCustomerId = c.id; save(); byId('txName').textContent = c.name; byId('txBalance').innerHTML = balanceHtml(c.balance); };
     byId('txSearch').onclick = search; if (byId('txAcc')) { byId('txAcc').onchange = search; byId('txAcc').onkeyup = e => { if(e.key==='Enter') search(); }; }
     byId('txJournalAdd').onclick = () => { const customer = getSelectedCustomer() || getCustomerByAccountNo(byId('txAcc').value); if (!customer) return showToast('Search for customer first'); if (isCustomerFrozen(customer)) return showToast('Frozen account cannot accept transactions'); const amount = Number(byId('txAmount').value || 0); if (!(amount > 0)) return showToast('Enter a valid amount'); journal.push({ id: uid('jr'), customerId: customer.id, customerName: customer.name, accountNumber: customer.accountNumber, amount, details: byId('txDetails').value.trim(), receivedOrPaidBy: byId('txCounterparty').value.trim(), payoutSource: byId('txPayoutSource')?.value || 'teller', date: businessDate() }); save(); recalcPreview(); resetFields(); };
@@ -1232,8 +1244,8 @@
   function openCODModal() {
     if (!canCloseBusinessDay()) return showToast('Only Approval Officer or Admin can close day');
     const postingStaff = state.staff.filter(st => hasPermission('credit', st) || hasPermission('debit', st));
-    const rows = postingStaff.map(st => { const opening=getOpeningBalanceForDate(st.id,businessDate()); const credits=approvedCreditTotalForDate(st.id,businessDate()); const debits=approvedDebitTotalForDate(st.id,businessDate()); const expected=currentFloatAvailable(st.id,businessDate()); const overdraw=currentFloatOverdraw(st.id,businessDate()); return `<tr><td>${st.name}</td><td>${money(opening)}</td><td>${money(credits)}</td><td>${money(debits)}</td><td>${money(expected)}</td><td>${money(overdraw)}</td><td><input class="entry-input" data-cod-actual="${st.id}" type="number" value="${Math.max(0,expected)}"></td><td><input class="entry-input" data-cod-note="${st.id}"></td></tr>`; }).join('');
-    openModal('Central Close of Day', `<div class="stack"><div class="note">You are closing business date <strong>${businessDate()}</strong>. Closing opens the next business date immediately.</div><div class="table-wrap"><table class="table"><thead><tr><th>Staff</th><th>Opening</th><th>Total Credits</th><th>Total Debits</th><th>Running Float</th><th>Variance</th><th>Actual Cash</th><th>Note</th></tr></thead><tbody>${rows}</tbody></table></div></div>`, [{label:'Cancel', className:'secondary', onClick: closeModal}, {label:'Close Business Day', onClick: ()=> { postingStaff.forEach(st => { const expected=currentFloatAvailable(st.id,businessDate()); const actual=Number(q(`[data-cod-actual="${st.id}"]`)?.value||0); const note=q(`[data-cod-note="${st.id}"]`)?.value?.trim()||''; const variance=actual-expected; state.cod.unshift({id:uid('cod'), staffId:st.id, staffName:st.name, date:businessDate(), actualCash:actual, expectedCash:expected, variance, overdraw:currentFloatOverdraw(st.id,businessDate()), note, fieldPapers:[], status: variance===0 && currentFloatOverdraw(st.id,businessDate())===0 ? 'balanced':'flagged', approvedAt:new Date().toISOString(), approvedBy:currentStaff()?.name||''}); }); state.dayClosures.push({date:businessDate(), closedAt:new Date().toISOString(), closedBy:currentStaff()?.name||''}); state.businessDate = nextDate(businessDate()); save(); closeModal(); render(); showToast(`Business day closed. New open date: ${state.businessDate}`); }}]);
+    const rows = postingStaff.map(st => { const opening=getOpeningBalanceForDate(st.id,businessDate()); const credits=approvedCreditTotalForDate(st.id,businessDate()); const debits=approvedDebitTotalForDate(st.id,businessDate()); const running=currentFloatAvailable(st.id,businessDate()); const expected=Math.max(0, running); const overdraw=currentFloatOverdraw(st.id,businessDate()); return `<tr><td>${st.name}</td><td>${money(opening)}</td><td>${money(credits)}</td><td>${money(debits)}</td><td>${money(running)}</td><td>${money(overdraw)}</td><td><input class="entry-input" data-cod-actual="${st.id}" type="number" value="${expected}"></td><td><input class="entry-input" data-cod-note="${st.id}"></td></tr>`; }).join('');
+    openModal('Central Close of Day', `<div class="stack"><div class="note">You are closing business date <strong>${businessDate()}</strong>. Closing opens the next business date immediately.</div><div class="table-wrap"><table class="table"><thead><tr><th>Staff</th><th>Opening</th><th>Total Credits</th><th>Total Debits</th><th>Running Float</th><th>Overdraw</th><th>Actual Cash</th><th>Note</th></tr></thead><tbody>${rows}</tbody></table></div></div>`, [{label:'Cancel', className:'secondary', onClick: closeModal}, {label:'Close Business Day', onClick: ()=> { postingStaff.forEach(st => { const running=currentFloatAvailable(st.id,businessDate()); const expected=Math.max(0,running); const actual=Number(q(`[data-cod-actual="${st.id}"]`)?.value||0); const note=q(`[data-cod-note="${st.id}"]`)?.value?.trim()||''; const variance=actual-expected; state.cod.unshift({id:uid('cod'), staffId:st.id, staffName:st.name, date:businessDate(), actualCash:actual, expectedCash:expected, variance, overdraw:Math.max(0,-running), note, fieldPapers:[], status: variance===0 && Math.max(0,-running)===0 ? 'balanced':'flagged', approvedAt:new Date().toISOString(), approvedBy:currentStaff()?.name||''}); }); state.dayClosures.push({date:businessDate(), closedAt:new Date().toISOString(), closedBy:currentStaff()?.name||''}); state.businessDate = nextDate(businessDate()); save(); closeModal(); render(); showToast(`Business day closed. New open date: ${state.businessDate}`); }}]);
   }
 
   function openAuditModal() {
@@ -1347,9 +1359,23 @@
     ]);
   }
 
-  function openMyCODModal() {
-    const rows = staffCODRecords((currentStaff()||{}).id).map(c => `<tr><td>${fmtDate(c.date)}</td><td>${money(getOpeningBalanceForDate(c.staffId, c.date))}</td><td>${money(approvedCreditTotalForDate(c.staffId,c.date))}</td><td>${money(approvedDebitTotalForDate(c.staffId,c.date))}</td><td>${money(c.expectedCash)}</td><td>${money(c.actualCash||0)}</td><td>${money(c.variance||0)}</td><td><small class="${c.status==='flagged' ? 'status-flagged' : c.status==='resolved'?'status-pending':'status-balanced'}">${c.status || 'balanced'}</small></td><td>${c.resolutionNote || c.note || '—'}</td></tr>`).join('') || '<tr><td colspan="9">No close of day records</td></tr>';
-    openModal('My Close of Day', `<div class="table-wrap"><table class="table"><thead><tr><th>Date</th><th>Opening Balance</th><th>Total Credits</th><th>Total Debits</th><th>Expected</th><th>Actual</th><th>Variance</th><th>Status</th><th>Manager Note</th></tr></thead><tbody>${rows}</tbody></table></div>`, [{label:'Close', className:'secondary', onClick: closeModal}]);
+  function openMyCODModal(selectedDate=null) {
+    state.ui.myCodDate = selectedDate || state.ui.myCodDate || businessDate();
+    const st = currentStaff();
+    const c = staffCODRecords((st||{}).id).find(x => x.date === state.ui.myCodDate);
+    const summary = c ? `
+      <div class="kpi-row">
+        <div class="kpi"><div class="label">Opening Balance</div><div class="number">${money(getOpeningBalanceForDate(c.staffId, c.date))}</div></div>
+        <div class="kpi"><div class="label">Credits</div><div class="number">${money(approvedCreditTotalForDate(c.staffId,c.date))}</div></div>
+        <div class="kpi"><div class="label">Debits</div><div class="number">${money(approvedDebitTotalForDate(c.staffId,c.date))}</div></div>
+        <div class="kpi"><div class="label">Expected</div><div class="number">${money(c.expectedCash)}</div></div>
+        <div class="kpi"><div class="label">Actual</div><div class="number">${money(c.actualCash||0)}</div></div>
+        <div class="kpi"><div class="label">Variance</div><div class="number ${Number(c.variance||0)<0?'balance-negative':''}">${money(c.variance||0)}</div></div>
+      </div>
+      <div class="note"><strong>Status:</strong> ${c.status || 'balanced'} • <strong>Manager Note:</strong> ${c.resolutionNote || c.note || '—'}</div>` : `<div class="note">No close-of-day record for selected date.</div>`;
+    openModal('My Close of Day', `<div class="stack"><div class="action-inline"><div class="inline-field compact"><span>COD Date</span><input type="date" id="myCodDate" value="${state.ui.myCodDate}"></div></div>${summary}</div>`, [{label:'Close', className:'secondary', onClick: closeModal}]);
+    const picker = byId('myCodDate');
+    if (picker) picker.onchange = () => { state.ui.myCodDate = picker.value || businessDate(); save(); openMyCODModal(state.ui.myCodDate); };
   }
 
   function openCODResolutionModal(codId) {
