@@ -836,7 +836,7 @@
     const total = rows.reduce((s,r)=>s+Number(r.amount||0),0);
     const opening = getOpeningBalanceForDate(req.payload?.staffId, req.payload?.date);
     let running = opening;
-    const bodyRows = rows.map((r,i)=>{ running += (req.type==='customer_credit_journal' ? -Number(r.amount||0) : Number(r.amount||0)); return `<tr><td>${i+1}</td><td>${r.customerName}</td><td>${r.accountNumber}</td><td>${money(r.amount)}</td><td class="${running<0?'balance-negative':''}">${money(running)}</td></tr>`; }).join('');
+    const bodyRows = rows.map((r,i)=>{ running -= Number(r.amount||0); return `<tr><td>${i+1}</td><td>${r.customerName}</td><td>${r.accountNumber}</td><td>${money(r.amount)}</td><td class="${running<0?'balance-negative':''}">${money(running)}</td></tr>`; }).join('');
     const actions = [{label:'Close', className:'secondary', onClick: closeModal}];
     if (req.status === 'pending') {
       actions.unshift({label:'Reject Journal', className:'danger', onClick: ()=>{ rejectRequest(req.id); closeModal(); }});
