@@ -393,9 +393,13 @@
         break;
       }
       case 'float_declaration': {
-        if (!hasOpeningBalanceForDate(req.payload.staffId, req.payload.date)) {
+        if (!hasBaseOpeningBalanceForDate(req.payload.staffId, req.payload.date)) {
           addStaffEntry(req.payload.staffId, 'approved_float', req.payload.amount, req.payload.amount, `Approved opening balance for ${req.payload.date}`, { floatDate: req.payload.date });
         }
+        break;
+      }
+      case 'float_topup': {
+        addStaffEntry(req.payload.staffId, 'approved_float_topup', req.payload.amount, req.payload.amount, `Approved float top-up for ${req.payload.staffName || 'staff'} on ${req.payload.date}`, { floatDate: req.payload.date });
         break;
       }
       case 'customer_credit': {
@@ -777,7 +781,7 @@
 
   function renderApprovals() {
     state.ui.codAdminDate ||= businessDate();
-    const categories = { customer_service: ['account_opening','account_maintenance','account_reactivation'], tellering: ['customer_credit','customer_debit','customer_credit_journal','customer_debit_journal','float_declaration'], others: ['operational_entry','create_operational_account','close_of_day','temp_grant','wallet_fund','debt_repayment'] };
+    const categories = { customer_service: ['account_opening','account_maintenance','account_reactivation'], tellering: ['customer_credit','customer_debit','customer_credit_journal','customer_debit_journal','float_declaration'], others: ['float_topup','operational_entry','create_operational_account','close_of_day','temp_grant','wallet_fund','debt_repayment'] };
     const currentSection = state.ui.approvalsSection || 'tellering';
     const allRows = state.approvals.filter(a => categories[currentSection].includes(a.type));
     const limit = state.ui.approvalsLimit || 20;
@@ -787,7 +791,7 @@
     const selected = state.ui.codAdminDate;
     const codStatusRows = state.staff.filter(s => (DEFAULT_PERMS[s.role]||[]).includes('credit') || (DEFAULT_PERMS[s.role]||[]).includes('debit')).map((s,i)=>{ const rec=(state.cod||[]).find(c=>c.staffId===s.id && c.date===selected); const status=rec?(rec.status==='resolved'?'Resolved':rec.status==='flagged'?'Flagged':'Submitted'):'Missing'; return `<tr><td>${i+1}</td><td>${s.name}</td><td>${ROLE_LABELS[s.role]||s.role}</td><td>${status}</td><td>${rec?money(rec.expectedCash||0):'—'}</td><td>${rec?money(rec.actualCash||0):'—'}</td></tr>`; }).join('');
     const moreLess = `<div class="action-row">${allRows.length > limit ? `<button id="approvalsMore" class="secondary">Show More</button>`:''}${limit > 20 ? `<button id="approvalsLess" class="secondary">Show Less</button>`:''}</div>`;
-    return `<div class="stack">${codRows?`<div class="table-card"><h3>COD Resolution Queue</h3><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Date</th><th>Staff</th><th>Expected Cash</th><th>Actual Cash</th><th>Running Float</th><th>Variance</th><th>Overdraw</th><th>Note</th><th>Action</th></tr></thead><tbody>${codRows}</tbody></table></div></div>`:''}<div class="tool-tabs approvals-sections">${[['customer_service','Customer Service'],['tellering','Tellering'],['others','Others']].map(([k,l])=>`<button class="tool-tab ${currentSection===k?'active':''}" data-approval-section="${k}">${l}</button>`).join('')}</div><div class="table-card"><h3>Approval Queue</h3><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Request</th><th>Submitted By</th><th>Details</th><th>Date</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows || '<tr><td colspan="7" class="muted">No requests yet</td></tr>'}</tbody></table></div>${moreLess}</div>${canCloseBusinessDay()?`<div class="table-card"><h3>COD Daily Submission Status</h3><div class="action-inline"><div class="inline-field compact"><span>COD Date</span><input type="date" id="codAdminDate" value="${selected}"></div></div><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Staff</th><th>Office</th><th>Status</th><th>Expected Cash</th><th>Actual Cash</th></tr></thead><tbody>${codStatusRows}</tbody></table></div></div>`:''}</div>`;
+    return `<div class="stack">${codRows?`<div class="table-card"><h3>COD Resolution Queue</h3><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Date</th><th>Staff</th><th>Expected Cash</th><th>Actual Cash</th><th>Running Float</th><th>Variance</th><th>Overdraw</th><th>Note</th><th>Action</th></tr></thead><tbody>${codRows}</tbody></table></div></div>`:''}<div class="tool-tabs approvals-sections">${[['customer_service','Customer Service'],['tellering','Tellering'],['others','Others']].map(([k,l])=>`<button class="tool-tab ${currentSection===k?'active':''}" data-approval-section="${k}">${l}</button>`).join('')}</div><div class="table-card"><div class="action-row" style="justify-content:space-between;align-items:center"><h3>Approval Queue</h3>${currentSection==='others' && canAssignFloatTopUp() ? `<button id="assignFloatTopupFromApprovals" class="secondary">Assign Float Top-Up</button>` : ''}</div><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Request</th><th>Submitted By</th><th>Details</th><th>Date</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows || '<tr><td colspan="7" class="muted">No requests yet</td></tr>'}</tbody></table></div>${moreLess}</div>${canCloseBusinessDay()?`<div class="table-card"><h3>COD Daily Submission Status</h3><div class="action-inline"><div class="inline-field compact"><span>COD Date</span><input type="date" id="codAdminDate" value="${selected}"></div></div><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Staff</th><th>Office</th><th>Status</th><th>Expected Cash</th><th>Actual Cash</th></tr></thead><tbody>${codStatusRows}</tbody></table></div></div>`:''}</div>`;
   }
 
   function approvalSubmittedBy(a) {
@@ -812,7 +816,7 @@
   function prettyApprovalType(type) {
     return {
       account_opening:'Account Opening', account_maintenance:'Account Maintenance', account_reactivation:'Account Reactivation',
-      customer_credit:'Credit', customer_debit:'Debit', customer_credit_journal:'Credit Journal', customer_debit_journal:'Debit Journal', float_declaration:'Opening Float', operational_entry:'Operational Entry',
+      customer_credit:'Credit', customer_debit:'Debit', customer_credit_journal:'Credit Journal', customer_debit_journal:'Debit Journal', float_declaration:'Opening Float', float_topup:'Float Top-Up', operational_entry:'Operational Entry',
       create_operational_account:'Operational Account', close_of_day:'Close of Day', temp_grant:'Temporary Grant'
     }[type] || type;
   }
@@ -820,6 +824,7 @@
   function requestSummary(a) {
     const p = a.payload || {};
     if (a.type === 'float_declaration') return `${money(p.amount)} for ${p.date}`;
+    if (a.type === 'float_topup') return `${money(p.amount)} to ${p.staffName || 'staff'} for ${p.date}`;
     if (a.type === 'customer_credit' || a.type === 'customer_debit') return `${p.accountNumber} • ${money(p.amount)}`;
     if (a.type === 'account_opening') return `${p.name} • Phone ${p.phone || '—'} • NIN ${p.nin || '—'} • BVN ${p.bvn || '—'} • ${p.generatedAccountNumber}`;
     if (a.type === 'account_maintenance') return `${p.accountNumber} • update`; 
@@ -963,11 +968,11 @@
   function renderTellerBalances() {
     const rows = state.staff.slice(0, state.ui.tellerEntriesLimit || 20).map(s=>{
       const acc = ensureStaffAccount(s.id);
-      const floatToday = acc.entries.filter(e=>e.type==='approved_float' && e.floatDate===today()).reduce((sum,e)=>sum+Number(e.amount||0),0);
+      const floatToday = acc.entries.filter(e=>['approved_float','approved_float_topup'].includes(e.type) && e.floatDate===businessDate()).reduce((sum,e)=>sum+Number(e.amount||0),0);
       const recent = [...acc.entries].slice(-1)[0];
-      return `<tr><td>${s.name}</td><td>${ROLE_LABELS[s.role] || s.role}</td><td>${acc.accountNumber}</td><td>${money(acc.balance)}</td><td>${money(floatToday)}</td><td>${recent ? `${recent.type} • ${money(recent.amount)}` : '—'}</td></tr>`;
+      return `<tr><td>${s.name}</td><td>${ROLE_LABELS[s.role] || s.role}</td><td>${acc.accountNumber}</td><td>${money(acc.balance)}</td><td>${money(floatToday)}</td><td>${recent ? `${recent.type} • ${money(recent.amount)}` : '—'}</td><td>${canAssignFloatTopUp() ? `<button class="secondary" data-assign-topup="${s.id}">Assign Float</button>` : '—'}</td></tr>`;
     }).join('');
-    return `<div class="table-card"><h3>Teller and Posting Accounts</h3><div class="table-wrap"><table class="table"><thead><tr><th>Staff</th><th>Office</th><th>Account Number</th><th>Balance</th><th>Today Approved Float</th><th>Recent Activity</th></tr></thead><tbody>${rows}</tbody></table></div><div class="action-row">${state.staff.length > (state.ui.tellerEntriesLimit || 20) ? `<button id="tellerMore" class="secondary">Show More</button>` : ''}${(state.ui.tellerEntriesLimit || 20) > 20 ? `<button id="tellerLess" class="secondary">Show Less</button>` : ''}</div></div>`;
+    return `<div class="table-card"><div class="action-row" style="justify-content:space-between;align-items:center"><h3>Teller and Posting Accounts</h3><div class="note" style="margin:0">Business Date: <strong>${businessDate()}</strong></div></div><div class="table-wrap"><table class="table"><thead><tr><th>Staff</th><th>Office</th><th>Account Number</th><th>Balance</th><th>Today Approved Float</th><th>Recent Activity</th><th>Action</th></tr></thead><tbody>${rows}</tbody></table></div><div class="action-row">${state.staff.length > (state.ui.tellerEntriesLimit || 20) ? `<button id="tellerMore" class="secondary">Show More</button>` : ''}${(state.ui.tellerEntriesLimit || 20) > 20 ? `<button id="tellerLess" class="secondary">Show Less</button>` : ''}</div></div>`;
   }
 
   function allApprovedCustomerTx(kind) {
@@ -992,7 +997,51 @@
       case 'staff_directory': bindStaffDirectory(); break;
       case 'business_balance': bindBalanceFilters('business'); break;
       case 'operational_balance': bindBalanceFilters('operational'); break;
+      case 'teller_balances': bindTellerBalances(); break;
     }
+  }
+
+  function canAssignFloatTopUp(staff=currentStaff()) {
+    return ['admin_officer','approving_officer'].includes(staff?.role);
+  }
+
+  function bindTellerBalances() {
+    const tellerMore = byId('tellerMore');
+    if (tellerMore) tellerMore.onclick = () => { state.ui.tellerEntriesLimit = (state.ui.tellerEntriesLimit || 20) + 20; save(); renderWorkspace(); };
+    const tellerLess = byId('tellerLess');
+    if (tellerLess) tellerLess.onclick = () => { state.ui.tellerEntriesLimit = Math.max(20, (state.ui.tellerEntriesLimit || 20) - 20); save(); renderWorkspace(); };
+    qq('[data-assign-topup]').forEach(btn => btn.onclick = () => openFloatTopUpModal(btn.dataset.assignTopup));
+  }
+
+  function openFloatTopUpModal(staffId=null) {
+    if (!canAssignFloatTopUp()) return showToast('Only Approval Officer or Admin can assign float');
+    const postingStaff = state.staff.filter(x => hasPermission('credit', x) || hasPermission('debit', x));
+    const defaultStaff = state.staff.find(x => x.id === staffId) || postingStaff[0];
+    if (!defaultStaff) return showToast('No eligible staff found');
+    openModal('Assign Float Top-Up', `
+      <div class="form-grid three">
+        <div class="field"><label>Staff</label><select id="floatTopupStaff" class="entry-input">${postingStaff.map(st => `<option value="${st.id}" ${st.id===defaultStaff.id?'selected':''}>${st.name} — ${ROLE_LABELS[st.role] || st.role}</option>`).join('')}</select></div>
+        <div class="field"><label>Date</label><div class="display-field">${businessDate()}</div></div>
+        <div class="field"><label>Amount</label><input id="floatTopupAmount" class="entry-input" type="number"></div>
+      </div>
+      <div class="form-grid one">
+        <div class="field"><label>Note</label><input id="floatTopupNote" class="entry-input" placeholder="Reason for top-up"></div>
+      </div>
+      <div class="note">This request goes to Approvals → Others. Once approved, it increases the effective opening balance immediately for the selected staff on the current business date.</div>
+    `, [
+      { label: 'Cancel', className: 'secondary', onClick: closeModal },
+      { label: 'Submit', onClick: () => {
+          const selectedStaff = state.staff.find(x => x.id === byId('floatTopupStaff').value);
+          const amount = Number(byId('floatTopupAmount').value || 0);
+          const note = byId('floatTopupNote').value.trim();
+          if (!selectedStaff) return showToast('Staff not found');
+          if (!(amount > 0)) return showToast('Enter valid float top-up');
+          createRequest('float_topup', { staffId: selectedStaff.id, staffName: selectedStaff.name, amount, date: businessDate(), note });
+          closeModal();
+          render();
+          showToast('Float top-up sent for approval');
+      }}
+    ]);
   }
 
   function bindCheckBalance() {
@@ -1159,6 +1208,8 @@
     const codDate = byId('codAdminDate');
     if (codDate) codDate.onchange = () => { state.ui.codAdminDate = codDate.value || businessDate(); save(); renderWorkspace(); };
     qq('[data-approval-section]').forEach(btn => btn.onclick = ()=>{ state.ui.approvalsSection = btn.dataset.approvalSection; save(); renderWorkspace(); });
+    const assignTopup = byId('assignFloatTopupFromApprovals');
+    if (assignTopup) assignTopup.onclick = () => openFloatTopUpModal();
     qq('[data-inspect-journal]').forEach(btn => btn.onclick = ()=> openJournalApprovalModal(btn.dataset.inspectJournal));
     qq('[data-inspect-request]').forEach(btn => btn.onclick = ()=> openRequestDetailModal(btn.dataset.inspectRequest));
   }
@@ -1294,17 +1345,22 @@
   }
 
   function hasFloatDeclaredOrPending(staffId, dateStr) {
-    return hasOpeningBalanceForDate(staffId, dateStr) || state.approvals.some(r => r.type === 'float_declaration' && r.status === 'pending' && r.payload.staffId === staffId && r.payload.date === dateStr);
+    return hasBaseOpeningBalanceForDate(staffId, dateStr) || state.approvals.some(r => r.type === 'float_declaration' && r.status === 'pending' && r.payload.staffId === staffId && r.payload.date === dateStr);
   }
 
-  function hasOpeningBalanceForDate(staffId, dateStr) {
+  function hasBaseOpeningBalanceForDate(staffId, dateStr) {
     const acc = ensureStaffAccount(staffId);
     return acc.entries.some(e => e.type === 'approved_float' && e.floatDate === dateStr);
   }
 
+  function hasOpeningBalanceForDate(staffId, dateStr) {
+    const acc = ensureStaffAccount(staffId);
+    return acc.entries.some(e => ['approved_float','approved_float_topup'].includes(e.type) && e.floatDate === dateStr);
+  }
+
   function getOpeningBalanceForDate(staffId, dateStr) {
     const acc = ensureStaffAccount(staffId);
-    return acc.entries.filter(e => e.type === 'approved_float' && e.floatDate === dateStr).reduce((s,e)=>s+Number(e.amount||0),0);
+    return acc.entries.filter(e => ['approved_float','approved_float_topup'].includes(e.type) && e.floatDate === dateStr).reduce((s,e)=>s+Number(e.amount||0),0);
   }
 
   function approvedCreditTotalForDate(staffId, dateStr) {
