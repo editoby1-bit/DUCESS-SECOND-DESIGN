@@ -1315,11 +1315,21 @@
     return (state.approvals||[]).filter(r => ['customer_debit','customer_debit_journal'].includes(r.type) && r.status === 'approved' && r.payload?.staffId === staffId && r.payload?.date === dateStr).reduce((s,r)=> s + (r.type==='customer_debit_journal' ? (r.payload.rows||[]).reduce((a,x)=>a+Number(x.amount||0),0) : Number(r.payload?.amount||0)), 0);
   }
 
+  function pendingPostedFloatImpactForDate(staffId, dateStr) {
+    return (state.approvals||[])
+      .filter(r => ['customer_credit','customer_debit','customer_credit_journal','customer_debit_journal'].includes(r.type)
+        && r.status === 'pending'
+        && r.payload?.staffId === staffId
+        && r.payload?.date === dateStr)
+      .reduce((s,r)=> s + (r.type.endsWith('_journal') ? (r.payload.rows||[]).reduce((a,x)=>a+Number(x.amount||0),0) : Number(r.payload?.amount||0)), 0);
+  }
+
   function currentFloatAvailable(staffId, date=businessDate()) {
     const opening = getOpeningBalanceForDate(staffId, date);
-    const used = approvedCreditTotalForDate(staffId, date);
-    const restored = approvedDebitTotalForDate(staffId, date);
-    return opening - used - restored;
+    const usedApproved = approvedCreditTotalForDate(staffId, date);
+    const debitsApproved = approvedDebitTotalForDate(staffId, date);
+    const pendingPosted = pendingPostedFloatImpactForDate(staffId, date);
+    return opening - usedApproved - debitsApproved - pendingPosted;
   }
 
   function currentFloatOverdraw(staffId, date=businessDate()) {
