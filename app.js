@@ -792,9 +792,12 @@
 
   function approvalSubmittedBy(a) {
     const p = a.payload || {};
-    if (a.type === 'customer_credit' || a.type === 'customer_debit') return `${a.requestedByName || staffName(p.staffId)} (${p.accountNumber || '—'})`;
-    if (a.type === 'customer_credit_journal' || a.type === 'customer_debit_journal') return `${a.requestedByName || staffName(p.staffId)} • Journal`;
-    return a.requestedByName || '—';
+    const staffId = p.staffId || a.requestedBy;
+    const staff = (state.staff || []).find(s => s.id === staffId) || {};
+    const roleLabel = ROLE_LABELS[staff.role] || staff.role || '';
+    const name = a.requestedByName || staffName(staffId);
+    if (a.type === 'customer_credit_journal' || a.type === 'customer_debit_journal') return `${name} • ${roleLabel || 'Staff'} • Journal`;
+    return `${name} • ${roleLabel || 'Staff'}`;
   }
   function approvalDetails(a) {
     const p = a.payload || {};
@@ -1129,7 +1132,7 @@
     const key = `${staff.id}:${businessDate()}:${kind}`;
     const journal = state.ui.staffJournals[key] ||= [];
     const resetFields = () => { ['txAcc','txAmount','txDetails','txCounterparty'].forEach(id=>{ if(byId(id)) byId(id).value=''; }); if (byId('txName')) byId('txName').textContent='—'; if (byId('txBalance')) byId('txBalance').innerHTML='—'; state.ui.selectedCustomerId=null; };
-    const recalcPreview = () => { let running = currentFloatAvailable(staff.id, businessDate()); const rows = journal.map((row, i) => { running += (kind==='credit' ? -Number(row.amount||0) : -Number(row.amount||0)); return `<tr><td>${i+1}</td><td>${row.customerName}</td><td>${row.accountNumber}</td><td>${money(row.amount)}</td><td class="${running<0?'balance-negative':''}">${money(running)}</td><td><span class="linklike" data-remove-row="${row.id}">Remove</span></td></tr>`; }).join('') || '<tr><td colspan="6">No journal entries yet</td></tr>'; byId('journalRows').innerHTML = rows; const rf=byId('journalRunningFloat'); if(rf) rf.textContent = money(Math.max(0,running)); const vr=byId('journalVariance'); if(vr) vr.textContent = money(Math.max(0,-running)); qq('[data-remove-row]').forEach(el => el.onclick = () => { const idx = journal.findIndex(r => r.id === el.dataset.removeRow); if (idx >= 0) { journal.splice(idx,1); save(); recalcPreview(); } }); };
+    const recalcPreview = () => { const approvedBase = currentFloatAvailable(staff.id, businessDate()); const totalPending = pendingJournalTotal(staff.id, businessDate()); const thisJournalTotal = journal.reduce((s,r)=>s+Number(r.amount||0),0); let running = approvedBase - (totalPending - thisJournalTotal); const rows = journal.map((row, i) => { running -= Number(row.amount||0); return `<tr><td>${i+1}</td><td>${row.customerName}</td><td>${row.accountNumber}</td><td>${money(row.amount)}</td><td class="${running<0?'balance-negative':''}">${money(running)}</td><td><span class="linklike" data-remove-row="${row.id}">Remove</span></td></tr>`; }).join('') || '<tr><td colspan="6">No journal entries yet</td></tr>'; byId('journalRows').innerHTML = rows; const rf=byId('journalRunningFloat'); if(rf) rf.textContent = money(Math.max(0,running)); const vr=byId('journalVariance'); if(vr) vr.textContent = money(Math.max(0,-running)); qq('[data-remove-row]').forEach(el => el.onclick = () => { const idx = journal.findIndex(r => r.id === el.dataset.removeRow); if (idx >= 0) { journal.splice(idx,1); save(); recalcPreview(); } }); };
     const search = () => { const c = getCustomerByAccountNo(byId('txAcc').value); if (!c) return showToast('Customer not found'); if (isCustomerFrozen(c)) return showToast('Account is frozen'); state.ui.selectedCustomerId = c.id; save(); byId('txName').textContent = c.name; byId('txBalance').innerHTML = balanceHtml(c.balance); };
     byId('txSearch').onclick = search; if (byId('txAcc')) { byId('txAcc').onchange = search; byId('txAcc').onkeyup = e => { if(e.key==='Enter') search(); }; }
     byId('txJournalAdd').onclick = () => { const customer = getSelectedCustomer() || getCustomerByAccountNo(byId('txAcc').value); if (!customer) return showToast('Search for customer first'); if (isCustomerFrozen(customer)) return showToast('Frozen account cannot accept transactions'); const amount = Number(byId('txAmount').value || 0); if (!(amount > 0)) return showToast('Enter a valid amount'); journal.push({ id: uid('jr'), customerId: customer.id, customerName: customer.name, accountNumber: customer.accountNumber, amount, details: byId('txDetails').value.trim(), receivedOrPaidBy: byId('txCounterparty').value.trim(), payoutSource: byId('txPayoutSource')?.value || 'teller', date: businessDate() }); save(); recalcPreview(); resetFields(); };
@@ -1244,7 +1247,7 @@
   function openCODModal() {
     if (!canCloseBusinessDay()) return showToast('Only Approval Officer or Admin can close day');
     const postingStaff = state.staff.filter(st => hasPermission('credit', st) || hasPermission('debit', st));
-    const rows = postingStaff.map(st => { const opening=getOpeningBalanceForDate(st.id,businessDate()); const credits=approvedCreditTotalForDate(st.id,businessDate()); const debits=approvedDebitTotalForDate(st.id,businessDate()); const running=currentFloatAvailable(st.id,businessDate()); const expected=Math.max(0, running); const overdraw=currentFloatOverdraw(st.id,businessDate()); return `<tr><td>${st.name}</td><td>${money(opening)}</td><td>${money(credits)}</td><td>${money(debits)}</td><td class="${running<0?'balance-negative':''}">${money(running)}</td><td>${money(expected)}</td><td class="${overdraw>0?'balance-negative':''}">${money(overdraw)}</td><td><input class="entry-input" data-cod-actual="${st.id}" type="number" value="${expected}"></td><td><input class="entry-input" data-cod-note="${st.id}"></td></tr>`; }).join('');
+    const rows = postingStaff.map(st => { const opening=getOpeningBalanceForDate(st.id,businessDate()); const credits=approvedCreditTotalForDate(st.id,businessDate()); const debits=approvedDebitTotalForDate(st.id,businessDate()); const running=currentFloatAvailable(st.id,businessDate()); const expected=Math.max(0, running); const overdraw=currentFloatOverdraw(st.id,businessDate()); return `<tr><td>${st.name}</td><td>${money(opening)}</td><td>${money(credits)}</td><td>${money(debits)}</td><td class="${running<0?'balance-negative':''}">${money(running)}</td><td>${money(expected)}</td><td class="${overdraw>0?'balance-negative':''}">${money(overdraw)}</td><td><input class="entry-input" data-cod-actual="${st.id}" type="number" placeholder="Enter actual cash"></td><td><input class="entry-input" data-cod-note="${st.id}"></td></tr>`; }).join('');
     openModal('Central Close of Day', `<div class="stack"><div class="note">You are closing business date <strong>${businessDate()}</strong>. Closing opens the next business date immediately.</div><div class="note">Expected Cash is the cash that should physically remain after postings. Running Float shows the ledger position. Overdraw means postings exceeded the opening balance.</div><div class="table-wrap"><table class="table"><thead><tr><th>Staff</th><th>Opening</th><th>Total Credits</th><th>Total Debits</th><th>Running Float</th><th>Expected Cash</th><th>Overdraw</th><th>Actual Cash</th><th>Note</th></tr></thead><tbody>${rows}</tbody></table></div></div>`, [{label:'Cancel', className:'secondary', onClick: closeModal}, {label:'Close Business Day', onClick: ()=> { postingStaff.forEach(st => { const running=currentFloatAvailable(st.id,businessDate()); const expected=Math.max(0,running); const actual=Number(q(`[data-cod-actual="${st.id}"]`)?.value||0); const note=q(`[data-cod-note="${st.id}"]`)?.value?.trim()||''; const variance=actual-expected; state.cod.unshift({id:uid('cod'), staffId:st.id, staffName:st.name, date:businessDate(), actualCash:actual, expectedCash:expected, runningFloat:running, variance, overdraw:Math.max(0,-running), note, fieldPapers:[], status: variance===0 && Math.max(0,-running)===0 ? 'balanced':'flagged', approvedAt:new Date().toISOString(), approvedBy:currentStaff()?.name||''}); }); state.dayClosures.push({date:businessDate(), closedAt:new Date().toISOString(), closedBy:currentStaff()?.name||''}); state.businessDate = nextDate(businessDate()); save(); closeModal(); render(); showToast(`Business day closed. New open date: ${state.businessDate}`); }}]);
   }
 
@@ -1321,6 +1324,14 @@
 
   function currentFloatOverdraw(staffId, date=businessDate()) {
     return Math.max(0, -currentFloatAvailable(staffId, date));
+  }
+
+  function pendingJournalTotal(staffId, date=businessDate()) {
+    const journals = state.ui?.staffJournals || {};
+    const creditKey = `${staffId}:${date}:credit`;
+    const debitKey = `${staffId}:${date}:debit`;
+    const total = (arr => (arr||[]).reduce((s,r)=>s+Number(r.amount||0),0));
+    return total(journals[creditKey]) + total(journals[debitKey]);
   }
 
   function staffCODRecords(staffId) {
