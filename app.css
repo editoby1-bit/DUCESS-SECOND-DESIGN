@@ -384,4 +384,4 @@ body[data-theme="ducess-sheet"] .sheet-grid .entry-input{background:#efcfd1;colo
   .tellering-lower.compact-layout{grid-template-columns:1fr;}
 }
 
-.stack-actions{display:flex;flex-direction:column;gap:8px;align-items:flex-start}.inline-actions{display:flex;gap:8px;flex-wrap:wrap}
+.stack-actions{display:flex;flex-direction:column;gap:8px;align-items:flex-start}.inline-actions{display:inline-flex;flex-direction:row;align-items:center;gap:8px;flex-wrap:nowrap;white-space:nowrap}.inline-actions button{display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;flex:0 0 auto}
