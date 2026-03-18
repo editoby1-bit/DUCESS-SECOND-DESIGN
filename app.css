@@ -472,3 +472,45 @@ body[data-theme="dark-slate"] .running-float-chip span{color:#c7d9ec}
 @media (max-width: 980px){
   .cs-form-grid .field-account .entry-input,.cs-form-grid .field-account .display-field,.cs-form-grid .field-phone .entry-input,.cs-form-grid .field-phone .display-field,.cs-form-grid .field-bvn .entry-input,.cs-form-grid .field-bvn .display-field,.cs-form-grid .field-id .entry-input,.cs-form-grid .field-id .display-field,.modal-cs-grid .field-account .display-field,.modal-cs-grid .field-phone .display-field,.modal-cs-grid .field-bvn .display-field,.modal-cs-grid .field-id .display-field,.cs-form-grid .field-search button,.cs-form-grid .field-submit button,.cs-form-grid .field-photo-upload .entry-input{max-width:100%}
 }
+
+
+/* Customer service modal redesign patch */
+.cs-sheet-card{padding:0;overflow:hidden}
+.cs-sheet-title{background:#050505;color:#fff;text-align:center;font-size:26px;font-weight:800;line-height:1.15;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.cs-sheet-grid{display:grid;gap:0;background:#050505}
+.maintenance-sheet-grid,.opening-sheet-grid{grid-template-columns:230px 210px 110px 220px 1fr}
+.reactivation-sheet-grid{grid-template-columns:230px 210px 110px 170px 1fr}
+.sheet-label-cell,.sheet-label-inline{background:#050505;color:#fff;font-size:18px;font-weight:800;display:flex;align-items:center;padding:0 10px;min-height:54px;border-right:1px solid rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.08)}
+.sheet-label-inline{justify-content:flex-start}
+.sheet-label-cell.blank{background:transparent;border-right:none;border-bottom:none}
+.sheet-input-cell{background:#d9b1a8;padding:0;border-bottom:1px solid rgba(0,0,0,.18)}
+body[data-theme="dark-slate"] .sheet-input-cell{background:#17283b}
+.cs-sheet-input{width:100%;height:54px;min-height:54px;border:0;border-radius:0;background:transparent !important;color:inherit;box-shadow:none;padding:10px 12px}
+.sheet-input-cell.wide{grid-column:2 / 6}
+.sheet-input-cell.nin{grid-column:2 / 3}
+.sheet-input-cell.bvn{grid-column:4 / 6}
+.sheet-input-cell.phone{grid-column:2 / 3}
+.sheet-input-cell.account{grid-column:4 / 6;max-width:210px}
+.opening-sheet-grid .sheet-input-cell.account,.maintenance-sheet-grid .sheet-input-cell.account{max-width:210px}
+.reactivation-sheet-grid .sheet-input-cell.account{max-width:210px}
+.cs-inline-btn{min-height:54px;height:54px;border-radius:0;border:1px solid rgba(255,255,255,.08);width:100%;white-space:nowrap}
+.maintenance-sheet-grid > .cs-inline-btn:nth-of-type(1),.reactivation-sheet-grid > .cs-inline-btn:nth-of-type(1){grid-column:3 / 4}
+.maintenance-sheet-grid > .cs-inline-btn:nth-of-type(2),.reactivation-sheet-grid > .cs-inline-btn:nth-of-type(2){grid-column:4 / 5}
+.maintenance-sheet-grid > .cs-inline-btn:nth-of-type(3),.reactivation-sheet-grid > .cs-inline-btn:nth-of-type(3){grid-column:5 / 6}
+.sheet-spread-actions{grid-column:5 / 6;display:flex;align-items:stretch;justify-content:flex-end;gap:10px;padding:10px;background:#050505}
+.compact-photo-upload{width:220px;display:flex;align-items:center}
+.compact-photo-upload .cs-sheet-input{background:rgba(255,255,255,.04) !important;border:1px solid rgba(255,255,255,.08)}
+.cs-generate-btn{width:auto;padding:0 14px;background:#050505;color:#efcfd1}
+.cs-sheet-footer{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 16px}
+.cs-system-summary{display:flex;flex-wrap:wrap;gap:14px;color:var(--muted);font-size:14px}
+.cs-system-summary strong{color:var(--text)}
+.cs-sheet-note{font-size:13px;color:var(--muted);text-align:right}
+.reactivation-sheet-grid .sheet-input-cell.wide{grid-column:2 / 6}
+.reactivation-sheet-grid .sheet-label-cell.blank + .sheet-input-cell.wide{grid-column:2 / 6}
+.reactivation-card .cs-sheet-footer{padding-top:8px}
+@media (max-width: 980px){
+  .maintenance-sheet-grid,.opening-sheet-grid,.reactivation-sheet-grid{grid-template-columns:180px minmax(0,1fr)}
+  .sheet-input-cell.wide,.sheet-input-cell.nin,.sheet-input-cell.bvn,.sheet-input-cell.phone,.sheet-input-cell.account,.sheet-spread-actions{grid-column:2 / 3;max-width:none}
+  .sheet-label-inline{grid-column:1 / 2}
+  .maintenance-sheet-grid > .cs-inline-btn,.reactivation-sheet-grid > .cs-inline-btn{grid-column:2 / 3}
+}

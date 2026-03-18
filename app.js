@@ -366,9 +366,11 @@
     switch (req.type) {
       case 'account_opening': {
         const p = req.payload;
+        const assignedAccountNumber = nextCustomerAccountNumber();
+        p.generatedAccountNumber = assignedAccountNumber;
         state.customers.push({
           id: uid('c'),
-          accountNumber: p.generatedAccountNumber,
+          accountNumber: assignedAccountNumber,
           oldAccountNumber: p.oldAccountNumber || '',
           name: p.name,
           address: p.address,
@@ -509,8 +511,13 @@
     recalcAllTellerBalances();
   }
 
-  function nextCustomerAccountNumber() {
-    const nums = state.customers.map(c => Number(c.accountNumber || 0)).filter(Boolean);
+  function nextCustomerAccountNumber(sourceState=state) {
+    const nums = (sourceState.customers || [])
+      .filter(c => String(c.accountType || 'customer') !== 'staff_wallet')
+      .map(c => String(c.accountNumber || '').trim())
+      .filter(no => /^1\d+$/.test(no))
+      .map(no => Number(no))
+      .filter(Boolean);
     return String((nums.length ? Math.max(...nums) : 999) + 1);
   }
 
@@ -692,19 +699,31 @@
   }
 
   function renderAccountOpening() {
-    const nextNo = nextCustomerAccountNumber();
     return `
-      <div class="form-card">
-        <h3>Account Opening</h3>
-        <div class="form-grid three cs-form-grid">
-          <div class="field field-wide"><label>Account Name</label><input id="openName" class="entry-input"></div>
-          <div class="field field-wide"><label>Address</label><input id="openAddress" class="entry-input"></div>
-          <div class="field field-phone"><label>Phone Number</label><input id="openPhone" class="entry-input"></div>
-          <div class="field field-id"><label>NIN</label><input id="openNin" class="entry-input"></div>
-          <div class="field field-bvn"><label>BVN</label><input id="openBvn" class="entry-input"></div>
-          <div class="field field-account"><label>Old Account Number</label><input id="openOldAccount" class="entry-input"></div>
-          <div class="field field-account"><label>New Account Number</label><div class="display-field" id="generatedAccountNumber">${nextNo}</div></div>
-          <div class="field field-photo-upload"><label>Photo</label><input id="openPhoto" class="entry-input" type="file" accept="image/*"></div>
+      <div class="form-card cs-sheet-card">
+        <div class="cs-sheet-title">Account Opening</div>
+        <div class="cs-sheet-grid opening-sheet-grid">
+          <div class="sheet-label-cell">Account Name</div>
+          <div class="sheet-input-cell wide"><input id="openName" class="entry-input cs-sheet-input"></div>
+
+          <div class="sheet-label-cell">Address</div>
+          <div class="sheet-input-cell wide"><input id="openAddress" class="entry-input cs-sheet-input"></div>
+
+          <div class="sheet-label-cell">NIN</div>
+          <div class="sheet-input-cell nin"><input id="openNin" class="entry-input cs-sheet-input"></div>
+          <div class="sheet-label-inline">BVN</div>
+          <div class="sheet-input-cell bvn"><input id="openBvn" class="entry-input cs-sheet-input"></div>
+
+          <div class="sheet-label-cell">Phone Number</div>
+          <div class="sheet-input-cell phone"><input id="openPhone" class="entry-input cs-sheet-input"></div>
+          <div class="sheet-label-inline">Old Account Number</div>
+          <div class="sheet-input-cell account"><input id="openOldAccount" class="entry-input cs-sheet-input"></div>
+
+          <div class="sheet-label-cell blank"></div>
+          <div class="sheet-spread-actions">
+            <div class="field-photo-upload compact-photo-upload"><input id="openPhoto" class="entry-input cs-sheet-input" type="file" accept="image/*"></div>
+            <button id="generateAccountBtn" class="sheet-btn cs-inline-btn cs-generate-btn">Generate New Account Number</button>
+          </div>
         </div>
         <div class="action-row"><button id="submitOpening">Submit for Approval</button></div>
       </div>`;
@@ -719,29 +738,30 @@
   function maintenanceCommon(prefix, btnLabel) {
     const isReactivation = prefix === 'reactivation';
     return `
-      <div class="layout-grid two">
-        <div class="form-card">
-          <h3>${isReactivation ? 'Account Reactivation' : 'Account Maintenance'}</h3>
-          <div class="form-grid three cs-form-grid">
-            <div class="field field-account"><label>Account Number</label><input id="${prefix}Acc" class="entry-input"></div>
-            <div class="field field-search"><label>Search</label><button id="${prefix}Search">Search</button></div>
-            <div class="field field-submit"><label>Action</label><button class="${isReactivation ? '' : 'secondary'}" id="${prefix}Submit">${btnLabel}</button></div>
-            <div class="field field-wide"><label>Account Name</label><input id="${prefix}Name" class="entry-input"></div>
-            <div class="field field-wide"><label>Address</label><input id="${prefix}Address" class="entry-input"></div>
-            <div class="field field-phone"><label>Phone Number</label><input id="${prefix}Phone" class="entry-input"></div>
-            <div class="field field-id"><label>NIN</label><input id="${prefix}Nin" class="entry-input"></div>
-            <div class="field field-bvn"><label>BVN</label><input id="${prefix}Bvn" class="entry-input"></div>
-            <div class="field field-account"><label>Old Account Number</label><input id="${prefix}OldAccount" class="entry-input"></div>
-          </div>
-          <div class="note">${isReactivation ? 'Search account, confirm details, and submit reactivation.' : 'Search first, update details, then submit.'}</div>
+      <div class="form-card cs-sheet-card ${isReactivation ? 'reactivation-card' : 'maintenance-card'}">
+        <div class="cs-sheet-title">${isReactivation ? 'Account Reactivation' : 'Account Maintenance'}</div>
+        <div class="cs-sheet-grid ${isReactivation ? 'reactivation-sheet-grid' : 'maintenance-sheet-grid'}">
+          <div class="sheet-label-cell">Account Number</div>
+          <div class="sheet-input-cell account"><input id="${prefix}Acc" class="entry-input cs-sheet-input"></div>
+          <button id="${prefix}Search" class="sheet-btn cs-inline-btn">Search</button>
+          ${isReactivation ? `<button id="${prefix}Edit" class="sheet-btn cs-inline-btn secondary">Edit</button><button id="${prefix}Submit" class="sheet-btn cs-inline-btn">Activate</button>` : `<button id="${prefix}Edit" class="sheet-btn cs-inline-btn secondary">Edit</button><button id="${prefix}Submit" class="sheet-btn cs-inline-btn secondary">Save</button>`}
+
+          <div class="sheet-label-cell">Account Name</div>
+          <div class="sheet-input-cell wide"><input id="${prefix}Name" class="entry-input cs-sheet-input"></div>
+
+          ${isReactivation ? '' : `<div class="sheet-label-cell">Address</div><div class="sheet-input-cell wide"><input id="${prefix}Address" class="entry-input cs-sheet-input"></div>`}
+
+          ${isReactivation ? `<div class="sheet-label-cell blank"></div>` : `<div class="sheet-label-cell">NIN</div><div class="sheet-input-cell nin"><input id="${prefix}Nin" class="entry-input cs-sheet-input"></div><div class="sheet-label-inline">BVN</div><div class="sheet-input-cell bvn"><input id="${prefix}Bvn" class="entry-input cs-sheet-input"></div>`}
+
+          ${isReactivation ? '' : `<div class="sheet-label-cell">Phone Number</div><div class="sheet-input-cell phone"><input id="${prefix}Phone" class="entry-input cs-sheet-input"></div><div class="sheet-label-inline">Old Account Number</div><div class="sheet-input-cell account"><input id="${prefix}OldAccount" class="entry-input cs-sheet-input"></div>`}
         </div>
-        <div class="record-card">
-          <h3>System Display</h3>
-          <div class="info-grid">
-            <div class="info-item"><div class="k">Account Name</div><div class="v" id="${prefix}DisplayName">—</div></div>
-            <div class="info-item"><div class="k">Phone Number</div><div class="v" id="${prefix}DisplayPhone">—</div></div>
-            <div class="info-item"><div class="k">Current Status</div><div class="v" id="${prefix}DisplayStatus">—</div></div>
+        <div class="cs-sheet-footer">
+          <div class="cs-system-summary">
+            <span>Account Name: <strong id="${prefix}DisplayName">—</strong></span>
+            <span>Phone Number: <strong id="${prefix}DisplayPhone">—</strong></span>
+            <span>Current Status: <strong id="${prefix}DisplayStatus">—</strong></span>
           </div>
+          <div class="cs-sheet-note">${isReactivation ? 'Search account, confirm details, and submit reactivation.' : 'Search first, update details, then save for approval.'}</div>
         </div>
       </div>`;
   }
@@ -902,7 +922,7 @@
     const photoBlock = `<div class="approval-photo-stack"><button type="button" class="secondary" id="approvalPhotoToggle">Display Picture</button><div class="approval-photo-panel hidden" id="approvalPhotoPanel"><div class="photo-box approval-photo-box">${photoSrc ? `<img src="${photoSrc}" alt="customer photo">` : '<span>No Photo</span>'}</div></div></div>`;
     let html = '';
     if (req.type === 'account_opening') {
-      html = `<div class="stack"><div class="form-grid two modal-cs-grid">${field('Name', p.name, 'field-wide')}${field('Phone', p.phone, 'field-phone')}${field('Address', p.address, 'field-wide')}${field('NIN', p.nin, 'field-id')}${field('BVN', p.bvn, 'field-bvn')}${field('Generated Account', p.generatedAccountNumber, 'field-account')}</div>${photoBlock}</div>`;
+      html = `<div class="stack"><div class="form-grid two modal-cs-grid">${field('Name', p.name, 'field-wide')}${field('Phone', p.phone, 'field-phone')}${field('Address', p.address, 'field-wide')}${field('NIN', p.nin, 'field-id')}${field('BVN', p.bvn, 'field-bvn')}${field('Generated Account', p.generatedAccountNumber || 'Auto-generate on approval', 'field-account')}</div>${photoBlock}</div>`;
     } else if (req.type === 'account_maintenance') {
       const patch = p.patch || {};
       html = `<div class="stack"><div class="form-grid two modal-cs-grid">${field('Customer Name', customer?.name || patch.name, 'field-wide')}${field('Account Number', p.accountNumber, 'field-account')}${field('Current Status', customerStatusLabel(customer), 'field-status')}${field('Old Account Number', patch.oldAccountNumber, 'field-account')}${field('Updated Name', patch.name, 'field-wide')}${field('Updated Phone', patch.phone, 'field-phone')}${field('Updated Address', patch.address, 'field-wide')}${field('Updated NIN', patch.nin, 'field-id')}${field('Updated BVN', patch.bvn, 'field-bvn')}</div>${photoBlock}</div>`;
@@ -1140,6 +1160,8 @@
       if (!f) return;
       byId('openPhoto').dataset.base64 = await toBase64(f);
     };
+    const generateBtn = byId('generateAccountBtn');
+    if (generateBtn) generateBtn.onclick = () => showToast('Customer account number will be generated automatically on approval');
     byId('submitOpening').onclick = () => {
       const payload = {
         name: byId('openName').value.trim(),
@@ -1148,7 +1170,7 @@
         nin: byId('openNin').value.trim(),
         bvn: byId('openBvn').value.trim(),
         oldAccountNumber: byId('openOldAccount').value.trim(),
-        generatedAccountNumber: byId('generatedAccountNumber').textContent.trim(),
+        generatedAccountNumber: '',
         photo: byId('openPhoto').dataset.base64 || ''
       };
       if (!payload.name || !payload.address || !payload.phone || !payload.nin || !payload.bvn) return showToast('Complete all required fields');
@@ -1168,16 +1190,22 @@
       state.ui.selectedCustomerId = c.id;
       save();
       byId(`${prefix}Name`).value = c.name;
-      byId(`${prefix}Address`).value = c.address;
-      byId(`${prefix}Phone`).value = c.phone;
-      byId(`${prefix}Nin`).value = c.nin;
-      byId(`${prefix}Bvn`).value = c.bvn;
-      byId(`${prefix}OldAccount`).value = c.oldAccountNumber || '';
+      if (byId(`${prefix}Address`)) byId(`${prefix}Address`).value = c.address;
+      if (byId(`${prefix}Phone`)) byId(`${prefix}Phone`).value = c.phone;
+      if (byId(`${prefix}Nin`)) byId(`${prefix}Nin`).value = c.nin;
+      if (byId(`${prefix}Bvn`)) byId(`${prefix}Bvn`).value = c.bvn;
+      if (byId(`${prefix}OldAccount`)) byId(`${prefix}OldAccount`).value = c.oldAccountNumber || '';
       byId(`${prefix}DisplayName`).textContent = c.name;
       byId(`${prefix}DisplayPhone`).textContent = c.phone;
       byId(`${prefix}DisplayStatus`).textContent = customerStatusLabel(c);
     };
     byId(`${prefix}Search`).onclick = search;
+    const editBtn = byId(`${prefix}Edit`);
+    if (editBtn) editBtn.onclick = () => {
+      const c = getSelectedCustomer() || getCustomerByAccountNo(byId(`${prefix}Acc`).value);
+      if (!c) return showToast('Search for an account first');
+      showToast(prefix === 'reactivation' ? 'You can now confirm the account details and activate' : 'You can now edit and save the account details');
+    };
     byId(`${prefix}Submit`).onclick = () => {
       const c = getSelectedCustomer() || getCustomerByAccountNo(byId(`${prefix}Acc`).value);
       if (!c) return showToast('Search for an account first');
@@ -1188,10 +1216,10 @@
           patch: {
             name: byId(`${prefix}Name`).value.trim(),
             address: byId(`${prefix}Address`).value.trim(),
-            phone: byId(`${prefix}Phone`).value.trim(),
-            nin: byId(`${prefix}Nin`).value.trim(),
-            bvn: byId(`${prefix}Bvn`).value.trim(),
-            oldAccountNumber: byId(`${prefix}OldAccount`).value.trim()
+            phone: byId(`${prefix}Phone`)?.value.trim() || c.phone,
+            nin: byId(`${prefix}Nin`)?.value.trim() || c.nin,
+            bvn: byId(`${prefix}Bvn`)?.value.trim() || c.bvn,
+            oldAccountNumber: byId(`${prefix}OldAccount`)?.value.trim() || (c.oldAccountNumber || '')
           }
         });
         showToast('Maintenance request sent for approval');
