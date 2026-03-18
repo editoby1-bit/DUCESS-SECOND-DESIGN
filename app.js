@@ -389,7 +389,7 @@
       }
       case 'account_reactivation': {
         const c = state.customers.find(x => x.id === req.payload.customerId);
-        if (c) c.active = true;
+        if (c) { c.active = true; c.frozen = false; }
         break;
       }
       case 'float_declaration': {
@@ -404,7 +404,7 @@
       }
       case 'customer_credit': {
         const c = state.customers.find(x => x.id === req.payload.customerId);
-        if (!c || isCustomerFrozen(c)) break;
+        if (!c || isCustomerFrozen(c) || c.active === false) break;
         c.transactions.push(txObj('credit', req.payload.amount, req.payload.details, req.requestedByName, req.requestedBy, currentStaff()?.name || '', 'customer', req.payload.date, {
           receivedOrPaidBy: req.payload.receivedOrPaidBy,
           postedBy: req.requestedByName,
@@ -416,7 +416,7 @@
       }
       case 'customer_debit': {
         const c = state.customers.find(x => x.id === req.payload.customerId);
-        if (!c || isCustomerFrozen(c)) break;
+        if (!c || isCustomerFrozen(c) || c.active === false) break;
         c.transactions.push(txObj('debit', req.payload.amount, req.payload.details, req.requestedByName, req.requestedBy, currentStaff()?.name || '', 'customer', req.payload.date, {
           receivedOrPaidBy: req.payload.receivedOrPaidBy,
           postedBy: req.requestedByName,
@@ -530,7 +530,7 @@
     const photo = q('[data-fill="photo"]', root);
     if (photo) photo.innerHTML = customer?.photo ? `<img src="${customer.photo}" alt="photo">` : '<span>No Photo</span>';
     const nm = q('[data-fill="name"]', root);
-    if (nm && customer && isCustomerFrozen(customer)) nm.innerHTML = `${customer.name} <span class="badge rejected">Frozen</span>`;
+    if (nm && customer && customerStatusLabel(customer) === 'Frozen') nm.innerHTML = `${customer.name} <span class="badge rejected">Frozen</span>`;
   }
 
   function render() {
@@ -696,43 +696,44 @@
     return `
       <div class="form-card">
         <h3>Account Opening</h3>
-        <div class="form-grid three">
-          <div class="field"><label>Account Name</label><input id="openName" class="entry-input"></div>
-          <div class="field"><label>Address</label><input id="openAddress" class="entry-input"></div>
-          <div class="field"><label>Phone Number</label><input id="openPhone" class="entry-input"></div>
-          <div class="field"><label>NIN</label><input id="openNin" class="entry-input"></div>
-          <div class="field"><label>BVN</label><input id="openBvn" class="entry-input"></div>
-          <div class="field"><label>Old Account Number</label><input id="openOldAccount" class="entry-input"></div>
-          <div class="field"><label>New Account Number</label><div class="display-field" id="generatedAccountNumber">${nextNo}</div></div>
-          <div class="field"><label>Photo</label><input id="openPhoto" class="entry-input" type="file" accept="image/*"></div>
+        <div class="form-grid three cs-form-grid">
+          <div class="field field-wide"><label>Account Name</label><input id="openName" class="entry-input"></div>
+          <div class="field field-wide"><label>Address</label><input id="openAddress" class="entry-input"></div>
+          <div class="field field-phone"><label>Phone Number</label><input id="openPhone" class="entry-input"></div>
+          <div class="field field-id"><label>NIN</label><input id="openNin" class="entry-input"></div>
+          <div class="field field-bvn"><label>BVN</label><input id="openBvn" class="entry-input"></div>
+          <div class="field field-account"><label>Old Account Number</label><input id="openOldAccount" class="entry-input"></div>
+          <div class="field field-account"><label>New Account Number</label><div class="display-field" id="generatedAccountNumber">${nextNo}</div></div>
+          <div class="field field-photo-upload"><label>Photo</label><input id="openPhoto" class="entry-input" type="file" accept="image/*"></div>
         </div>
         <div class="action-row"><button id="submitOpening">Submit for Approval</button></div>
       </div>`;
   }
 
   function renderAccountMaintenance() {
-    return maintenanceCommon('maintenance', 'Save Changes', 'Submit Maintenance');
+    return maintenanceCommon('maintenance', 'Submit Maintenance');
   }
   function renderAccountReactivation() {
-    return maintenanceCommon('reactivation', 'Activate', 'Submit Reactivation');
+    return maintenanceCommon('reactivation', 'Submit Reactivation');
   }
-  function maintenanceCommon(prefix, actionLabel, btnLabel) {
+  function maintenanceCommon(prefix, btnLabel) {
+    const isReactivation = prefix === 'reactivation';
     return `
       <div class="layout-grid two">
         <div class="form-card">
-          <h3>${prefix === 'maintenance' ? 'Account Maintenance' : 'Account Reactivation'}</h3>
-          <div class="form-grid three">
-            <div class="field"><label>Account Number</label><input id="${prefix}Acc" class="entry-input"></div>
-            <div class="field"><label>Search</label><button id="${prefix}Search">Search</button></div>
-            <div class="field"><label>Action</label><button class="secondary" id="${prefix}Submit">${btnLabel}</button></div>
-            <div class="field"><label>Account Name</label><input id="${prefix}Name" class="entry-input"></div>
-            <div class="field"><label>Address</label><input id="${prefix}Address" class="entry-input"></div>
-            <div class="field"><label>Phone Number</label><input id="${prefix}Phone" class="entry-input"></div>
-            <div class="field"><label>NIN</label><input id="${prefix}Nin" class="entry-input"></div>
-            <div class="field"><label>BVN</label><input id="${prefix}Bvn" class="entry-input"></div>
-            <div class="field"><label>Old Account Number</label><input id="${prefix}OldAccount" class="entry-input"></div>
+          <h3>${isReactivation ? 'Account Reactivation' : 'Account Maintenance'}</h3>
+          <div class="form-grid three cs-form-grid">
+            <div class="field field-account"><label>Account Number</label><input id="${prefix}Acc" class="entry-input"></div>
+            <div class="field field-search"><label>Search</label><button id="${prefix}Search">Search</button></div>
+            <div class="field field-submit"><label>Action</label><button class="${isReactivation ? '' : 'secondary'}" id="${prefix}Submit">${btnLabel}</button></div>
+            <div class="field field-wide"><label>Account Name</label><input id="${prefix}Name" class="entry-input"></div>
+            <div class="field field-wide"><label>Address</label><input id="${prefix}Address" class="entry-input"></div>
+            <div class="field field-phone"><label>Phone Number</label><input id="${prefix}Phone" class="entry-input"></div>
+            <div class="field field-id"><label>NIN</label><input id="${prefix}Nin" class="entry-input"></div>
+            <div class="field field-bvn"><label>BVN</label><input id="${prefix}Bvn" class="entry-input"></div>
+            <div class="field field-account"><label>Old Account Number</label><input id="${prefix}OldAccount" class="entry-input"></div>
           </div>
-          <div class="note">${prefix === 'maintenance' ? 'Search first, update details, then submit.': 'Search account, confirm details, and submit reactivation.'}</div>
+          <div class="note">${isReactivation ? 'Search account, confirm details, and submit reactivation.' : 'Search first, update details, then submit.'}</div>
         </div>
         <div class="record-card">
           <h3>System Display</h3>
@@ -740,7 +741,6 @@
             <div class="info-item"><div class="k">Account Name</div><div class="v" id="${prefix}DisplayName">—</div></div>
             <div class="info-item"><div class="k">Phone Number</div><div class="v" id="${prefix}DisplayPhone">—</div></div>
             <div class="info-item"><div class="k">Current Status</div><div class="v" id="${prefix}DisplayStatus">—</div></div>
-            <div class="info-item"><div class="k">Action</div><div class="v">${actionLabel}</div></div>
           </div>
         </div>
       </div>`;
@@ -896,20 +896,29 @@
   function openRequestDetailModal(reqId){
     const req = state.approvals.find(r=>r.id===reqId); if(!req) return; const p=req.payload||{};
     const esc = (v) => String(v ?? '—').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-    const field = (label, value) => `<div class="field"><label>${label}</label><div class="display-field">${esc(value)}</div></div>`;
+    const field = (label, value, cls='') => `<div class="field ${cls}"><label>${label}</label><div class="display-field">${esc(value)}</div></div>`;
     const customer = state.customers.find(c => c.id === p.customerId);
+    const photoSrc = p.photo || customer?.photo || '';
+    const photoBlock = `<div class="approval-photo-stack"><button type="button" class="secondary" id="approvalPhotoToggle">Display Picture</button><div class="approval-photo-panel hidden" id="approvalPhotoPanel"><div class="photo-box approval-photo-box">${photoSrc ? `<img src="${photoSrc}" alt="customer photo">` : '<span>No Photo</span>'}</div></div></div>`;
     let html = '';
     if (req.type === 'account_opening') {
-      html = `<div class="form-grid two">${field('Name', p.name)}${field('Phone', p.phone)}${field('Address', p.address)}${field('NIN', p.nin)}${field('BVN', p.bvn)}${field('Generated Account', p.generatedAccountNumber)}</div>`;
+      html = `<div class="stack"><div class="form-grid two modal-cs-grid">${field('Name', p.name, 'field-wide')}${field('Phone', p.phone, 'field-phone')}${field('Address', p.address, 'field-wide')}${field('NIN', p.nin, 'field-id')}${field('BVN', p.bvn, 'field-bvn')}${field('Generated Account', p.generatedAccountNumber, 'field-account')}</div>${photoBlock}</div>`;
     } else if (req.type === 'account_maintenance') {
       const patch = p.patch || {};
-      html = `<div class="stack"><div class="form-grid two">${field('Customer Name', customer?.name || patch.name)}${field('Account Number', p.accountNumber)}${field('Current Status', customer ? (isCustomerFrozen(customer) ? 'Frozen' : (customer.active ? 'Active' : 'Inactive')) : '—')}${field('Old Account Number', patch.oldAccountNumber)}${field('Updated Name', patch.name)}${field('Updated Phone', patch.phone)}${field('Updated Address', patch.address)}${field('Updated NIN', patch.nin)}${field('Updated BVN', patch.bvn)}</div></div>`;
+      html = `<div class="stack"><div class="form-grid two modal-cs-grid">${field('Customer Name', customer?.name || patch.name, 'field-wide')}${field('Account Number', p.accountNumber, 'field-account')}${field('Current Status', customerStatusLabel(customer), 'field-status')}${field('Old Account Number', patch.oldAccountNumber, 'field-account')}${field('Updated Name', patch.name, 'field-wide')}${field('Updated Phone', patch.phone, 'field-phone')}${field('Updated Address', patch.address, 'field-wide')}${field('Updated NIN', patch.nin, 'field-id')}${field('Updated BVN', patch.bvn, 'field-bvn')}</div>${photoBlock}</div>`;
     } else if (req.type === 'account_reactivation') {
-      html = `<div class="form-grid two">${field('Customer Name', customer?.name)}${field('Account Number', p.accountNumber)}${field('Current Status', customer ? (isCustomerFrozen(customer) ? 'Frozen' : (customer.active ? 'Active' : 'Inactive')) : '—')}${field('Requested Action', 'Reactivate Account')}</div>`;
+      html = `<div class="stack"><div class="form-grid two modal-cs-grid">${field('Customer Name', customer?.name, 'field-wide')}${field('Account Number', p.accountNumber, 'field-account')}${field('Current Status', customerStatusLabel(customer), 'field-status')}${field('Requested Action', 'Reactivate Account', 'field-submit')}</div>${photoBlock}</div>`;
     } else {
       html = `<pre>${esc(JSON.stringify(p,null,2))}</pre>`;
     }
-    openModal(prettyApprovalType(req.type), html, [{label:'Close', className:'secondary', onClick: closeModal}]);
+    const actions = [{label:'Close', className:'secondary', onClick: closeModal}];
+    if (req.status === 'pending') {
+      actions.unshift({label:'Reject', className:'danger', onClick: ()=>{ rejectRequest(req.id); closeModal(); }});
+      actions.unshift({label:'Approve', className:'success', onClick: ()=>{ approveRequest(req.id); closeModal(); }});
+    }
+    openModal(prettyApprovalType(req.type), html, actions);
+    const btn = byId('approvalPhotoToggle');
+    if (btn) btn.onclick = ()=> byId('approvalPhotoPanel')?.classList.toggle('hidden');
   }
 
   function renderPermissions() {
@@ -1155,7 +1164,7 @@
     const search = () => {
       const c = getCustomerByAccountNo(byId(`${prefix}Acc`).value);
       if (!c) return showToast('Customer not found');
-      if (prefix==='reactivation' && !isCustomerFrozen(c)) return showToast('Account is not frozen');
+      if (prefix==='reactivation' && !(isCustomerFrozen(c) || c.active === false)) return showToast('Account is not frozen');
       state.ui.selectedCustomerId = c.id;
       save();
       byId(`${prefix}Name`).value = c.name;
@@ -1166,7 +1175,7 @@
       byId(`${prefix}OldAccount`).value = c.oldAccountNumber || '';
       byId(`${prefix}DisplayName`).textContent = c.name;
       byId(`${prefix}DisplayPhone`).textContent = c.phone;
-      byId(`${prefix}DisplayStatus`).textContent = isCustomerFrozen(c) ? 'Frozen' : (c.active ? 'Active' : 'Inactive');
+      byId(`${prefix}DisplayStatus`).textContent = customerStatusLabel(c);
     };
     byId(`${prefix}Search`).onclick = search;
     byId(`${prefix}Submit`).onclick = () => {
@@ -1243,11 +1252,11 @@
     const journal = state.ui.staffJournals[key] ||= [];
     const resetFields = () => { ['txAcc','txAmount','txDetails','txCounterparty'].forEach(id=>{ if(byId(id)) byId(id).value=''; }); if (byId('txName')) byId('txName').textContent='—'; if (byId('txBalance')) byId('txBalance').innerHTML='—'; state.ui.selectedCustomerId=null; };
     const recalcPreview = () => { const approvedBase = currentFloatAvailable(staff.id, businessDate()); const totalPending = pendingJournalTotal(staff.id, businessDate()); const thisJournalTotal = journal.reduce((s,r)=>s+Number(r.amount||0),0); let running = approvedBase - (totalPending - thisJournalTotal); const rows = journal.map((row, i) => { running -= Number(row.amount||0); return `<tr><td>${i+1}</td><td>${row.customerName}</td><td>${row.accountNumber}</td><td>${money(row.amount)}</td><td class="${running<0?'balance-negative':''}">${money(running)}</td><td><span class="linklike" data-remove-row="${row.id}">Remove</span></td></tr>`; }).join('') || '<tr><td colspan="6">No journal entries yet</td></tr>'; byId('journalRows').innerHTML = rows; const shownRunning = money(Math.max(0,running)); const rf=byId('journalRunningFloat'); if(rf) rf.textContent = shownRunning; const hero=byId('journalRunningFloatHero'); if(hero) hero.textContent = shownRunning; const vr=byId('journalVariance'); if(vr) vr.textContent = money(Math.max(0,-running)); qq('[data-remove-row]').forEach(el => el.onclick = () => { const idx = journal.findIndex(r => r.id === el.dataset.removeRow); if (idx >= 0) { journal.splice(idx,1); save(); recalcPreview(); } }); };
-    const search = () => { const c = getCustomerByAccountNo(byId('txAcc').value); if (!c) return showToast('Customer not found'); if (isCustomerFrozen(c)) return showToast('Account is frozen'); state.ui.selectedCustomerId = c.id; save(); byId('txName').textContent = c.name; byId('txBalance').innerHTML = balanceHtml(c.balance); };
+    const search = () => { const c = getCustomerByAccountNo(byId('txAcc').value); if (!c) return showToast('Customer not found'); if (isCustomerFrozen(c) || c.active === false) { freezeInactiveCustomer(c); save(); return showToast('Account is frozen'); } state.ui.selectedCustomerId = c.id; save(); byId('txName').textContent = c.name; byId('txBalance').innerHTML = balanceHtml(c.balance); };
     byId('txSearch').onclick = search; if (byId('txAcc')) { byId('txAcc').onchange = search; byId('txAcc').onkeyup = e => { if(e.key==='Enter') search(); }; }
-    byId('txJournalAdd').onclick = () => { const customer = getSelectedCustomer() || getCustomerByAccountNo(byId('txAcc').value); if (!customer) return showToast('Search for customer first'); if (isCustomerFrozen(customer)) return showToast('Frozen account cannot accept transactions'); const amount = Number(byId('txAmount').value || 0); if (!(amount > 0)) return showToast('Enter a valid amount'); journal.push({ id: uid('jr'), customerId: customer.id, customerName: customer.name, accountNumber: customer.accountNumber, amount, details: byId('txDetails').value.trim(), receivedOrPaidBy: byId('txCounterparty').value.trim(), payoutSource: byId('txPayoutSource')?.value || 'teller', date: businessDate() }); save(); recalcPreview(); resetFields(); };
+    byId('txJournalAdd').onclick = () => { const customer = getSelectedCustomer() || getCustomerByAccountNo(byId('txAcc').value); if (!customer) return showToast('Search for customer first'); if (isCustomerFrozen(customer) || customer.active === false) { freezeInactiveCustomer(customer); save(); return showToast('Frozen account cannot accept transactions'); } const amount = Number(byId('txAmount').value || 0); if (!(amount > 0)) return showToast('Enter a valid amount'); journal.push({ id: uid('jr'), customerId: customer.id, customerName: customer.name, accountNumber: customer.accountNumber, amount, details: byId('txDetails').value.trim(), receivedOrPaidBy: byId('txCounterparty').value.trim(), payoutSource: byId('txPayoutSource')?.value || 'teller', date: businessDate() }); save(); recalcPreview(); resetFields(); };
     byId('journalClear').onclick = () => { journal.splice(0); save(); recalcPreview(); resetFields(); };
-    byId('txPostSingle').onclick = () => { if (!hasPermission(kind)) return showToast('No access to post'); if (!hasApprovedFloat(staff.id, businessDate())) return showToast('Approved opening balance required before posting'); const customer = getSelectedCustomer() || getCustomerByAccountNo(byId('txAcc').value); if (!customer) return showToast('Search for customer first'); if (isCustomerFrozen(customer)) return showToast('Frozen account cannot accept transactions'); const amount = Number(byId('txAmount').value || 0); if (!(amount > 0)) return showToast('Enter a valid amount'); confirmAction(`Submit single ${kind} request for approval?`, () => { createRequest(kind === 'credit' ? 'customer_credit' : 'customer_debit', { customerId: customer.id, customerName: customer.name, accountNumber: customer.accountNumber, amount, details: byId('txDetails').value.trim(), receivedOrPaidBy: byId('txCounterparty').value.trim(), payoutSource: byId('txPayoutSource')?.value || 'teller', staffId: staff.id, date: businessDate() }); resetFields(); showToast(`${kind === 'credit' ? 'Credit' : 'Debit'} request sent for approval`); render(); }); };
+    byId('txPostSingle').onclick = () => { if (!hasPermission(kind)) return showToast('No access to post'); if (!hasApprovedFloat(staff.id, businessDate())) return showToast('Approved opening balance required before posting'); const customer = getSelectedCustomer() || getCustomerByAccountNo(byId('txAcc').value); if (!customer) return showToast('Search for customer first'); if (isCustomerFrozen(customer) || customer.active === false) { freezeInactiveCustomer(customer); save(); return showToast('Frozen account cannot accept transactions'); } const amount = Number(byId('txAmount').value || 0); if (!(amount > 0)) return showToast('Enter a valid amount'); confirmAction(`Submit single ${kind} request for approval?`, () => { createRequest(kind === 'credit' ? 'customer_credit' : 'customer_debit', { customerId: customer.id, customerName: customer.name, accountNumber: customer.accountNumber, amount, details: byId('txDetails').value.trim(), receivedOrPaidBy: byId('txCounterparty').value.trim(), payoutSource: byId('txPayoutSource')?.value || 'teller', staffId: staff.id, date: businessDate() }); resetFields(); showToast(`${kind === 'credit' ? 'Credit' : 'Debit'} request sent for approval`); render(); }); };
     byId('journalSubmit').onclick = () => { if (!hasPermission(kind)) return showToast('No access to post'); if (!hasApprovedFloat(staff.id, businessDate())) return showToast('Approved opening balance required before posting'); if (!journal.length) return showToast('Generate journal first'); confirmAction(`Submit ${kind} journal for approval?`, () => { createRequest(kind === 'credit' ? 'customer_credit_journal' : 'customer_debit_journal', { staffId: staff.id, date: businessDate(), openingFloat: getOpeningBalanceForDate(staff.id, businessDate()), rows: journal.map(row => ({ customerId: row.customerId, customerName: row.customerName, accountNumber: row.accountNumber, amount: row.amount, details: row.details, receivedOrPaidBy: row.receivedOrPaidBy, payoutSource: row.payoutSource })) }); journal.splice(0); save(); recalcPreview(); resetFields(); showToast(`${kind === 'credit' ? 'Credit' : 'Debit'} journal sent for approval`); render(); }); };
     recalcPreview();
   }
@@ -1374,6 +1383,8 @@
   function getSelectedCustomer() { return state.customers.find(c => c.id === state.ui.selectedCustomerId) || null; }
   function balanceHtml(n){ return `<span class="${Number(n)<0 ? 'balance-negative' : ''}">${money(n)}</span>`; }
   function isCustomerFrozen(c){ if(!c) return false; if(c.frozen) return true; const last=(c.transactions||[]).slice().sort((a,b)=>new Date(b.date)-new Date(a.date))[0]; if(!last) return false; const days=(Date.now()-new Date(last.date).getTime())/86400000; return days>=90; }
+  function customerStatusLabel(c){ if(!c) return '—'; return (!c.active || isCustomerFrozen(c)) ? 'Frozen' : 'Active'; }
+  function freezeInactiveCustomer(c){ if(!c) return; if(c.active === false) c.frozen = true; }
 
   function openCustomerSearchModal(list) {
     const renderRows = arr => arr.map(c=>`<tr><td>${c.accountNumber}</td><td>${c.name}</td><td>${c.phone}</td><td><span class="linklike" data-pick="${c.id}">Select</span></td></tr>`).join('');

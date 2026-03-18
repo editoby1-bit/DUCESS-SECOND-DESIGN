@@ -111,6 +111,25 @@ button:disabled { opacity: .55; cursor:not-allowed; }
 .form-grid { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:14px; }
 .form-grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .form-grid.one { grid-template-columns: 1fr; }
+
+.cs-form-grid{align-items:end}
+.cs-form-grid .field-wide{grid-column:span 1}
+.cs-form-grid .field-account,.cs-form-grid .field-phone,.cs-form-grid .field-bvn,.cs-form-grid .field-id,.cs-form-grid .field-search,.cs-form-grid .field-submit,.cs-form-grid .field-photo-upload{max-width:100%}
+.cs-form-grid .field-account .entry-input,.cs-form-grid .field-account .display-field{max-width:140px}
+.cs-form-grid .field-phone .entry-input,.cs-form-grid .field-phone .display-field{max-width:180px}
+.cs-form-grid .field-bvn .entry-input,.cs-form-grid .field-bvn .display-field{max-width:180px}
+.cs-form-grid .field-id .entry-input,.cs-form-grid .field-id .display-field{max-width:220px}
+.cs-form-grid .field-search button,.cs-form-grid .field-submit button{width:100%;max-width:180px;white-space:nowrap}
+.cs-form-grid .field-photo-upload .entry-input{max-width:220px}
+.modal-cs-grid{align-items:start}
+.modal-cs-grid .field-wide,.modal-cs-grid .field-status{grid-column:span 1}
+.modal-cs-grid .field-account .display-field{max-width:140px}
+.modal-cs-grid .field-phone .display-field{max-width:180px}
+.modal-cs-grid .field-bvn .display-field{max-width:180px}
+.modal-cs-grid .field-id .display-field{max-width:220px}
+.approval-photo-stack{display:flex;flex-direction:column;gap:12px;align-items:flex-start;margin-top:8px}
+.approval-photo-panel.hidden{display:none}
+.approval-photo-box{width:140px;height:140px}
 .field label { display:block; margin-bottom: 7px; font-size: 13px; font-weight: 700; color: var(--muted); }
 .action-row { display:flex; gap:10px; flex-wrap:wrap; margin-top: 16px; }
 .lookup-card {
@@ -448,4 +467,8 @@ body[data-theme="dark-slate"] .running-float-chip span{color:#c7d9ec}
   .sheet-photo-row{grid-template-columns:1fr}
   .amount-post-wrap{grid-template-columns:1fr}
   .journal-kpis{grid-template-columns:1fr}
+}
+
+@media (max-width: 980px){
+  .cs-form-grid .field-account .entry-input,.cs-form-grid .field-account .display-field,.cs-form-grid .field-phone .entry-input,.cs-form-grid .field-phone .display-field,.cs-form-grid .field-bvn .entry-input,.cs-form-grid .field-bvn .display-field,.cs-form-grid .field-id .entry-input,.cs-form-grid .field-id .display-field,.modal-cs-grid .field-account .display-field,.modal-cs-grid .field-phone .display-field,.modal-cs-grid .field-bvn .display-field,.modal-cs-grid .field-id .display-field,.cs-form-grid .field-search button,.cs-form-grid .field-submit button,.cs-form-grid .field-photo-upload .entry-input{max-width:100%}
 }
