@@ -353,7 +353,7 @@ body[data-theme="dark-slate"] .table tr:hover td .warning{background:#f3a65a;col
 .sheet-label{font-size:16px;font-weight:700;color:#fff;white-space:nowrap}
 .sheet-label.inline-label{justify-self:end;padding-right:8px}
 .sheet-input{height:44px}
-.short-code{max-width:220px}
+.short-code{max-width:180px}
 .medium-amt{max-width:180px}
 .sheet-btn{height:44px;white-space:nowrap}
 .sheet-grid .display-field{min-height:44px;border-radius:0;background:#fff;color:#111;padding:10px 12px}
@@ -363,8 +363,11 @@ body[data-theme="dark-slate"] .table tr:hover td .warning{background:#f3a65a;col
 .sheet-spacer{min-height:1px}
 .tellering-stack{display:flex;flex-direction:column;gap:14px}
 .tellering-lower.compact-layout{display:grid;grid-template-columns:minmax(320px, 420px) minmax(0,1fr);gap:16px;align-items:start}
-.compact-fields{grid-template-columns:1fr 1fr}
+.compact-fields{grid-template-columns:1fr 1fr;align-items:start}
 .compact-fields .span-two{grid-column:1 / -1}
+.compact-fields .field:not(.span-two){max-width:100%}
+.compact-fields .field label{display:block;margin-bottom:8px}
+.tellering-entry-card .form-grid.two.compact-fields .field{min-width:0}
 .journal-pane{min-width:0}
 .journal-pane .table{min-width:unset;width:100%}
 .journal-pane .table-wrap{overflow-x:auto}
@@ -388,7 +391,7 @@ body[data-theme="ducess-sheet"] .sheet-grid .entry-input{background:#efcfd1;colo
 
 
 /* Phase 2B Tellering redesign */
-.sheet-head-row{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:10px}
+.sheet-head-row{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:10px}.sheet-head-row.single-head{justify-content:flex-start}
 .running-float-chip{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;min-width:220px;padding:10px 14px;border:1px solid #7a2a2a;background:#120909;border-radius:0;color:#fff}
 .running-float-chip span{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#e9d6d6}
 .running-float-chip strong{font-size:24px;line-height:1.1}
@@ -411,7 +414,7 @@ body[data-theme="ducess-sheet"] .sheet-grid .entry-input{background:#efcfd1;colo
 .sheet-btn{border-radius:0;padding:6px 10px}
 .sheet-grid .display-field,.sheet-grid .entry-input{border-radius:0}
 .sheet-label{font-size:15px}
-.tellering-lower.redesigned-tellering-lower{grid-template-columns:minmax(340px,420px) minmax(0,1fr);gap:18px}
+.tellering-lower.redesigned-tellering-lower{grid-template-columns:minmax(300px,380px) minmax(0,1fr);gap:18px}
 .tellering-entry-card{align-self:start}
 .spacious-journal-pane{padding:20px}
 .journal-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:14px}

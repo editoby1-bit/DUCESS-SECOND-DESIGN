@@ -770,14 +770,10 @@
     return `
       <div class="tellering-stack">
         <div class="tellering-sheet journal-sheet">
-          <div class="sheet-head-row">
+          <div class="sheet-head-row single-head">
             <div>
               <div class="sheet-super">TELLERING</div>
               <div class="sheet-title">${title}</div>
-            </div>
-            <div class="running-float-chip">
-              <span>Running Float</span>
-              <strong id="journalRunningFloatHero">${money(Math.max(0, running))}</strong>
             </div>
           </div>
           <div class="sheet-grid credit-sheet-grid redesigned-journal-grid">
@@ -804,8 +800,8 @@
           <div class="tellering-left form-card compact-left tellering-entry-card">
             <div class="form-grid two compact-fields">
               <div class="field"><label>Received or Paid By</label><input id="txCounterparty" class="entry-input"></div>
-              ${kind === 'debit' ? `<div class="field"><label>Payout Source</label><select id="txPayoutSource" class="entry-input"><option value="teller">Teller</option><option value="other">Other Source</option></select></div>` : `<div class="field"><label>Business Date</label><div class="display-field">${businessDate()}</div></div>`}
-              <div class="field span-two"><label>Details</label><input id="txDetails" class="entry-input"></div>
+              <div class="field"><label>Business Date</label><div class="display-field">${businessDate()}</div></div>
+              <div class="field"><label>Details</label><input id="txDetails" class="entry-input"></div>
             </div>
           </div>
           <div class="journal-pane form-card spacious-journal-pane">
