@@ -656,13 +656,36 @@
   function renderCheckBalance() {
     return `
       <div class="tellering-sheet check-balance-sheet">
-        <div class="sheet-title">*Check Balance</div>
-        <div class="sheet-grid check-grid">
-          <div class="sheet-label">Account Number</div><input id="lookupAcc" class="entry-input sheet-input short-code" />
-          <button id="lookupBtn" class="sheet-btn">Search</button><button id="searchPhotoBtn" class="sheet-btn secondary">Photo</button><button id="openStatementBtn" class="sheet-btn secondary">Statement</button>
-          <div class="sheet-label">Account Name</div><div class="display-field span-3" data-fill="name">—</div>
-          <div class="sheet-label">Phone Number</div><div class="display-field" data-fill="phone">—</div><div class="sheet-spacer"></div><div class="photo-box inline-photo hidden" data-fill="photo"><span>No Photo</span></div>
-          <div class="sheet-label">Available Balance</div><div class="display-field" data-fill="balance">—</div><div class="sheet-spacer"></div><div class="sheet-spacer"></div>
+        <div class="sheet-title sheet-title-check">*Check Balance</div>
+        <div class="sheet-grid check-grid redesigned-check-grid">
+          <div class="sheet-label">Account Number</div>
+          <input id="lookupAcc" class="entry-input sheet-input short-code" />
+          <button id="lookupBtn" class="sheet-btn">Search</button>
+          <button id="searchPhotoBtn" class="sheet-btn secondary">Photo</button>
+          <button id="openStatementBtn" class="sheet-btn secondary">Statement</button>
+
+          <div class="sheet-label">Account Name</div>
+          <div class="display-field value-wide" data-fill="name">—</div>
+          <div class="sheet-spacer"></div>
+          <div class="sheet-spacer"></div>
+          <div class="sheet-spacer"></div>
+
+          <div class="sheet-label">Phone Number</div>
+          <div class="display-field value-short" data-fill="phone">—</div>
+          <div class="sheet-spacer"></div>
+          <div class="sheet-spacer"></div>
+          <div class="sheet-spacer"></div>
+
+          <div class="sheet-label">Available Balance</div>
+          <div class="display-field value-short" data-fill="balance">—</div>
+          <div class="sheet-spacer"></div>
+          <div class="sheet-spacer"></div>
+          <div class="sheet-spacer"></div>
+
+          <div class="sheet-photo-row hidden" id="checkBalancePhotoRow">
+            <div class="sheet-label">Photo</div>
+            <div class="photo-box inline-photo" data-fill="photo"><span>No Photo</span></div>
+          </div>
         </div>
         <div class="action-row"><button class="secondary" id="searchByNameBtn">Search by Name</button></div>
       </div>`;
@@ -743,37 +766,58 @@
     const title = kind === 'credit' ? 'Credit' : 'Debit';
     const st = currentStaff();
     const opening = getOpeningBalanceForDate(st?.id, businessDate());
+    const running = currentFloatAvailable(st?.id, businessDate());
     return `
       <div class="tellering-stack">
         <div class="tellering-sheet journal-sheet">
-          <div class="sheet-super">TELLERING</div>
-          <div class="sheet-title">${title}</div>
-          <div class="sheet-grid credit-sheet-grid">
-            <div class="sheet-label">Account Number</div><input id="txAcc" class="entry-input sheet-input short-code" />
-            <button id="txSearch" class="sheet-btn">Search</button><button id="txJournalAdd" class="sheet-btn secondary">Generate Journal</button>
-            <div class="sheet-label">Account Name</div><div class="display-field span-3" id="txName">—</div>
-            <div class="sheet-label">Available Balance</div><div class="display-field" id="txBalance">—</div>
-            <div class="sheet-label inline-label">Amount</div><input id="txAmount" class="entry-input sheet-input medium-amt" type="number" /><button id="txPostSingle" class="sheet-btn secondary">Post</button>
+          <div class="sheet-head-row">
+            <div>
+              <div class="sheet-super">TELLERING</div>
+              <div class="sheet-title">${title}</div>
+            </div>
+            <div class="running-float-chip">
+              <span>Running Float</span>
+              <strong id="journalRunningFloatHero">${money(Math.max(0, running))}</strong>
+            </div>
+          </div>
+          <div class="sheet-grid credit-sheet-grid redesigned-journal-grid">
+            <div class="sheet-label">Account Number</div>
+            <input id="txAcc" class="entry-input sheet-input short-code" />
+            <button id="txSearch" class="sheet-btn">Search</button>
+            <button id="txJournalAdd" class="sheet-btn secondary">Generate Journal</button>
+
+            <div class="sheet-label">Account Name</div>
+            <div class="display-field value-wide" id="txName">—</div>
+            <div class="sheet-spacer"></div>
+            <div class="sheet-spacer"></div>
+
+            <div class="sheet-label">Available Balance</div>
+            <div class="display-field value-short" id="txBalance">—</div>
+            <div class="sheet-label inline-label">Amount</div>
+            <div class="amount-post-wrap">
+              <input id="txAmount" class="entry-input sheet-input medium-amt" type="number" />
+              <button id="txPostSingle" class="sheet-btn secondary">Post</button>
+            </div>
           </div>
         </div>
-        <div class="tellering-lower compact-layout">
-          <div class="tellering-left form-card compact-left">
+        <div class="tellering-lower compact-layout redesigned-tellering-lower">
+          <div class="tellering-left form-card compact-left tellering-entry-card">
             <div class="form-grid two compact-fields">
               <div class="field"><label>Received or Paid By</label><input id="txCounterparty" class="entry-input"></div>
               ${kind === 'debit' ? `<div class="field"><label>Payout Source</label><select id="txPayoutSource" class="entry-input"><option value="teller">Teller</option><option value="other">Other Source</option></select></div>` : `<div class="field"><label>Business Date</label><div class="display-field">${businessDate()}</div></div>`}
               <div class="field span-two"><label>Details</label><input id="txDetails" class="entry-input"></div>
             </div>
           </div>
-          <div class="journal-pane form-card">
+          <div class="journal-pane form-card spacious-journal-pane">
             <div class="journal-kpis">
               <div class="kpi small"><div class="label">Opening Balance</div><div class="number">${money(opening)}</div></div>
-              <div class="kpi small"><div class="label">Running Float</div><div class="number" id="journalRunningFloat">${money(opening)}</div></div>
-              <div class="kpi small"><div class="label">Variance</div><div class="number balance-negative" id="journalVariance">0</div></div>
+              <div class="kpi small running-kpi"><div class="label">Running Float</div><div class="number" id="journalRunningFloat">${money(Math.max(0, running))}</div></div>
+              <div class="kpi small"><div class="label">Variance</div><div class="number balance-negative" id="journalVariance">${money(Math.max(0, -running))}</div></div>
             </div>
             <h3>Journal Generated</h3>
-            <div class="table-wrap"><table class="table journal-table"><thead><tr><th>S/N</th><th>Account Name</th><th>Account Number</th><th>Amount</th><th>Run Float</th><th></th></tr></thead><tbody id="journalRows"></tbody></table></div>
+            <div class="table-wrap journal-table-wrap"><table class="table journal-table"><thead><tr><th>S/N</th><th>Account Name</th><th>Account Number</th><th>Amount</th><th>Run Float</th><th>Action</th></tr></thead><tbody id="journalRows"></tbody></table></div>
             <div class="action-row"><button id="journalSubmit">Submit Journal</button><button class="secondary" id="journalClear">Clear Journal</button></div>
-            <div class="note">Single Post creates an individual approval. Generate Journal adds rows, then Submit Journal sends one ledger approval.</div>
+            <div class="note">Post submits a single transaction for approval. Generate Journal adds rows, then Submit Journal sends the full journal for approval.</div>
           </div>
         </div>
       </div>`;
@@ -1045,8 +1089,10 @@
   }
 
   function bindCheckBalance() {
+    const hidePhoto = () => { const row = byId('checkBalancePhotoRow'); if (row) row.classList.add('hidden'); };
     const doLookup = (quiet=false) => {
       const val = (byId('lookupAcc')?.value || "").trim();
+      hidePhoto();
       if (!val) return lookupFill(byId('workspace'), null);
       const c = getCustomerByAccountNo(val);
       if (!c) { if (!quiet) showToast('Customer not found. Use name search.'); return; }
@@ -1058,9 +1104,15 @@
     byId('lookupAcc').onchange = () => doLookup(true);
     byId('lookupAcc').onkeyup = (e) => { if (e.key === "Enter") doLookup(false); };
     byId('openStatementBtn').onclick = () => { state.ui.tool = 'account_statement'; renderWorkspace(); setTimeout(()=>{ byId('stmtAcc').value = getSelectedCustomer()?.accountNumber || ''; }, 30); };
-    const photoBtn = byId('searchPhotoBtn'); if (photoBtn) photoBtn.onclick = ()=> { const pb = q('[data-fill="photo"]', byId('workspace')); if(pb) pb.classList.toggle('hidden'); };
+    const photoBtn = byId('searchPhotoBtn'); if (photoBtn) photoBtn.onclick = ()=> {
+      const row = byId('checkBalancePhotoRow');
+      const selected = getSelectedCustomer();
+      if (!selected) return showToast('Search for customer first');
+      if (row) row.classList.toggle('hidden');
+    };
     byId('searchByNameBtn').onclick = () => openCustomerSearchModal(state.customers);
     const selected = getSelectedCustomer();
+    hidePhoto();
     if (selected && state.ui.selectedCustomerId) lookupFill(byId('workspace'), selected); else lookupFill(byId('workspace'), null);
   }
 
@@ -1181,7 +1233,7 @@
     const key = `${staff.id}:${businessDate()}:${kind}`;
     const journal = state.ui.staffJournals[key] ||= [];
     const resetFields = () => { ['txAcc','txAmount','txDetails','txCounterparty'].forEach(id=>{ if(byId(id)) byId(id).value=''; }); if (byId('txName')) byId('txName').textContent='—'; if (byId('txBalance')) byId('txBalance').innerHTML='—'; state.ui.selectedCustomerId=null; };
-    const recalcPreview = () => { const approvedBase = currentFloatAvailable(staff.id, businessDate()); const totalPending = pendingJournalTotal(staff.id, businessDate()); const thisJournalTotal = journal.reduce((s,r)=>s+Number(r.amount||0),0); let running = approvedBase - (totalPending - thisJournalTotal); const rows = journal.map((row, i) => { running -= Number(row.amount||0); return `<tr><td>${i+1}</td><td>${row.customerName}</td><td>${row.accountNumber}</td><td>${money(row.amount)}</td><td class="${running<0?'balance-negative':''}">${money(running)}</td><td><span class="linklike" data-remove-row="${row.id}">Remove</span></td></tr>`; }).join('') || '<tr><td colspan="6">No journal entries yet</td></tr>'; byId('journalRows').innerHTML = rows; const rf=byId('journalRunningFloat'); if(rf) rf.textContent = money(Math.max(0,running)); const vr=byId('journalVariance'); if(vr) vr.textContent = money(Math.max(0,-running)); qq('[data-remove-row]').forEach(el => el.onclick = () => { const idx = journal.findIndex(r => r.id === el.dataset.removeRow); if (idx >= 0) { journal.splice(idx,1); save(); recalcPreview(); } }); };
+    const recalcPreview = () => { const approvedBase = currentFloatAvailable(staff.id, businessDate()); const totalPending = pendingJournalTotal(staff.id, businessDate()); const thisJournalTotal = journal.reduce((s,r)=>s+Number(r.amount||0),0); let running = approvedBase - (totalPending - thisJournalTotal); const rows = journal.map((row, i) => { running -= Number(row.amount||0); return `<tr><td>${i+1}</td><td>${row.customerName}</td><td>${row.accountNumber}</td><td>${money(row.amount)}</td><td class="${running<0?'balance-negative':''}">${money(running)}</td><td><span class="linklike" data-remove-row="${row.id}">Remove</span></td></tr>`; }).join('') || '<tr><td colspan="6">No journal entries yet</td></tr>'; byId('journalRows').innerHTML = rows; const shownRunning = money(Math.max(0,running)); const rf=byId('journalRunningFloat'); if(rf) rf.textContent = shownRunning; const hero=byId('journalRunningFloatHero'); if(hero) hero.textContent = shownRunning; const vr=byId('journalVariance'); if(vr) vr.textContent = money(Math.max(0,-running)); qq('[data-remove-row]').forEach(el => el.onclick = () => { const idx = journal.findIndex(r => r.id === el.dataset.removeRow); if (idx >= 0) { journal.splice(idx,1); save(); recalcPreview(); } }); };
     const search = () => { const c = getCustomerByAccountNo(byId('txAcc').value); if (!c) return showToast('Customer not found'); if (isCustomerFrozen(c)) return showToast('Account is frozen'); state.ui.selectedCustomerId = c.id; save(); byId('txName').textContent = c.name; byId('txBalance').innerHTML = balanceHtml(c.balance); };
     byId('txSearch').onclick = search; if (byId('txAcc')) { byId('txAcc').onchange = search; byId('txAcc').onkeyup = e => { if(e.key==='Enter') search(); }; }
     byId('txJournalAdd').onclick = () => { const customer = getSelectedCustomer() || getCustomerByAccountNo(byId('txAcc').value); if (!customer) return showToast('Search for customer first'); if (isCustomerFrozen(customer)) return showToast('Frozen account cannot accept transactions'); const amount = Number(byId('txAmount').value || 0); if (!(amount > 0)) return showToast('Enter a valid amount'); journal.push({ id: uid('jr'), customerId: customer.id, customerName: customer.name, accountNumber: customer.accountNumber, amount, details: byId('txDetails').value.trim(), receivedOrPaidBy: byId('txCounterparty').value.trim(), payoutSource: byId('txPayoutSource')?.value || 'teller', date: businessDate() }); save(); recalcPreview(); resetFields(); };
