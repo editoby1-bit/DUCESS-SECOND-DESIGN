@@ -811,7 +811,7 @@
               <div class="kpi small"><div class="label">Variance</div><div class="number balance-negative" id="journalVariance">${money(Math.max(0, -running))}</div></div>
             </div>
             <h3>Journal Generated</h3>
-            <div class="table-wrap journal-table-wrap"><table class="table journal-table"><thead><tr><th>S/N</th><th>Account Name</th><th>Account Number</th><th>Amount</th><th>Run Float</th><th>Action</th></tr></thead><tbody id="journalRows"></tbody></table></div>
+            <div class="table-wrap journal-table-wrap"><table class="table journal-table"><thead><tr><th>S/N</th><th>Account Name</th><th>Account Number</th><th>Amount</th><th>Remaining Balance</th><th>Action</th></tr></thead><tbody id="journalRows"></tbody></table></div>
             <div class="action-row"><button id="journalSubmit">Submit Journal</button><button class="secondary" id="journalClear">Clear Journal</button></div>
             <div class="note">Post submits a single transaction for approval. Generate Journal adds rows, then Submit Journal sends the full journal for approval.</div>
           </div>
@@ -890,12 +890,25 @@
       actions.unshift({label:'Reject Journal', className:'danger', onClick: ()=>{ rejectRequest(req.id); closeModal(); }});
       actions.unshift({label:'Approve Journal', className:'success', onClick: ()=>{ approveRequest(req.id); closeModal(); }});
     }
-    openModal('Journal Approval', `<div class="stack"><div class="kpi-row"><div class="kpi"><div class="label">Posted By</div><div class="number">${req.requestedByName}</div></div><div class="kpi"><div class="label">Opening Balance</div><div class="number">${money(opening)}</div></div><div class="kpi"><div class="label">Total</div><div class="number">${money(total)}</div></div><div class="kpi"><div class="label">Overdraw</div><div class="number ${running<0?'balance-negative':''}">${money(Math.max(0,-running))}</div></div></div><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Customer</th><th>Account</th><th>Amount</th><th>Run Float</th></tr></thead><tbody>${bodyRows}</tbody></table></div></div>`, actions);
+    openModal('Journal Approval', `<div class="stack"><div class="kpi-row"><div class="kpi"><div class="label">Posted By</div><div class="number">${req.requestedByName}</div></div><div class="kpi"><div class="label">Opening Balance</div><div class="number">${money(opening)}</div></div><div class="kpi"><div class="label">Total</div><div class="number">${money(total)}</div></div><div class="kpi"><div class="label">Overdraw</div><div class="number ${running<0?'balance-negative':''}">${money(Math.max(0,-running))}</div></div></div><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Customer</th><th>Account</th><th>Amount</th><th>Remaining Balance</th></tr></thead><tbody>${bodyRows}</tbody></table></div></div>`, actions);
   }
 
   function openRequestDetailModal(reqId){
     const req = state.approvals.find(r=>r.id===reqId); if(!req) return; const p=req.payload||{};
-    const html = req.type==='account_opening' ? `<div class="form-grid two"><div class="field"><label>Name</label><div class="display-field">${p.name||'—'}</div></div><div class="field"><label>Phone</label><div class="display-field">${p.phone||'—'}</div></div><div class="field"><label>Address</label><div class="display-field">${p.address||'—'}</div></div><div class="field"><label>NIN</label><div class="display-field">${p.nin||'—'}</div></div><div class="field"><label>BVN</label><div class="display-field">${p.bvn||'—'}</div></div><div class="field"><label>Generated Account</label><div class="display-field">${p.generatedAccountNumber||'—'}</div></div></div>` : `<pre>${JSON.stringify(p,null,2)}</pre>`;
+    const esc = (v) => String(v ?? '—').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    const field = (label, value) => `<div class="field"><label>${label}</label><div class="display-field">${esc(value)}</div></div>`;
+    const customer = state.customers.find(c => c.id === p.customerId);
+    let html = '';
+    if (req.type === 'account_opening') {
+      html = `<div class="form-grid two">${field('Name', p.name)}${field('Phone', p.phone)}${field('Address', p.address)}${field('NIN', p.nin)}${field('BVN', p.bvn)}${field('Generated Account', p.generatedAccountNumber)}</div>`;
+    } else if (req.type === 'account_maintenance') {
+      const patch = p.patch || {};
+      html = `<div class="stack"><div class="form-grid two">${field('Customer Name', customer?.name || patch.name)}${field('Account Number', p.accountNumber)}${field('Current Status', customer ? (isCustomerFrozen(customer) ? 'Frozen' : (customer.active ? 'Active' : 'Inactive')) : '—')}${field('Old Account Number', patch.oldAccountNumber)}${field('Updated Name', patch.name)}${field('Updated Phone', patch.phone)}${field('Updated Address', patch.address)}${field('Updated NIN', patch.nin)}${field('Updated BVN', patch.bvn)}</div></div>`;
+    } else if (req.type === 'account_reactivation') {
+      html = `<div class="form-grid two">${field('Customer Name', customer?.name)}${field('Account Number', p.accountNumber)}${field('Current Status', customer ? (isCustomerFrozen(customer) ? 'Frozen' : (customer.active ? 'Active' : 'Inactive')) : '—')}${field('Requested Action', 'Reactivate Account')}</div>`;
+    } else {
+      html = `<pre>${esc(JSON.stringify(p,null,2))}</pre>`;
+    }
     openModal(prettyApprovalType(req.type), html, [{label:'Close', className:'secondary', onClick: closeModal}]);
   }
 
