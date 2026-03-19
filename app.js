@@ -712,18 +712,20 @@
 
           <div class="sheet-label-cell">NIN</div>
           <div class="sheet-input-cell nin"><input id="openNin" class="entry-input cs-sheet-input"></div>
-          <div class="sheet-label-inline">BVN</div>
-          <div class="sheet-input-cell bvn compact-half"><input id="openBvn" class="entry-input cs-sheet-input"></div>
+          <div class="sheet-label-inline bvn-label">BVN</div>
+          <div class="sheet-input-cell bvn"><input id="openBvn" class="entry-input cs-sheet-input"></div>
 
           <div class="sheet-label-cell">Phone Number</div>
           <div class="sheet-input-cell phone"><input id="openPhone" class="entry-input cs-sheet-input"></div>
           <div class="sheet-label-inline old-account-label">Old Account Number</div>
-          <div class="sheet-input-cell account compact-half"><input id="openOldAccount" class="entry-input cs-sheet-input"></div>
+          <div class="sheet-input-cell account"><input id="openOldAccount" class="entry-input cs-sheet-input"></div>
 
           <div class="sheet-label-cell blank"></div>
-          <div class="sheet-spread-actions">
-            <div class="field-photo-upload compact-photo-upload"><input id="openPhoto" class="entry-input cs-sheet-input" type="file" accept="image/*"></div>
-            <button id="generateAccountBtn" class="sheet-btn cs-inline-btn cs-generate-btn">Generate New Account Number</button>
+          <div class="sheet-spread-actions opening-actions">
+            <button id="openPhotoBtn" type="button" class="sheet-btn cs-inline-btn secondary cs-photo-btn">Photo Upload</button>
+            <input id="openPhoto" class="entry-input cs-sheet-input hidden-photo-input" type="file" accept="image/*">
+            <div id="openPhotoStatus" class="cs-inline-note photo-status">No photo selected</div>
+            <div class="cs-inline-note cs-generate-note">Account number generated on approval</div>
           </div>
         </div>
         <div class="action-row"><button id="submitOpening">Submit for Approval</button></div>
@@ -743,7 +745,7 @@
         <div class="cs-sheet-title">${isReactivation ? 'Account Reactivation' : 'Account Maintenance'}</div>
         <div class="cs-sheet-grid ${isReactivation ? 'reactivation-sheet-grid' : 'maintenance-sheet-grid'}">
           <div class="sheet-label-cell">Account Number</div>
-          <div class="sheet-input-cell account ${isReactivation ? 'reactivation-account compact-half' : ''}"><input id="${prefix}Acc" class="entry-input cs-sheet-input"></div>
+          <div class="sheet-input-cell account ${isReactivation ? 'reactivation-account half-account' : 'account-near-label'}"><input id="${prefix}Acc" class="entry-input cs-sheet-input"></div>
           <button id="${prefix}Search" class="sheet-btn cs-inline-btn">Search</button>
           <button id="${prefix}Edit" class="sheet-btn cs-inline-btn secondary">Edit</button>
           <button id="${prefix}Submit" class="sheet-btn cs-inline-btn ${isReactivation ? 'reactivate-btn' : 'secondary'}">${isReactivation ? 'Activate' : 'Save'}</button>
@@ -753,9 +755,9 @@
 
           ${isReactivation ? '' : `<div class="sheet-label-cell">Address</div><div class="sheet-input-cell wide"><input id="${prefix}Address" class="entry-input cs-sheet-input cs-detail-input"></div>`}
 
-          ${isReactivation ? `<div class="sheet-label-cell blank"></div>` : `<div class="sheet-label-cell">NIN</div><div class="sheet-input-cell nin"><input id="${prefix}Nin" class="entry-input cs-sheet-input cs-detail-input"></div><div class="sheet-label-inline">BVN</div><div class="sheet-input-cell bvn compact-half"><input id="${prefix}Bvn" class="entry-input cs-sheet-input cs-detail-input"></div>`}
+          ${isReactivation ? `<div class="sheet-label-cell blank"></div>` : `<div class="sheet-label-cell">NIN</div><div class="sheet-input-cell nin"><input id="${prefix}Nin" class="entry-input cs-sheet-input cs-detail-input"></div><div class="sheet-label-inline bvn-label">BVN</div><div class="sheet-input-cell bvn"><input id="${prefix}Bvn" class="entry-input cs-sheet-input cs-detail-input"></div>`}
 
-          ${isReactivation ? '' : `<div class="sheet-label-cell">Phone Number</div><div class="sheet-input-cell phone"><input id="${prefix}Phone" class="entry-input cs-sheet-input cs-detail-input"></div><div class="sheet-label-inline old-account-label">Old Account Number</div><div class="sheet-input-cell account compact-half"><input id="${prefix}OldAccount" class="entry-input cs-sheet-input cs-detail-input"></div>`}
+          ${isReactivation ? '' : `<div class="sheet-label-cell">Phone Number</div><div class="sheet-input-cell phone"><input id="${prefix}Phone" class="entry-input cs-sheet-input cs-detail-input"></div><div class="sheet-label-inline old-account-label">Old Account Number</div><div class="sheet-input-cell account"><input id="${prefix}OldAccount" class="entry-input cs-sheet-input cs-detail-input"></div>`}
         </div>
         <div class="cs-sheet-footer">
           <div class="cs-system-summary">
@@ -1158,13 +1160,16 @@
   }
 
   function bindAccountOpening() {
-    byId('openPhoto').onchange = async (e) => {
+    const photoInput = byId('openPhoto');
+    const photoBtn = byId('openPhotoBtn');
+    const photoStatus = byId('openPhotoStatus');
+    if (photoBtn && photoInput) photoBtn.onclick = () => photoInput.click();
+    if (photoInput) photoInput.onchange = async (e) => {
       const f = e.target.files?.[0];
       if (!f) return;
-      byId('openPhoto').dataset.base64 = await toBase64(f);
+      photoInput.dataset.base64 = await toBase64(f);
+      if (photoStatus) photoStatus.textContent = f.name.length > 18 ? `${f.name.slice(0, 15)}...` : f.name;
     };
-    const generateBtn = byId('generateAccountBtn');
-    if (generateBtn) generateBtn.onclick = () => showToast('Customer account number will be generated automatically on approval');
     byId('submitOpening').onclick = () => {
       const payload = {
         name: byId('openName').value.trim(),
@@ -1214,6 +1219,14 @@
       setDetailsEditable(false);
     };
     byId(`${prefix}Search`).onclick = search;
+    const accInput = byId(`${prefix}Acc`);
+    if (accInput) {
+      accInput.oninput = () => {
+        const v = (accInput.value || '').trim();
+        if (/^\d{4,}$/.test(v)) search();
+      };
+      accInput.onkeyup = (e) => { if (e.key === 'Enter') search(); };
+    }
     const editBtn = byId(`${prefix}Edit`);
     if (editBtn) editBtn.onclick = () => {
       const c = getSelectedCustomer() || getCustomerByAccountNo(byId(`${prefix}Acc`).value);
@@ -1443,12 +1456,34 @@
   }
 
   async function toBase64(file) {
-    return await new Promise((resolve, reject) => {
+    const dataUrl = await new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result);
       reader.onerror = reject;
       reader.readAsDataURL(file);
     });
+    if (!file.type.startsWith('image/')) return dataUrl;
+    try {
+      const img = await new Promise((resolve, reject) => {
+        const el = new Image();
+        el.onload = () => resolve(el);
+        el.onerror = reject;
+        el.src = dataUrl;
+      });
+      const maxSide = 900;
+      let { width, height } = img;
+      const scale = Math.min(1, maxSide / Math.max(width, height));
+      width = Math.max(1, Math.round(width * scale));
+      height = Math.max(1, Math.round(height * scale));
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      return canvas.toDataURL('image/jpeg', 0.72);
+    } catch (e) {
+      return dataUrl;
+    }
   }
 
 
