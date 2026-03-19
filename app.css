@@ -589,3 +589,84 @@ body[data-theme="dark-slate"] .cs-inline-note, body[data-theme="ducess-sheet"] .
 @media (max-width: 980px){
   .cs-generate-note,.photo-status,.cs-photo-btn{min-width:0;max-width:none;width:auto;}
 }
+
+/* Phase 2D final UI polish */
+.field{min-width:0}
+.field label{margin-bottom:6px;line-height:1.2}
+.form-grid{gap:12px}
+.action-row{align-items:center}
+.action-row button,
+.form-grid .entry-input,
+.form-grid select,
+.form-grid .display-field,
+.tool-tab,
+.filter-chip{min-height:42px}
+button,
+.tool-tab,
+.filter-chip,
+.icon-btn,
+.ghost-btn{
+  transition:background-color .16s ease,border-color .16s ease,color .16s ease,filter .16s ease,opacity .16s ease;
+}
+button:not(:disabled):hover,
+.tool-tab:hover,
+.filter-chip:hover,
+.icon-btn:hover,
+.ghost-btn:hover{filter:brightness(.98)}
+button:focus-visible,
+.tool-tab:focus-visible,
+.filter-chip:focus-visible,
+.icon-btn:focus-visible,
+.ghost-btn:focus-visible,
+.entry-input:focus-visible,
+select:focus-visible,
+textarea:focus-visible{
+  outline:2px solid color-mix(in srgb, var(--brand) 62%, white 38%);
+  outline-offset:1px;
+}
+
+/* Customer service grid tightening */
+.cs-sheet-card{max-width:980px}
+.cs-sheet-grid{width:100%}
+.opening-sheet-grid,.maintenance-sheet-grid{grid-template-columns:190px minmax(0,145px) 110px minmax(0,145px) minmax(0,145px)}
+.reactivation-sheet-grid{grid-template-columns:190px 82px 110px 110px 110px}
+.sheet-label-cell,.sheet-label-inline,.sheet-input-cell,.cs-inline-btn,.sheet-spread-actions{min-width:0}
+.sheet-label-cell,.sheet-label-inline{padding:0 10px}
+.sheet-input-cell{min-height:40px}
+.cs-sheet-input{height:40px;min-height:40px;padding:7px 10px}
+.cs-inline-btn,.cs-sheet-card .action-row button,.cs-inline-note{min-height:40px;height:40px}
+.sheet-input-cell.nin,.sheet-input-cell.bvn,.sheet-input-cell.phone,.sheet-input-cell.account,
+.opening-sheet-grid>.sheet-input-cell.account,.maintenance-sheet-grid>.sheet-input-cell.account,
+.reactivation-sheet-grid>.sheet-input-cell.account,
+.account-near-label{max-width:none !important}
+.bvn-label,.old-account-label{justify-content:flex-start;padding-left:10px !important;padding-right:10px !important;min-width:0}
+.sheet-spread-actions.opening-actions{gap:6px;padding:4px 0}
+.cs-inline-note{padding:0 10px}
+.cs-generate-note{min-width:0;flex:1}
+.photo-status{min-width:0;max-width:170px}
+.cs-sheet-footer{gap:10px;padding:9px 12px}
+.cs-system-summary{gap:10px 14px}
+.cs-sheet-card .action-row{padding:9px 12px 12px}
+
+/* Readability and hover safety by theme */
+body[data-theme="ducess-sheet"] button,
+body[data-theme="ducess-sheet"] .tool-tab,
+body[data-theme="ducess-sheet"] .filter-chip{border-color:#7a2a2a}
+body[data-theme="ducess-sheet"] button:not(.secondary):not(.ghost-btn){color:#fff}
+body[data-theme="ducess-sheet"] button.secondary:hover,
+body[data-theme="ducess-sheet"] .tool-tab:hover,
+body[data-theme="ducess-sheet"] .filter-chip:hover{background:#f5eded;color:#2c0909;border-color:#7a2a2a;filter:none}
+body[data-theme="ducess-sheet"] .action-row button,
+body[data-theme="ducess-sheet"] .row-actions button{box-shadow:none}
+body[data-theme="ducess-sheet"] .table tr:hover td button.secondary,
+body[data-theme="ducess-sheet"] .table tr:hover td .tool-tab{background:#f5eded;color:#2c0909;border-color:#7a2a2a;filter:none}
+
+body[data-theme="ocean"] button.secondary:hover,
+body[data-theme="neutral-stone"] button.secondary:hover{background:var(--accent);color:var(--text);filter:none}
+
+@media (max-width: 980px){
+  .opening-sheet-grid,.maintenance-sheet-grid,.reactivation-sheet-grid{grid-template-columns:180px minmax(0,1fr)}
+  .sheet-label-cell,.sheet-label-inline{padding:0 10px}
+  .sheet-spread-actions.opening-actions{grid-column:2 / 3;flex-wrap:wrap;padding:8px 0}
+  .photo-status{max-width:none}
+}
