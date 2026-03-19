@@ -634,6 +634,7 @@
     byId('workspace').innerHTML = tabs + renderTool(state.ui.tool);
     qq('.tool-tab').forEach(btn => btn.onclick = () => {
       state.ui.tool = btn.dataset.tool;
+      if (state.ui.tool === 'check_balance') state.ui.checkBalanceLoaded = false;
       save();
       renderWorkspace();
     });
@@ -712,12 +713,12 @@
           <div class="sheet-label-cell">NIN</div>
           <div class="sheet-input-cell nin"><input id="openNin" class="entry-input cs-sheet-input"></div>
           <div class="sheet-label-inline">BVN</div>
-          <div class="sheet-input-cell bvn"><input id="openBvn" class="entry-input cs-sheet-input"></div>
+          <div class="sheet-input-cell bvn compact-half"><input id="openBvn" class="entry-input cs-sheet-input"></div>
 
           <div class="sheet-label-cell">Phone Number</div>
           <div class="sheet-input-cell phone"><input id="openPhone" class="entry-input cs-sheet-input"></div>
-          <div class="sheet-label-inline">Old Account Number</div>
-          <div class="sheet-input-cell account"><input id="openOldAccount" class="entry-input cs-sheet-input"></div>
+          <div class="sheet-label-inline old-account-label">Old Account Number</div>
+          <div class="sheet-input-cell account compact-half"><input id="openOldAccount" class="entry-input cs-sheet-input"></div>
 
           <div class="sheet-label-cell blank"></div>
           <div class="sheet-spread-actions">
@@ -742,18 +743,19 @@
         <div class="cs-sheet-title">${isReactivation ? 'Account Reactivation' : 'Account Maintenance'}</div>
         <div class="cs-sheet-grid ${isReactivation ? 'reactivation-sheet-grid' : 'maintenance-sheet-grid'}">
           <div class="sheet-label-cell">Account Number</div>
-          <div class="sheet-input-cell account"><input id="${prefix}Acc" class="entry-input cs-sheet-input"></div>
+          <div class="sheet-input-cell account ${isReactivation ? 'reactivation-account compact-half' : ''}"><input id="${prefix}Acc" class="entry-input cs-sheet-input"></div>
           <button id="${prefix}Search" class="sheet-btn cs-inline-btn">Search</button>
-          ${isReactivation ? `<button id="${prefix}Edit" class="sheet-btn cs-inline-btn secondary">Edit</button><button id="${prefix}Submit" class="sheet-btn cs-inline-btn">Activate</button>` : `<button id="${prefix}Edit" class="sheet-btn cs-inline-btn secondary">Edit</button><button id="${prefix}Submit" class="sheet-btn cs-inline-btn secondary">Save</button>`}
+          <button id="${prefix}Edit" class="sheet-btn cs-inline-btn secondary">Edit</button>
+          <button id="${prefix}Submit" class="sheet-btn cs-inline-btn ${isReactivation ? 'reactivate-btn' : 'secondary'}">${isReactivation ? 'Activate' : 'Save'}</button>
 
           <div class="sheet-label-cell">Account Name</div>
-          <div class="sheet-input-cell wide"><input id="${prefix}Name" class="entry-input cs-sheet-input"></div>
+          <div class="sheet-input-cell wide"><input id="${prefix}Name" class="entry-input cs-sheet-input cs-detail-input"></div>
 
-          ${isReactivation ? '' : `<div class="sheet-label-cell">Address</div><div class="sheet-input-cell wide"><input id="${prefix}Address" class="entry-input cs-sheet-input"></div>`}
+          ${isReactivation ? '' : `<div class="sheet-label-cell">Address</div><div class="sheet-input-cell wide"><input id="${prefix}Address" class="entry-input cs-sheet-input cs-detail-input"></div>`}
 
-          ${isReactivation ? `<div class="sheet-label-cell blank"></div>` : `<div class="sheet-label-cell">NIN</div><div class="sheet-input-cell nin"><input id="${prefix}Nin" class="entry-input cs-sheet-input"></div><div class="sheet-label-inline">BVN</div><div class="sheet-input-cell bvn"><input id="${prefix}Bvn" class="entry-input cs-sheet-input"></div>`}
+          ${isReactivation ? `<div class="sheet-label-cell blank"></div>` : `<div class="sheet-label-cell">NIN</div><div class="sheet-input-cell nin"><input id="${prefix}Nin" class="entry-input cs-sheet-input cs-detail-input"></div><div class="sheet-label-inline">BVN</div><div class="sheet-input-cell bvn compact-half"><input id="${prefix}Bvn" class="entry-input cs-sheet-input cs-detail-input"></div>`}
 
-          ${isReactivation ? '' : `<div class="sheet-label-cell">Phone Number</div><div class="sheet-input-cell phone"><input id="${prefix}Phone" class="entry-input cs-sheet-input"></div><div class="sheet-label-inline">Old Account Number</div><div class="sheet-input-cell account"><input id="${prefix}OldAccount" class="entry-input cs-sheet-input"></div>`}
+          ${isReactivation ? '' : `<div class="sheet-label-cell">Phone Number</div><div class="sheet-input-cell phone"><input id="${prefix}Phone" class="entry-input cs-sheet-input cs-detail-input"></div><div class="sheet-label-inline old-account-label">Old Account Number</div><div class="sheet-input-cell account compact-half"><input id="${prefix}OldAccount" class="entry-input cs-sheet-input cs-detail-input"></div>`}
         </div>
         <div class="cs-sheet-footer">
           <div class="cs-system-summary">
@@ -1131,10 +1133,11 @@
     const doLookup = (quiet=false) => {
       const val = (byId('lookupAcc')?.value || "").trim();
       hidePhoto();
-      if (!val) return lookupFill(byId('workspace'), null);
+      if (!val) { state.ui.checkBalanceLoaded = false; save(); return lookupFill(byId('workspace'), null); }
       const c = getCustomerByAccountNo(val);
       if (!c) { if (!quiet) showToast('Customer not found. Use name search.'); return; }
       state.ui.selectedCustomerId = c.id;
+      state.ui.checkBalanceLoaded = true;
       save();
       lookupFill(byId('workspace'), c);
     };
@@ -1149,8 +1152,8 @@
       if (row) row.classList.toggle('hidden');
     };
     byId('searchByNameBtn').onclick = () => openCustomerSearchModal(state.customers);
-    const selected = getSelectedCustomer();
     hidePhoto();
+    const selected = state.ui.checkBalanceLoaded ? getSelectedCustomer() : null;
     if (selected && state.ui.selectedCustomerId) lookupFill(byId('workspace'), selected); else lookupFill(byId('workspace'), null);
   }
 
@@ -1183,6 +1186,16 @@
   }
 
   function bindMaintenance(prefix) {
+    const detailIds = [`${prefix}Name`, `${prefix}Address`, `${prefix}Phone`, `${prefix}Nin`, `${prefix}Bvn`, `${prefix}OldAccount`];
+    const setDetailsEditable = (editable) => {
+      detailIds.forEach(id => {
+        const el = byId(id);
+        if (!el) return;
+        el.readOnly = !editable;
+        el.classList.toggle('cs-readonly', !editable);
+      });
+    };
+    setDetailsEditable(false);
     const search = () => {
       const c = getCustomerByAccountNo(byId(`${prefix}Acc`).value);
       if (!c) return showToast('Customer not found');
@@ -1198,13 +1211,15 @@
       byId(`${prefix}DisplayName`).textContent = c.name;
       byId(`${prefix}DisplayPhone`).textContent = c.phone;
       byId(`${prefix}DisplayStatus`).textContent = customerStatusLabel(c);
+      setDetailsEditable(false);
     };
     byId(`${prefix}Search`).onclick = search;
     const editBtn = byId(`${prefix}Edit`);
     if (editBtn) editBtn.onclick = () => {
       const c = getSelectedCustomer() || getCustomerByAccountNo(byId(`${prefix}Acc`).value);
       if (!c) return showToast('Search for an account first');
-      showToast(prefix === 'reactivation' ? 'You can now confirm the account details and activate' : 'You can now edit and save the account details');
+      setDetailsEditable(true);
+      showToast(prefix === 'reactivation' ? 'Account details are now editable' : 'You can now edit and save the account details');
     };
     byId(`${prefix}Submit`).onclick = () => {
       const c = getSelectedCustomer() || getCustomerByAccountNo(byId(`${prefix}Acc`).value);
@@ -1705,6 +1720,8 @@
     const c = getSelectedCustomer();
     if (!c) return;
     if (state.ui.tool === 'check_balance') {
+      state.ui.checkBalanceLoaded = true;
+      save();
       const ws = byId('workspace');
       if (ws) lookupFill(ws, c); else render();
       return;
