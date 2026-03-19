@@ -700,36 +700,29 @@
 
   function renderAccountOpening() {
     return `
-      <div class="form-card cs-sheet-card refined-cs-card">
+      <div class="form-card cs-sheet-card">
         <div class="cs-sheet-title">Account Opening</div>
-        <div class="cs-refined-sheet opening-refined-sheet">
-          <div class="cs-row wide-row">
-            <div class="cs-row-label">Account Name</div>
-            <div class="cs-row-main"><input id="openName" class="entry-input cs-refined-input"></div>
-          </div>
+        <div class="cs-sheet-grid opening-sheet-grid">
+          <div class="sheet-label-cell">Account Name</div>
+          <div class="sheet-input-cell wide"><input id="openName" class="entry-input cs-sheet-input"></div>
 
-          <div class="cs-row wide-row">
-            <div class="cs-row-label">Address</div>
-            <div class="cs-row-main"><input id="openAddress" class="entry-input cs-refined-input"></div>
-          </div>
+          <div class="sheet-label-cell">Address</div>
+          <div class="sheet-input-cell wide"><input id="openAddress" class="entry-input cs-sheet-input"></div>
 
-          <div class="cs-row split-row">
-            <div class="cs-row-label">NIN</div>
-            <div class="cs-row-main short"><input id="openNin" class="entry-input cs-refined-input"></div>
-            <div class="cs-inline-label">BVN</div>
-            <div class="cs-row-main medium"><input id="openBvn" class="entry-input cs-refined-input"></div>
-          </div>
+          <div class="sheet-label-cell">NIN</div>
+          <div class="sheet-input-cell nin"><input id="openNin" class="entry-input cs-sheet-input"></div>
+          <div class="sheet-label-inline">BVN</div>
+          <div class="sheet-input-cell bvn"><input id="openBvn" class="entry-input cs-sheet-input"></div>
 
-          <div class="cs-row split-row actions-row">
-            <div class="cs-row-label">Phone Number</div>
-            <div class="cs-row-main short"><input id="openPhone" class="entry-input cs-refined-input"></div>
-            <div class="cs-inline-label">Old Account Number</div>
-            <div class="cs-row-main medium"><input id="openOldAccount" class="entry-input cs-refined-input"></div>
-            <div class="cs-opening-actions">
-              <label class="cs-photo-trigger" for="openPhoto" title="Upload Photo">📷</label>
-              <input id="openPhoto" class="cs-photo-input" type="file" accept="image/*">
-              <button id="generateAccountBtn" class="sheet-btn cs-action-btn cs-generate-btn">Generate New Account Number</button>
-            </div>
+          <div class="sheet-label-cell">Phone Number</div>
+          <div class="sheet-input-cell phone"><input id="openPhone" class="entry-input cs-sheet-input"></div>
+          <div class="sheet-label-inline">Old Account Number</div>
+          <div class="sheet-input-cell account"><input id="openOldAccount" class="entry-input cs-sheet-input"></div>
+
+          <div class="sheet-label-cell blank"></div>
+          <div class="sheet-spread-actions">
+            <div class="field-photo-upload compact-photo-upload"><input id="openPhoto" class="entry-input cs-sheet-input" type="file" accept="image/*"></div>
+            <button id="generateAccountBtn" class="sheet-btn cs-inline-btn cs-generate-btn">Generate New Account Number</button>
           </div>
         </div>
         <div class="action-row"><button id="submitOpening">Submit for Approval</button></div>
@@ -745,29 +738,24 @@
   function maintenanceCommon(prefix, btnLabel) {
     const isReactivation = prefix === 'reactivation';
     return `
-      <div class="form-card cs-sheet-card refined-cs-card ${isReactivation ? 'reactivation-card' : 'maintenance-card'}">
+      <div class="form-card cs-sheet-card ${isReactivation ? 'reactivation-card' : 'maintenance-card'}">
         <div class="cs-sheet-title">${isReactivation ? 'Account Reactivation' : 'Account Maintenance'}</div>
-        <div class="cs-refined-sheet ${isReactivation ? 'reactivation-refined-sheet' : 'maintenance-refined-sheet'}">
-          <div class="cs-row action-strip-row">
-            <div class="cs-row-label">Account Number</div>
-            <div class="cs-row-main short account-search-input"><input id="${prefix}Acc" class="entry-input cs-refined-input"></div>
-            <button id="${prefix}Search" class="sheet-btn cs-action-btn">Search</button>
-            <button id="${prefix}Edit" class="sheet-btn cs-action-btn secondary">Edit</button>
-            <button id="${prefix}Submit" class="sheet-btn cs-action-btn ${isReactivation ? '' : 'secondary'}">${isReactivation ? 'Activate' : 'Save'}</button>
-          </div>
+        <div class="cs-sheet-grid ${isReactivation ? 'reactivation-sheet-grid' : 'maintenance-sheet-grid'}">
+          <div class="sheet-label-cell">Account Number</div>
+          <div class="sheet-input-cell account"><input id="${prefix}Acc" class="entry-input cs-sheet-input"></div>
+          <button id="${prefix}Search" class="sheet-btn cs-inline-btn">Search</button>
+          ${isReactivation ? `<button id="${prefix}Edit" class="sheet-btn cs-inline-btn secondary">Edit</button><button id="${prefix}Submit" class="sheet-btn cs-inline-btn">Activate</button>` : `<button id="${prefix}Edit" class="sheet-btn cs-inline-btn secondary">Edit</button><button id="${prefix}Submit" class="sheet-btn cs-inline-btn secondary">Save</button>`}
 
-          <div class="cs-row wide-row">
-            <div class="cs-row-label">Account Name</div>
-            <div class="cs-row-main"><input id="${prefix}Name" class="entry-input cs-refined-input"></div>
-          </div>
+          <div class="sheet-label-cell">Account Name</div>
+          <div class="sheet-input-cell wide"><input id="${prefix}Name" class="entry-input cs-sheet-input"></div>
 
-          ${isReactivation ? '' : `<div class="cs-row wide-row"><div class="cs-row-label">Address</div><div class="cs-row-main"><input id="${prefix}Address" class="entry-input cs-refined-input"></div></div>`}
+          ${isReactivation ? '' : `<div class="sheet-label-cell">Address</div><div class="sheet-input-cell wide"><input id="${prefix}Address" class="entry-input cs-sheet-input"></div>`}
 
-          ${isReactivation ? '' : `<div class="cs-row split-row"><div class="cs-row-label">NIN</div><div class="cs-row-main short"><input id="${prefix}Nin" class="entry-input cs-refined-input"></div><div class="cs-inline-label">BVN</div><div class="cs-row-main medium"><input id="${prefix}Bvn" class="entry-input cs-refined-input"></div></div>`}
+          ${isReactivation ? `<div class="sheet-label-cell blank"></div>` : `<div class="sheet-label-cell">NIN</div><div class="sheet-input-cell nin"><input id="${prefix}Nin" class="entry-input cs-sheet-input"></div><div class="sheet-label-inline">BVN</div><div class="sheet-input-cell bvn"><input id="${prefix}Bvn" class="entry-input cs-sheet-input"></div>`}
 
-          ${isReactivation ? '' : `<div class="cs-row split-row"><div class="cs-row-label">Phone Number</div><div class="cs-row-main short"><input id="${prefix}Phone" class="entry-input cs-refined-input"></div><div class="cs-inline-label">Old Account Number</div><div class="cs-row-main medium"><input id="${prefix}OldAccount" class="entry-input cs-refined-input"></div></div>`}
+          ${isReactivation ? '' : `<div class="sheet-label-cell">Phone Number</div><div class="sheet-input-cell phone"><input id="${prefix}Phone" class="entry-input cs-sheet-input"></div><div class="sheet-label-inline">Old Account Number</div><div class="sheet-input-cell account"><input id="${prefix}OldAccount" class="entry-input cs-sheet-input"></div>`}
         </div>
-        <div class="cs-sheet-footer refined-footer">
+        <div class="cs-sheet-footer">
           <div class="cs-system-summary">
             <span>Account Name: <strong id="${prefix}DisplayName">—</strong></span>
             <span>Phone Number: <strong id="${prefix}DisplayPhone">—</strong></span>
