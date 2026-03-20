@@ -1455,3 +1455,14 @@ body[data-theme="ducess-sheet"] .check-balance-sheet .photo-box{
     margin-left:0 !important;
   }
 }
+
+
+/* FINAL MICRO PATCH - opening old account field only */
+.opening-sheet-grid > .sheet-input-cell.account{
+  margin-left:-28px;
+}
+@media (max-width: 980px){
+  .opening-sheet-grid > .sheet-input-cell.account{
+    margin-left:0 !important;
+  }
+}
