@@ -1153,3 +1153,103 @@ body[data-theme="ducess-sheet"] .check-balance-sheet .photo-box{
     max-width:none !important;
   }
 }
+
+/* final micro polish pass 2 */
+/* Check Balance: follow Account Reactivation spacing for account number/account name */
+.redesigned-check-grid{
+  grid-template-columns:190px 82px 110px 110px 110px;
+  gap:8px 12px;
+}
+.redesigned-check-grid #lookupAcc{
+  grid-column:2 / 3;
+  width:100%;
+  max-width:none;
+}
+.redesigned-check-grid #lookupBtn{grid-column:3 / 4;}
+.redesigned-check-grid #searchPhotoBtn{grid-column:4 / 5;}
+.redesigned-check-grid #openStatementBtn{grid-column:5 / 6;}
+.redesigned-check-grid .value-wide{
+  grid-column:2 / 6;
+  width:100%;
+  max-width:none;
+}
+.redesigned-check-grid .check-balance-stack{
+  grid-column:2 / 6;
+}
+
+/* Account Opening: show full Old Account Number, keep field compact, nudge NIN closer */
+.opening-sheet-grid{
+  grid-template-columns:180px minmax(0,150px) minmax(0,150px) minmax(0,150px) minmax(0,150px);
+}
+.opening-sheet-grid > .sheet-input-cell.nin{
+  grid-column:2 / 3;
+  max-width:160px;
+}
+.opening-sheet-grid > .sheet-label-inline.old-account-label{
+  grid-column:3 / 5;
+  overflow:visible;
+  text-overflow:clip;
+  white-space:nowrap;
+  justify-content:flex-start;
+}
+.opening-sheet-grid > .sheet-input-cell.account{
+  grid-column:5 / 6;
+  width:82px;
+  max-width:82px;
+  justify-self:start;
+}
+
+/* Account Maintenance: double NIN/BVN/Phone widths, halve Old Account field */
+.maintenance-sheet-grid > .sheet-input-cell.nin{
+  grid-column:2 / 4;
+  width:100%;
+  max-width:none;
+}
+.maintenance-sheet-grid > .sheet-input-cell.bvn{
+  grid-column:4 / 6;
+  width:100%;
+  max-width:none;
+}
+.maintenance-sheet-grid > .sheet-input-cell.phone{
+  grid-column:2 / 4;
+  width:100%;
+  max-width:none;
+}
+.maintenance-sheet-grid > .sheet-label-inline.old-account-label{
+  grid-column:3 / 5;
+  overflow:visible;
+  text-overflow:clip;
+  white-space:nowrap;
+  justify-content:flex-start;
+}
+.maintenance-sheet-grid > .sheet-input-cell.account:not(.account-near-label){
+  grid-column:5 / 6;
+  width:55px;
+  max-width:55px;
+  justify-self:start;
+}
+
+@media (max-width: 980px){
+  .redesigned-check-grid{
+    grid-template-columns:170px minmax(0,1fr) 110px 110px;
+  }
+  .redesigned-check-grid #lookupAcc,
+  .redesigned-check-grid .value-wide,
+  .redesigned-check-grid .check-balance-stack,
+  .redesigned-check-grid #lookupBtn,
+  .redesigned-check-grid #searchPhotoBtn,
+  .redesigned-check-grid #openStatementBtn{
+    grid-column:2 / 3 !important;
+  }
+  .opening-sheet-grid > .sheet-label-inline.old-account-label,
+  .opening-sheet-grid > .sheet-input-cell.account,
+  .maintenance-sheet-grid > .sheet-input-cell.nin,
+  .maintenance-sheet-grid > .sheet-input-cell.bvn,
+  .maintenance-sheet-grid > .sheet-input-cell.phone,
+  .maintenance-sheet-grid > .sheet-label-inline.old-account-label,
+  .maintenance-sheet-grid > .sheet-input-cell.account:not(.account-near-label){
+    grid-column:2 / 3 !important;
+    width:100% !important;
+    max-width:none !important;
+  }
+}
