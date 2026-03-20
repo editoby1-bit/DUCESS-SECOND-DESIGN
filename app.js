@@ -715,7 +715,7 @@
           <div class="sheet-label-inline bvn-label">BVN</div>
           <div class="sheet-input-cell bvn"><input id="openBvn" class="entry-input cs-sheet-input"></div>
 
-          <div class="sheet-label-cell">Phone Number</div>
+          <div class="sheet-label-inline phone-inline-label">Phone Number</div>
           <div class="sheet-input-cell phone"><input id="openPhone" class="entry-input cs-sheet-input"></div>
           <div class="sheet-label-inline old-account-label">Old Account Number</div>
           <div class="sheet-input-cell account"><input id="openOldAccount" class="entry-input cs-sheet-input"></div>
@@ -757,7 +757,7 @@
 
           ${isReactivation ? `<div class="sheet-label-cell blank"></div>` : `<div class="sheet-label-cell">NIN</div><div class="sheet-input-cell nin"><input id="${prefix}Nin" class="entry-input cs-sheet-input cs-detail-input"></div><div class="sheet-label-inline bvn-label">BVN</div><div class="sheet-input-cell bvn"><input id="${prefix}Bvn" class="entry-input cs-sheet-input cs-detail-input"></div>`}
 
-          ${isReactivation ? '' : `<div class="sheet-label-cell">Phone Number</div><div class="sheet-input-cell phone"><input id="${prefix}Phone" class="entry-input cs-sheet-input cs-detail-input"></div><div class="sheet-label-inline old-account-label">Old Account Number</div><div class="sheet-input-cell account"><input id="${prefix}OldAccount" class="entry-input cs-sheet-input cs-detail-input"></div>`}
+          ${isReactivation ? '' : `<div class="sheet-label-inline phone-inline-label">Phone Number</div><div class="sheet-input-cell phone"><input id="${prefix}Phone" class="entry-input cs-sheet-input cs-detail-input"></div><div class="sheet-label-inline old-account-label">Old Account Number</div><div class="sheet-input-cell account"><input id="${prefix}OldAccount" class="entry-input cs-sheet-input cs-detail-input"></div>`}
         </div>
         <div class="cs-sheet-footer">
           <div class="cs-system-summary">
