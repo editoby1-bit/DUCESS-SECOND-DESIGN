@@ -778,3 +778,181 @@ body[data-theme="ducess-sheet"] .journal-kpis .kpi.small{border-color:#d9b4a3;ba
   .opening-sheet-grid .sheet-input-cell.phone,.opening-sheet-grid .sheet-input-cell.account,
   .maintenance-sheet-grid .sheet-input-cell.phone,.maintenance-sheet-grid .sheet-input-cell.account{grid-column:2 / 3}
 }
+
+
+/* Phase 2D micro polish - pass 2 */
+.opening-sheet-grid,
+.maintenance-sheet-grid{
+  grid-template-columns:190px minmax(0,150px) minmax(0,150px) minmax(0,150px) minmax(0,150px);
+}
+
+/* keep label/input spacing visually even across the NIN/BVN and Phone/Old Account rows */
+.opening-sheet-grid .bvn-label,
+.maintenance-sheet-grid .bvn-label,
+.opening-sheet-grid .old-account-label,
+.maintenance-sheet-grid .old-account-label{
+  grid-column:auto;
+  justify-content:flex-start;
+  padding-left:12px !important;
+  padding-right:12px !important;
+}
+.opening-sheet-grid .sheet-input-cell.bvn,
+.maintenance-sheet-grid .sheet-input-cell.bvn,
+.opening-sheet-grid .sheet-input-cell.account,
+.maintenance-sheet-grid .sheet-input-cell.account{
+  grid-column:auto;
+}
+.opening-sheet-grid .old-account-label,
+.maintenance-sheet-grid .old-account-label{
+  grid-column:3 / 4;
+}
+.opening-sheet-grid .sheet-input-cell.account,
+.maintenance-sheet-grid .sheet-input-cell.account{
+  grid-column:4 / 5;
+}
+.opening-sheet-grid .sheet-input-cell.phone,
+.maintenance-sheet-grid .sheet-input-cell.phone,
+.opening-sheet-grid .sheet-input-cell.nin,
+.maintenance-sheet-grid .sheet-input-cell.nin,
+.opening-sheet-grid .sheet-input-cell.bvn,
+.maintenance-sheet-grid .sheet-input-cell.bvn,
+.opening-sheet-grid .sheet-input-cell.account,
+.maintenance-sheet-grid .sheet-input-cell.account{
+  max-width:none;
+}
+
+/* stop focus highlight from bleeding into adjacent labels */
+.cs-sheet-input,
+.sheet-grid .entry-input{
+  outline:none;
+  box-shadow:none;
+}
+.cs-sheet-input:focus,
+.cs-sheet-input:focus-visible,
+.sheet-grid .entry-input:focus,
+.sheet-grid .entry-input:focus-visible{
+  outline:none;
+  box-shadow:inset 0 0 0 2px color-mix(in srgb, var(--brand) 62%, white 38%);
+  position:relative;
+  z-index:1;
+}
+
+/* give the opening bottom action strip enough room so the note does not clip */
+.sheet-spread-actions.opening-actions{
+  grid-column:2 / 6;
+  display:grid;
+  grid-template-columns:auto auto minmax(260px,1fr);
+  gap:8px;
+  align-items:center;
+  padding:6px 0 10px;
+}
+.cs-photo-btn{min-width:150px;}
+.photo-status{max-width:180px;}
+.cs-generate-note{
+  min-width:260px;
+  width:100%;
+  overflow:visible;
+  text-overflow:clip;
+  white-space:nowrap;
+}
+
+/* Tellering + Check Balance should follow the same compact layout rhythm as customer service */
+.tellering-sheet{
+  background:var(--panel) !important;
+  color:var(--text) !important;
+  border-color:var(--line) !important;
+}
+.sheet-super,
+.sheet-title,
+.sheet-label{color:var(--text) !important;}
+.sheet-grid .display-field{
+  background:var(--soft) !important;
+  color:var(--text) !important;
+  border:1px solid var(--line) !important;
+}
+.sheet-grid .entry-input{
+  background:color-mix(in srgb, var(--panel) 72%, var(--brand) 28%) !important;
+  color:var(--text) !important;
+  border:1px solid var(--line) !important;
+}
+body[data-theme="dark-slate"] .tellering-sheet{
+  background:#050c14 !important;
+  color:#eef5ff !important;
+  border-color:#243241 !important;
+}
+body[data-theme="dark-slate"] .sheet-super,
+body[data-theme="dark-slate"] .sheet-title,
+body[data-theme="dark-slate"] .sheet-label{color:#eef5ff !important;}
+body[data-theme="dark-slate"] .sheet-grid .display-field{background:#eef3f8 !important;color:#111 !important;border-color:#243241 !important;}
+body[data-theme="dark-slate"] .sheet-grid .entry-input{background:#17283b !important;color:#eef5ff !important;border-color:#36506a !important;}
+body[data-theme="ducess-sheet"] .tellering-sheet{
+  background:#fff7f2 !important;
+  color:#31120d !important;
+  border-color:#c8947e !important;
+}
+body[data-theme="ducess-sheet"] .sheet-super,
+body[data-theme="ducess-sheet"] .sheet-title,
+body[data-theme="ducess-sheet"] .sheet-label{color:#31120d !important;}
+body[data-theme="ducess-sheet"] .sheet-grid .display-field{background:#fff !important;color:#2d120e !important;border-color:#d2ad9c !important;}
+body[data-theme="ducess-sheet"] .sheet-grid .entry-input{background:#ecd4ca !important;color:#2d120e !important;border-color:#b97861 !important;}
+
+/* tighter, aligned tellering rows like the client sheet */
+.redesigned-check-grid{
+  grid-template-columns:190px minmax(220px,260px) 104px 104px 116px;
+  gap:10px 12px;
+}
+.redesigned-journal-grid{
+  grid-template-columns:190px minmax(260px,1fr) 110px 170px;
+  gap:10px 12px;
+}
+.redesigned-check-grid #lookupAcc,
+.redesigned-journal-grid #txAcc{
+  max-width:none;
+  width:100%;
+}
+.redesigned-check-grid .value-wide,
+.redesigned-journal-grid .value-wide{grid-column:2 / 5;}
+.redesigned-check-grid [data-fill="phone"],
+.redesigned-check-grid [data-fill="balance"],
+.redesigned-journal-grid #txBalance{
+  max-width:140px;
+}
+.redesigned-journal-grid .sheet-label.inline-label{
+  justify-self:start;
+  padding-right:0;
+  padding-left:2px;
+}
+.amount-post-wrap{
+  grid-template-columns:minmax(120px,140px) 110px;
+  justify-content:start;
+}
+
+/* stronger visibility for approvals theme tabs in ducess sheet */
+body[data-theme="ducess-sheet"] .tool-tabs.approvals-sections .tool-tab{
+  background:#fbf0ea;
+  color:#5b1d13;
+  border-color:#9b4a37;
+  opacity:1;
+}
+body[data-theme="ducess-sheet"] .tool-tabs.approvals-sections .tool-tab:hover,
+body[data-theme="ducess-sheet"] .tool-tabs.approvals-sections .tool-tab:focus-visible{
+  background:#efcdbf;
+  color:#31110c;
+  border-color:#9b4a37;
+  box-shadow:0 0 0 1px rgba(155,74,55,.15);
+}
+body[data-theme="ducess-sheet"] .tool-tabs.approvals-sections .tool-tab.active{
+  background:linear-gradient(135deg,#a4432f,#c96d4d);
+  color:#fff;
+  border-color:#8a3726;
+}
+
+@media (max-width: 980px){
+  .sheet-spread-actions.opening-actions{
+    grid-column:2 / 3;
+    grid-template-columns:1fr;
+  }
+  .cs-generate-note,
+  .photo-status,
+  .cs-photo-btn{max-width:none;width:100%;}
+}
