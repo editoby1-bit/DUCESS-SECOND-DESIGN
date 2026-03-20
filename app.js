@@ -714,7 +714,7 @@
 
           <div class="sheet-label-inline phone-inline-label">Phone Number</div>
           <div class="sheet-input-cell phone"><input id="openPhone" class="entry-input cs-sheet-input"></div>
-          <div class="sheet-label-inline old-account-label">Old Account Number</div>
+          <div class="sheet-label-inline old-account-label">Old Account Numberber</div>
           <div class="sheet-input-cell account"><input id="openOldAccount" class="entry-input cs-sheet-input"></div>
 
           <div class="sheet-label-cell blank"></div>
@@ -754,7 +754,7 @@
 
           ${isReactivation ? `<div class="sheet-label-cell blank"></div>` : `<div class="sheet-label-cell">NIN</div><div class="sheet-input-cell nin"><input id="${prefix}Nin" class="entry-input cs-sheet-input cs-detail-input"></div><div class="sheet-label-inline bvn-label">BVN</div><div class="sheet-input-cell bvn"><input id="${prefix}Bvn" class="entry-input cs-sheet-input cs-detail-input"></div>`}
 
-          ${isReactivation ? '' : `<div class="sheet-label-inline phone-inline-label">Phone Number</div><div class="sheet-input-cell phone"><input id="${prefix}Phone" class="entry-input cs-sheet-input cs-detail-input"></div><div class="sheet-label-inline old-account-label">Old Account Number</div><div class="sheet-input-cell account"><input id="${prefix}OldAccount" class="entry-input cs-sheet-input cs-detail-input"></div>`}
+          ${isReactivation ? '' : `<div class="sheet-label-inline phone-inline-label">Phone Number</div><div class="sheet-input-cell phone"><input id="${prefix}Phone" class="entry-input cs-sheet-input cs-detail-input"></div><div class="sheet-label-inline old-account-label">Old Account Numberber</div><div class="sheet-input-cell account"><input id="${prefix}OldAccount" class="entry-input cs-sheet-input cs-detail-input"></div>`}
         </div>
         <div class="cs-sheet-footer">
           <div class="cs-system-summary">
@@ -926,7 +926,7 @@
       html = `<div class="stack"><div class="form-grid two modal-cs-grid">${field('Name', p.name, 'field-wide')}${field('Phone', p.phone, 'field-phone')}${field('Address', p.address, 'field-wide')}${field('NIN', p.nin, 'field-id')}${field('BVN', p.bvn, 'field-bvn')}${field('Generated Account', p.generatedAccountNumber || 'Auto-generate on approval', 'field-account')}</div>${photoBlock}</div>`;
     } else if (req.type === 'account_maintenance') {
       const patch = p.patch || {};
-      html = `<div class="stack"><div class="form-grid two modal-cs-grid">${field('Customer Name', customer?.name || patch.name, 'field-wide')}${field('Account Number', p.accountNumber, 'field-account')}${field('Current Status', customerStatusLabel(customer), 'field-status')}${field('Old Account Number', patch.oldAccountNumber, 'field-account')}${field('Updated Name', patch.name, 'field-wide')}${field('Updated Phone', patch.phone, 'field-phone')}${field('Updated Address', patch.address, 'field-wide')}${field('Updated NIN', patch.nin, 'field-id')}${field('Updated BVN', patch.bvn, 'field-bvn')}</div>${photoBlock}</div>`;
+      html = `<div class="stack"><div class="form-grid two modal-cs-grid">${field('Customer Name', customer?.name || patch.name, 'field-wide')}${field('Account Number', p.accountNumber, 'field-account')}${field('Current Status', customerStatusLabel(customer), 'field-status')}${field('Old Account Numberber', patch.oldAccountNumber, 'field-account')}${field('Updated Name', patch.name, 'field-wide')}${field('Updated Phone', patch.phone, 'field-phone')}${field('Updated Address', patch.address, 'field-wide')}${field('Updated NIN', patch.nin, 'field-id')}${field('Updated BVN', patch.bvn, 'field-bvn')}</div>${photoBlock}</div>`;
     } else if (req.type === 'account_reactivation') {
       html = `<div class="stack"><div class="form-grid two modal-cs-grid">${field('Customer Name', customer?.name, 'field-wide')}${field('Account Number', p.accountNumber, 'field-account')}${field('Current Status', customerStatusLabel(customer), 'field-status')}${field('Requested Action', 'Reactivate Account', 'field-submit')}</div>${photoBlock}</div>`;
     } else {
