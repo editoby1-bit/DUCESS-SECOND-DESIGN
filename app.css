@@ -1177,7 +1177,7 @@ body[data-theme="ducess-sheet"] .check-balance-sheet .photo-box{
   grid-column:2 / 6;
 }
 
-/* Account Opening: show full Old Account Number, keep field compact, nudge NIN closer */
+/* Account Opening: bring BVN and Old Account fields closer without changing the overall layout */
 .opening-sheet-grid{
   grid-template-columns:180px minmax(0,150px) minmax(0,150px) minmax(0,150px) minmax(0,150px);
 }
@@ -1185,33 +1185,51 @@ body[data-theme="ducess-sheet"] .check-balance-sheet .photo-box{
   grid-column:2 / 3;
   max-width:160px;
 }
+.opening-sheet-grid > .sheet-label-inline.bvn-label{
+  grid-column:3 / 4;
+  padding-left:14px !important;
+}
+.opening-sheet-grid > .sheet-input-cell.bvn{
+  grid-column:4 / 5;
+  width:100%;
+  max-width:none;
+  justify-self:start;
+}
 .opening-sheet-grid > .sheet-label-inline.old-account-label{
-  grid-column:3 / 5;
+  grid-column:3 / 4;
   overflow:visible;
   text-overflow:clip;
   white-space:nowrap;
   justify-content:flex-start;
 }
 .opening-sheet-grid > .sheet-input-cell.account{
-  grid-column:5 / 6;
-  width:82px;
-  max-width:82px;
+  grid-column:4 / 5;
+  width:128px;
+  max-width:128px;
   justify-self:start;
 }
 
-/* Account Maintenance: double NIN/BVN/Phone widths, halve Old Account field */
+/* Account Maintenance: make NIN and Phone match BVN width and expose Old Account Number fully */
 .maintenance-sheet-grid > .sheet-input-cell.nin{
-  grid-column:2 / 4;
+  grid-column:2 / 3;
   width:100%;
   max-width:none;
 }
+.maintenance-sheet-grid > .sheet-label-inline.bvn-label{
+  grid-column:3 / 4;
+  overflow:visible;
+  text-overflow:clip;
+  white-space:nowrap;
+  justify-content:flex-start;
+  padding-left:14px !important;
+}
 .maintenance-sheet-grid > .sheet-input-cell.bvn{
-  grid-column:4 / 6;
+  grid-column:4 / 5;
   width:100%;
   max-width:none;
 }
 .maintenance-sheet-grid > .sheet-input-cell.phone{
-  grid-column:2 / 4;
+  grid-column:2 / 3;
   width:100%;
   max-width:none;
 }
@@ -1224,8 +1242,8 @@ body[data-theme="ducess-sheet"] .check-balance-sheet .photo-box{
 }
 .maintenance-sheet-grid > .sheet-input-cell.account:not(.account-near-label){
   grid-column:5 / 6;
-  width:55px;
-  max-width:55px;
+  width:72px;
+  max-width:72px;
   justify-self:start;
 }
 
