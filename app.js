@@ -674,21 +674,18 @@
 
           <div class="sheet-label">Account Name</div>
           <div class="display-field value-wide" data-fill="name">—</div>
-          <div class="sheet-spacer"></div>
-          <div class="sheet-spacer"></div>
-          <div class="sheet-spacer"></div>
 
-          <div class="sheet-label">Phone Number</div>
-          <div class="display-field value-short" data-fill="phone">—</div>
-          <div class="sheet-spacer"></div>
-          <div class="sheet-spacer"></div>
-          <div class="sheet-spacer"></div>
-
-          <div class="sheet-label">Available Balance</div>
-          <div class="display-field value-short" data-fill="balance">—</div>
-          <div class="sheet-spacer"></div>
-          <div class="sheet-spacer"></div>
-          <div class="sheet-spacer"></div>
+          <div class="sheet-spacer check-info-indent"></div>
+          <div class="check-balance-stack">
+            <div class="check-balance-meta-row">
+              <div class="sheet-label check-inline-label">Phone Number</div>
+              <div class="display-field value-short" data-fill="phone">—</div>
+            </div>
+            <div class="check-balance-meta-row">
+              <div class="sheet-label check-inline-label">Available Balance</div>
+              <div class="display-field value-short" data-fill="balance">—</div>
+            </div>
+          </div>
 
           <div class="sheet-photo-row hidden" id="checkBalancePhotoRow">
             <div class="sheet-label">Photo</div>

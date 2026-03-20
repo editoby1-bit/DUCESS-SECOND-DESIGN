@@ -956,3 +956,200 @@ body[data-theme="ducess-sheet"] .tool-tabs.approvals-sections .tool-tab.active{
   .photo-status,
   .cs-photo-btn{max-width:none;width:100%;}
 }
+
+/* final micro polish overrides */
+.redesigned-check-grid{
+  grid-template-columns:190px minmax(220px,260px) 104px 104px 116px;
+  gap:8px 12px;
+}
+.redesigned-check-grid .value-wide{
+  grid-column:2 / 6;
+  max-width:none;
+}
+.redesigned-check-grid .check-info-indent{
+  grid-column:1 / 2;
+}
+.redesigned-check-grid .check-balance-stack{
+  grid-column:2 / 6;
+  display:grid;
+  gap:8px;
+  align-content:start;
+  justify-items:start;
+}
+.redesigned-check-grid .check-balance-meta-row{
+  display:grid;
+  grid-template-columns:170px 140px;
+  gap:10px;
+  align-items:center;
+  justify-content:start;
+}
+.redesigned-check-grid .check-inline-label{
+  justify-self:start;
+  padding-right:0;
+}
+.redesigned-check-grid .check-balance-meta-row .display-field{
+  width:140px;
+  max-width:140px;
+}
+.redesigned-check-grid .sheet-photo-row{
+  grid-column:1 / -1;
+}
+
+.maintenance-sheet-grid{
+  grid-template-columns:190px 82px 110px 110px 110px;
+}
+.maintenance-sheet-grid > .sheet-input-cell.account.account-near-label{
+  grid-column:2 / 3 !important;
+  width:82px;
+}
+.maintenance-sheet-grid > .sheet-input-cell.wide{
+  grid-column:2 / 6;
+}
+.maintenance-sheet-grid > .sheet-input-cell.nin{
+  grid-column:2 / 3;
+}
+.maintenance-sheet-grid > .sheet-input-cell.bvn{
+  grid-column:4 / 5;
+}
+.maintenance-sheet-grid > .sheet-label-inline.phone-inline-label{
+  grid-column:1 / 2;
+}
+.maintenance-sheet-grid > .sheet-input-cell.phone{
+  grid-column:2 / 3;
+}
+.maintenance-sheet-grid > .sheet-label-inline.old-account-label{
+  grid-column:3 / 5;
+  overflow:visible;
+  text-overflow:clip;
+  white-space:nowrap;
+  justify-content:flex-start;
+}
+.maintenance-sheet-grid > .sheet-input-cell.account:not(.account-near-label){
+  grid-column:5 / 6;
+  width:110px;
+}
+.maintenance-sheet-grid > .sheet-input-cell.phone,
+.maintenance-sheet-grid > .sheet-input-cell.bvn,
+.maintenance-sheet-grid > .sheet-input-cell.nin,
+.maintenance-sheet-grid > .sheet-input-cell.account:not(.account-near-label),
+.reactivation-sheet-grid > .sheet-input-cell.account{
+  width:100%;
+}
+
+body[data-theme="ducess-sheet"] .table tr:hover td button.secondary,
+body[data-theme="ducess-sheet"] .table tr:hover td button.success,
+body[data-theme="ducess-sheet"] .table tr:hover td button.danger,
+body[data-theme="ducess-sheet"] .table tr:hover td button.warning,
+body[data-theme="ducess-sheet"] .table tr:hover td .secondary,
+body[data-theme="ducess-sheet"] .table tr:hover td .success,
+body[data-theme="ducess-sheet"] .table tr:hover td .danger,
+body[data-theme="ducess-sheet"] .table tr:hover td .warning{
+  opacity:1 !important;
+  filter:none !important;
+}
+body[data-theme="ducess-sheet"] .table tr:hover td button.secondary,
+body[data-theme="ducess-sheet"] .table tr:hover td .secondary{
+  background:#fbf0ea !important;
+  color:#4b190f !important;
+  border-color:#9b4a37 !important;
+}
+body[data-theme="ducess-sheet"] .table tr:hover td button.success,
+body[data-theme="ducess-sheet"] .table tr:hover td .success{
+  background:#53c68c !important;
+  color:#10211a !important;
+  border-color:#2e9e67 !important;
+}
+body[data-theme="ducess-sheet"] .table tr:hover td button.danger,
+body[data-theme="ducess-sheet"] .table tr:hover td .danger{
+  background:#ff7070 !important;
+  color:#2b0e0e !important;
+  border-color:#d65353 !important;
+}
+body[data-theme="ducess-sheet"] .table tr:hover td button.warning,
+body[data-theme="ducess-sheet"] .table tr:hover td .warning{
+  background:#f3a65a !important;
+  color:#241608 !important;
+  border-color:#c9803d !important;
+}
+
+body[data-theme="ducess-sheet"] .cs-sheet-card{
+  background:#fff7f2 !important;
+  border-color:#c8947e !important;
+  color:#2d120e !important;
+  box-shadow:none;
+}
+body[data-theme="ducess-sheet"] .cs-sheet-title{
+  color:#31120d !important;
+  border-color:#d2ad9c !important;
+}
+body[data-theme="ducess-sheet"] .sheet-label-cell,
+body[data-theme="ducess-sheet"] .sheet-label-inline{
+  background:#fffaf7 !important;
+  color:#31120d !important;
+  border-color:#d2ad9c !important;
+}
+body[data-theme="ducess-sheet"] .sheet-input-cell{
+  background:#ecd4ca !important;
+  border-color:#c8947e !important;
+}
+body[data-theme="ducess-sheet"] .cs-sheet-input{
+  color:#2d120e !important;
+}
+body[data-theme="ducess-sheet"] .cs-inline-note,
+body[data-theme="ducess-sheet"] .cs-sheet-note,
+body[data-theme="ducess-sheet"] .cs-system-summary,
+body[data-theme="ducess-sheet"] .cs-system-summary strong{
+  color:#4b190f !important;
+  border-color:#c8947e !important;
+}
+body[data-theme="ducess-sheet"] .check-balance-sheet{
+  background:#fff7f2 !important;
+  color:#31120d !important;
+  border-color:#c8947e !important;
+}
+body[data-theme="ducess-sheet"] .check-balance-sheet .sheet-title,
+body[data-theme="ducess-sheet"] .check-balance-sheet .sheet-label{
+  color:#31120d !important;
+}
+body[data-theme="ducess-sheet"] .check-balance-sheet .sheet-grid .entry-input{
+  background:#ecd4ca !important;
+  color:#2d120e !important;
+  border-color:#b97861 !important;
+}
+body[data-theme="ducess-sheet"] .check-balance-sheet .sheet-grid .display-field,
+body[data-theme="ducess-sheet"] .check-balance-sheet .photo-box{
+  background:#fff !important;
+  color:#2d120e !important;
+  border-color:#d2ad9c !important;
+}
+
+@media (max-width: 980px){
+  .redesigned-check-grid{
+    grid-template-columns:170px minmax(0,1fr) 110px 110px;
+  }
+  .redesigned-check-grid .value-wide{
+    grid-column:2 / 5;
+  }
+  .redesigned-check-grid .check-balance-stack{
+    grid-column:2 / 5;
+  }
+  .redesigned-check-grid .check-balance-meta-row{
+    grid-template-columns:160px minmax(110px,140px);
+  }
+  .maintenance-sheet-grid{
+    grid-template-columns:180px minmax(0,1fr);
+  }
+  .maintenance-sheet-grid > .sheet-label-inline.phone-inline-label,
+  .maintenance-sheet-grid > .sheet-label-inline.old-account-label,
+  .maintenance-sheet-grid > .sheet-input-cell.phone,
+  .maintenance-sheet-grid > .sheet-input-cell.account:not(.account-near-label),
+  .maintenance-sheet-grid > .sheet-input-cell.nin,
+  .maintenance-sheet-grid > .sheet-input-cell.bvn,
+  .maintenance-sheet-grid > .sheet-input-cell.account.account-near-label,
+  .maintenance-sheet-grid > .sheet-input-cell.wide,
+  .maintenance-sheet-grid > .cs-inline-btn{
+    grid-column:2 / 3 !important;
+    width:100%;
+    max-width:none !important;
+  }
+}
