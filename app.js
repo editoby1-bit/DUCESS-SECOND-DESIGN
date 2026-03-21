@@ -714,7 +714,7 @@
 
           <div class="sheet-label-inline phone-inline-label">Phone Number</div>
           <div class="sheet-input-cell phone"><input id="openPhone" class="entry-input cs-sheet-input"></div>
-          <div class="sheet-label-inline old-account-label">Old Account Numberber</div>
+          <div class="sheet-label-inline old-account-label">Old Account Number</div>
           <div class="sheet-input-cell account"><input id="openOldAccount" class="entry-input cs-sheet-input"></div>
 
           <div class="sheet-label-cell blank"></div>
