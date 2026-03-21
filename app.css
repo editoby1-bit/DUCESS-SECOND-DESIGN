@@ -1466,3 +1466,49 @@ body[data-theme="ducess-sheet"] .check-balance-sheet .photo-box{
     margin-left:0 !important;
   }
 }
+
+
+/* FINAL MICRO PATCH 2 - mirror Account Opening geometry in Account Maintenance */
+.maintenance-sheet-grid{
+  grid-template-columns:180px minmax(0,150px) minmax(0,150px) minmax(0,150px) minmax(0,150px);
+}
+.maintenance-sheet-grid > .sheet-input-cell.nin{
+  grid-column:2 / 3;
+  width:100%;
+  max-width:160px;
+}
+.maintenance-sheet-grid > .sheet-label-inline.bvn-label{
+  grid-column:3 / 4;
+  padding-left:14px !important;
+  overflow:visible;
+  text-overflow:clip;
+  white-space:nowrap;
+  justify-content:flex-start;
+}
+.maintenance-sheet-grid > .sheet-input-cell.bvn{
+  grid-column:4 / 5;
+  width:100%;
+  max-width:none;
+  justify-self:start;
+}
+.maintenance-sheet-grid > .sheet-label-inline.phone-inline-label{
+  grid-column:1 / 2;
+}
+.maintenance-sheet-grid > .sheet-input-cell.phone{
+  grid-column:2 / 3;
+  width:100%;
+  max-width:160px;
+}
+.maintenance-sheet-grid > .sheet-label-inline.old-account-label{
+  grid-column:3 / 4;
+  overflow:visible;
+  text-overflow:clip;
+  white-space:nowrap;
+  justify-content:flex-start;
+}
+.maintenance-sheet-grid > .sheet-input-cell.account:not(.account-near-label){
+  grid-column:4 / 5;
+  width:128px;
+  max-width:128px;
+  justify-self:start;
+}
