@@ -1856,3 +1856,34 @@ body[data-theme="ducess-sheet"] button.secondary.active:disabled{
   background:linear-gradient(135deg, #b65438, #c46a4a);
   border-color:#c46a4a;
 }
+
+/* SURGICAL PATCH - DUCESS theme tab readability for Customer Service and Tellering */
+body[data-theme="ducess-sheet"] .workspace-card .tool-tabs:not(.approvals-sections) .tool-tab,
+body[data-theme="ducess-sheet"] .workspace-card .tool-tabs:not(.approvals-sections) .tool-tab:disabled,
+body[data-theme="ducess-sheet"] .workspace-card .tool-tabs:not(.approvals-sections) .tool-tab[disabled]{
+  opacity:1 !important;
+  filter:none !important;
+  background:#f6efeb !important;
+  color:#4a1a12 !important;
+  -webkit-text-fill-color:#4a1a12 !important;
+  border:1px solid #b46d5b !important;
+  box-shadow:none !important;
+  text-shadow:none !important;
+}
+
+body[data-theme="ducess-sheet"] .workspace-card .tool-tabs:not(.approvals-sections) .tool-tab:hover,
+body[data-theme="ducess-sheet"] .workspace-card .tool-tabs:not(.approvals-sections) .tool-tab:focus-visible{
+  background:#edd9d1 !important;
+  color:#2f0f0a !important;
+  -webkit-text-fill-color:#2f0f0a !important;
+  border-color:#9a4e3d !important;
+}
+
+body[data-theme="ducess-sheet"] .workspace-card .tool-tabs:not(.approvals-sections) .tool-tab.active,
+body[data-theme="ducess-sheet"] .workspace-card .tool-tabs:not(.approvals-sections) .tool-tab.active:disabled,
+body[data-theme="ducess-sheet"] .workspace-card .tool-tabs:not(.approvals-sections) .tool-tab.active[disabled]{
+  background:linear-gradient(135deg,#a44730,#c06c4c) !important;
+  color:#fff !important;
+  -webkit-text-fill-color:#fff !important;
+  border-color:#a44730 !important;
+}
