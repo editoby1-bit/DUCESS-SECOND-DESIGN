@@ -488,7 +488,7 @@ body[data-theme="ducess-sheet"] .cs-sheet-card{background:#000;border-color:#5f1
 .sheet-input-cell{background:#efcfd1;padding:0;border-bottom:1px solid rgba(0,0,0,.18);min-height:32px}
 body[data-theme="dark-slate"] .sheet-input-cell{background:#17283b}
 .cs-sheet-input{width:100%;height:32px;min-height:32px;border:0;border-radius:0;background:transparent !important;color:inherit;box-shadow:none;padding:5px 8px;font-size:14px}
-.sheet-input-cell.wide{grid-column:2 / 6;max-width:none}
+.sheet-input-cell.wide{grid-column:1 / 6;max-width:none}
 .sheet-input-cell.nin{grid-column:2 / 3;max-width:150px}
 .sheet-input-cell.bvn{grid-column:4 / 6;max-width:320px}
 .sheet-input-cell.phone{grid-column:2 / 3;max-width:150px}
@@ -532,7 +532,7 @@ body[data-theme="dark-slate"] .sheet-input-cell{background:#17283b}
 .sheet-label-cell.blank{background:transparent;border-right:none;border-bottom:none}
 .sheet-input-cell{background:color-mix(in srgb, var(--panel) 60%, var(--brand) 40%);padding:0;border-bottom:1px solid var(--line);min-height:42px}
 .cs-sheet-input{width:100%;height:42px;min-height:42px;border:0;border-radius:0;background:transparent !important;color:inherit;box-shadow:none;padding:8px 12px;font-size:16px;font-weight:600}
-.sheet-input-cell.wide{grid-column:2 / 6;max-width:none}
+.sheet-input-cell.wide{grid-column:1 / 6;max-width:none}
 .sheet-input-cell.nin{grid-column:2 / 3;max-width:200px}
 .sheet-input-cell.bvn{grid-column:4 / 5;max-width:170px}
 .sheet-input-cell.phone{grid-column:2 / 3;max-width:200px}
@@ -839,7 +839,7 @@ body[data-theme="ducess-sheet"] .journal-kpis .kpi.small{border-color:#d9b4a3;ba
 
 /* give the opening bottom action strip enough room so the note does not clip */
 .sheet-spread-actions.opening-actions{
-  grid-column:2 / 6;
+  grid-column:1 / 6;
   display:grid;
   grid-template-columns:auto auto minmax(260px,1fr);
   gap:8px;
@@ -963,14 +963,14 @@ body[data-theme="ducess-sheet"] .tool-tabs.approvals-sections .tool-tab.active{
   gap:8px 12px;
 }
 .redesigned-check-grid .value-wide{
-  grid-column:2 / 6;
+  grid-column:1 / 6;
   max-width:none;
 }
 .redesigned-check-grid .check-info-indent{
   grid-column:1 / 2;
 }
 .redesigned-check-grid .check-balance-stack{
-  grid-column:2 / 6;
+  grid-column:1 / 6;
   display:grid;
   gap:8px;
   align-content:start;
@@ -1003,7 +1003,7 @@ body[data-theme="ducess-sheet"] .tool-tabs.approvals-sections .tool-tab.active{
   width:82px;
 }
 .maintenance-sheet-grid > .sheet-input-cell.wide{
-  grid-column:2 / 6;
+  grid-column:1 / 6;
 }
 .maintenance-sheet-grid > .sheet-input-cell.nin{
   grid-column:2 / 3;
@@ -1169,12 +1169,12 @@ body[data-theme="ducess-sheet"] .check-balance-sheet .photo-box{
 .redesigned-check-grid #searchPhotoBtn{grid-column:4 / 5;}
 .redesigned-check-grid #openStatementBtn{grid-column:5 / 6;}
 .redesigned-check-grid .value-wide{
-  grid-column:2 / 6;
+  grid-column:1 / 6;
   width:100%;
   max-width:none;
 }
 .redesigned-check-grid .check-balance-stack{
-  grid-column:2 / 6;
+  grid-column:1 / 6;
 }
 
 /* Account Opening: bring BVN and Old Account fields closer without changing the overall layout */
@@ -1323,7 +1323,7 @@ body[data-theme="ducess-sheet"] .check-balance-sheet .photo-box{
   max-width:110px;
 }
 .maintenance-sheet-grid > .sheet-input-cell.wide{
-  grid-column:2 / 6;
+  grid-column:1 / 6;
 }
 .maintenance-sheet-grid > .sheet-input-cell.nin{
   grid-column:2 / 3;
@@ -1554,7 +1554,7 @@ body[data-theme="ducess-sheet"] .check-balance-sheet .photo-box{
 
 .opening-card .sheet-input-cell.wide,
 .maintenance-card .sheet-input-cell.wide{
-  grid-column:2 / 6;
+  grid-column:1 / 6;
 }
 
 .opening-card .sheet-input-cell.nin,
