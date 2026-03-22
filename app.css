@@ -1599,3 +1599,44 @@ body[data-theme="ducess-sheet"] .check-balance-sheet .photo-box{
     max-width:none !important;
   }
 }
+
+
+/* UI POLISH PATCH 2 - slightly widen NIN/BVN/Phone for 12 digits while keeping overall modal width */
+.opening-card .opening-sheet-grid,
+.maintenance-card .maintenance-sheet-grid{
+  grid-template-columns:170px 116px 90px 116px 89px !important;
+}
+
+.opening-card .sheet-input-cell.nin,
+.opening-card .sheet-input-cell.phone,
+.maintenance-card .sheet-input-cell.nin,
+.maintenance-card .sheet-input-cell.phone{
+  max-width:116px !important;
+  width:116px !important;
+}
+
+.opening-card .sheet-input-cell.bvn,
+.maintenance-card .sheet-input-cell.bvn{
+  max-width:116px !important;
+  width:116px !important;
+}
+
+.opening-card .sheet-label-inline.bvn-label,
+.maintenance-card .sheet-label-inline.bvn-label,
+.opening-card .sheet-label-inline.old-account-label,
+.maintenance-card .sheet-label-inline.old-account-label{
+  padding-left:12px !important;
+  padding-right:8px !important;
+}
+
+.opening-card .sheet-input-cell.account,
+.maintenance-card .sheet-input-cell.account:not(.account-near-label){
+  max-width:89px !important;
+  width:89px !important;
+}
+
+.opening-card .cs-sheet-input,
+.maintenance-card .cs-sheet-input{
+  padding-left:8px !important;
+  padding-right:8px !important;
+}
