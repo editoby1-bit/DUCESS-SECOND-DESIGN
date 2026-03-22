@@ -1500,15 +1500,16 @@ body[data-theme="ducess-sheet"] .check-balance-sheet .photo-box{
   max-width:160px;
 }
 .maintenance-sheet-grid > .sheet-label-inline.old-account-label{
-  grid-column:3 / 4;
+  grid-column:3 / 5;
   overflow:visible;
   text-overflow:clip;
   white-space:nowrap;
   justify-content:flex-start;
+  padding-right:8px !important;
 }
 .maintenance-sheet-grid > .sheet-input-cell.account:not(.account-near-label){
-  grid-column:4 / 5;
-  width:128px;
-  max-width:128px;
+  grid-column:5 / 6;
+  width:112px;
+  max-width:112px;
   justify-self:start;
 }
