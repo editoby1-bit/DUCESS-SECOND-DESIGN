@@ -717,7 +717,6 @@
           <div class="sheet-label-inline old-account-label">Old Account Number</div>
           <div class="sheet-input-cell account"><input id="openOldAccount" class="entry-input cs-sheet-input"></div>
 
-          <div class="sheet-label-cell blank"></div>
           <div class="sheet-spread-actions opening-actions">
             <button id="openPhotoBtn" type="button" class="sheet-btn cs-inline-btn secondary cs-photo-btn">Photo Upload</button>
             <input id="openPhoto" class="entry-input cs-sheet-input hidden-photo-input" type="file" accept="image/*">
