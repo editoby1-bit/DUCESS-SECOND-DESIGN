@@ -1708,3 +1708,51 @@ body[data-theme="ducess-sheet"] .check-balance-sheet .photo-box{
     grid-column:auto;
   }
 }
+
+/* FINAL SURGICAL OVERRIDE - Account Opening photo/status row */
+.opening-card .sheet-spread-actions.opening-actions{
+  grid-column:2 / 6 !important;
+  display:grid !important;
+  grid-template-columns:170px minmax(190px,max-content) minmax(260px,1fr) !important;
+  justify-content:start !important;
+  align-items:center !important;
+  gap:10px !important;
+  padding:6px 0 10px !important;
+}
+.opening-card .sheet-spread-actions.opening-actions::before{
+  display:none !important;
+  content:none !important;
+}
+.opening-card .sheet-spread-actions.opening-actions .cs-photo-btn{
+  grid-column:1 / 2 !important;
+}
+.opening-card .sheet-spread-actions.opening-actions .hidden-photo-input{
+  display:none !important;
+}
+.opening-card .sheet-spread-actions.opening-actions .photo-status{
+  grid-column:2 / 3 !important;
+  min-width:190px !important;
+  width:max-content !important;
+  max-width:none !important;
+  overflow:visible !important;
+  text-overflow:clip !important;
+  white-space:nowrap !important;
+}
+.opening-card .sheet-spread-actions.opening-actions .cs-generate-note{
+  grid-column:3 / 4 !important;
+  min-width:260px !important;
+  width:100% !important;
+}
+@media (max-width: 980px){
+  .opening-card .sheet-spread-actions.opening-actions{
+    grid-column:2 / 3 !important;
+    grid-template-columns:1fr !important;
+  }
+  .opening-card .sheet-spread-actions.opening-actions .cs-photo-btn,
+  .opening-card .sheet-spread-actions.opening-actions .photo-status,
+  .opening-card .sheet-spread-actions.opening-actions .cs-generate-note{
+    grid-column:auto !important;
+    width:100% !important;
+    min-width:0 !important;
+  }
+}
