@@ -1756,3 +1756,59 @@ body[data-theme="ducess-sheet"] .check-balance-sheet .photo-box{
     min-width:0 !important;
   }
 }
+
+/* FINAL FRONT-END FIX - improve DUCESS theme readability for tabs, approvals badges, and secondary actions */
+body[data-theme="ducess-sheet"] .tool-tab:disabled,
+body[data-theme="ducess-sheet"] button.secondary:disabled,
+body[data-theme="ducess-sheet"] button.warning:disabled,
+body[data-theme="ducess-sheet"] button.success:disabled,
+body[data-theme="ducess-sheet"] button.danger:disabled{
+  opacity:1 !important;
+  filter:none !important;
+}
+
+body[data-theme="ducess-sheet"] .tool-tab:disabled,
+body[data-theme="ducess-sheet"] button.secondary:disabled{
+  background:#f7efe9 !important;
+  color:#5a2017 !important;
+  border-color:#9b4a37 !important;
+}
+
+body[data-theme="ducess-sheet"] .tool-tab.active:disabled,
+body[data-theme="ducess-sheet"] .tool-tab.active,
+body[data-theme="ducess-sheet"] .filter-chip.active{
+  color:#fff !important;
+}
+
+body[data-theme="ducess-sheet"] .badge{
+  border:1px solid transparent;
+  font-weight:800;
+}
+body[data-theme="ducess-sheet"] .badge.pending{
+  background:#fff1e8 !important;
+  color:#6e240f !important;
+  border-color:#d8a087 !important;
+}
+body[data-theme="ducess-sheet"] .badge.approved{
+  background:#e9f9f0 !important;
+  color:#115a37 !important;
+  border-color:#79c79b !important;
+}
+body[data-theme="ducess-sheet"] .badge.rejected{
+  background:#fdecea !important;
+  color:#8f1f1f !important;
+  border-color:#e4a2a2 !important;
+}
+
+body[data-theme="ducess-sheet"] .table-card .secondary,
+body[data-theme="ducess-sheet"] .table-card button.secondary{
+  background:#fbf0ea;
+  color:#4b190f;
+  border-color:#9b4a37;
+}
+body[data-theme="ducess-sheet"] .table-card .secondary:hover,
+body[data-theme="ducess-sheet"] .table-card button.secondary:hover{
+  background:#efcdbf;
+  color:#2f110c;
+  border-color:#9b4a37;
+}
