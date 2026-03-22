@@ -76,9 +76,14 @@
     report_officer: ['check_balance','account_statement','business_balance','operational_balance','teller_balances']
   };
 
-  const state = load() || seed();
+  const state = bootstrapState();
   state.ui = state.ui || { module: 'customer_service', tool: 'check_balance', selectedCustomerId: null, theme: 'classic', businessFilter: { preset: 'all', from: '', to: '' }, operationalFilter: { preset: 'all', from: '', to: '' }, approvalsLimit: 20, businessEntriesLimit: 20, operationalEntriesLimit: 20, tellerEntriesLimit: 20, approvalsSection:'tellering' };
   ensureState();
+
+  function bootstrapState() {
+    const loaded = load();
+    return loaded || seed();
+  }
 
   function seed() {
     const s = {
@@ -1783,6 +1788,14 @@
     });
   }
 
-  applyTheme(state.ui.theme || 'classic', false);
-  render();
+  function startApp() {
+    applyTheme(state.ui.theme || 'classic', false);
+    render();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startApp, { once: true });
+  } else {
+    startApp();
+  }
 })();
