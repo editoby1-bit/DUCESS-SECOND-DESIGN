@@ -698,7 +698,7 @@
 
   function renderAccountOpening() {
     return `
-      <div class="form-card cs-sheet-card">
+      <div class="form-card cs-sheet-card opening-card">
         <div class="cs-sheet-title">Account Opening</div>
         <div class="cs-sheet-grid opening-sheet-grid">
           <div class="sheet-label-cell">Account Name</div>
