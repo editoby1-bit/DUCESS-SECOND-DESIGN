@@ -1640,3 +1640,33 @@ body[data-theme="ducess-sheet"] .check-balance-sheet .photo-box{
   padding-left:8px !important;
   padding-right:8px !important;
 }
+
+/* FINAL DIGIT VISIBILITY PATCH - allow 12 digits in NIN/BVN/Phone without changing the modal look */
+.opening-card .opening-sheet-grid,
+.maintenance-card .maintenance-sheet-grid{
+  grid-template-columns:170px 128px 82px 128px 73px !important;
+}
+
+.opening-card .sheet-input-cell.nin,
+.opening-card .sheet-input-cell.phone,
+.maintenance-card .sheet-input-cell.nin,
+.maintenance-card .sheet-input-cell.phone,
+.opening-card .sheet-input-cell.bvn,
+.maintenance-card .sheet-input-cell.bvn{
+  width:128px !important;
+  max-width:128px !important;
+}
+
+.opening-card .sheet-input-cell.account,
+.maintenance-card .sheet-input-cell.account:not(.account-near-label){
+  width:73px !important;
+  max-width:73px !important;
+}
+
+.opening-card .sheet-label-inline.bvn-label,
+.maintenance-card .sheet-label-inline.bvn-label,
+.opening-card .sheet-label-inline.old-account-label,
+.maintenance-card .sheet-label-inline.old-account-label{
+  padding-left:10px !important;
+  padding-right:6px !important;
+}
