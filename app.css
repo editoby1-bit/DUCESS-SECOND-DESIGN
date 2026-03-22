@@ -1839,3 +1839,20 @@ body[data-theme="ducess-sheet"] .tool-tabs:not(.approvals-sections) .tool-tab:fo
   color:#2b0f0b !important;
   -webkit-text-fill-color:#2b0f0b !important;
 }
+
+/* DUCESS disabled-tab readability fix */
+body[data-theme="ducess-sheet"] .tool-tab:disabled,
+body[data-theme="ducess-sheet"] button.secondary:disabled,
+body[data-theme="ducess-sheet"] .filter-chip:disabled{
+  opacity:1;
+  color:#4e0e0e;
+  background:#f5eded;
+  border-color:#c98f8f;
+  cursor:not-allowed;
+}
+body[data-theme="ducess-sheet"] .tool-tab.active:disabled,
+body[data-theme="ducess-sheet"] button.secondary.active:disabled{
+  color:#fff;
+  background:linear-gradient(135deg, #b65438, #c46a4a);
+  border-color:#c46a4a;
+}
