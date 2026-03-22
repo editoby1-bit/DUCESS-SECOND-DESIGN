@@ -111,7 +111,7 @@
     s.operations.incomeAccounts.push({ id:'ia1', name:'Commission', accountNumber:'INC-2000', createdAt:new Date().toISOString() });
     s.operations.expenseAccounts.push({ id:'ea1', name:'Transport Expense', accountNumber:'EXP-3000', createdAt:new Date().toISOString() });
     s.staff.forEach(st => ensureStaffAccount(st.id, s));
-    s.audit.push(auditEntry('System', 'seed', 'Initial demo data created'));
+    s.audit.push({ id: uid('aud'), at: new Date().toISOString(), actorId: 'system', actor: 'System', action: 'seed', details: 'Initial demo data created' });
     return s;
   }
 
