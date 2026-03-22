@@ -1812,3 +1812,30 @@ body[data-theme="ducess-sheet"] .table-card button.secondary:hover{
   color:#2f110c;
   border-color:#9b4a37;
 }
+
+/* FINAL FRONT-END FIX 2 - strengthen DUCESS readability for Customer Service and Tellering tabs */
+body[data-theme="ducess-sheet"] .tool-tabs:not(.approvals-sections) .tool-tab:disabled,
+body[data-theme="ducess-sheet"] .tool-tabs:not(.approvals-sections) .tool-tab[disabled]{
+  opacity:1 !important;
+  filter:none !important;
+  background:#fbf3ee !important;
+  color:#5a2017 !important;
+  -webkit-text-fill-color:#5a2017 !important;
+  border-color:#9b4a37 !important;
+  box-shadow:none !important;
+}
+
+body[data-theme="ducess-sheet"] .tool-tabs:not(.approvals-sections) .tool-tab.active,
+body[data-theme="ducess-sheet"] .tool-tabs:not(.approvals-sections) .tool-tab.active:disabled,
+body[data-theme="ducess-sheet"] .tool-tabs:not(.approvals-sections) .tool-tab.active[disabled]{
+  background:linear-gradient(135deg,#8b3020,#b36549) !important;
+  color:#fff !important;
+  -webkit-text-fill-color:#fff !important;
+  border-color:#8b3020 !important;
+}
+
+body[data-theme="ducess-sheet"] .tool-tabs:not(.approvals-sections) .tool-tab:hover,
+body[data-theme="ducess-sheet"] .tool-tabs:not(.approvals-sections) .tool-tab:focus-visible{
+  color:#2b0f0b !important;
+  -webkit-text-fill-color:#2b0f0b !important;
+}
