@@ -2038,3 +2038,159 @@ body[data-theme="ducess-sheet"] .workspace-card .tool-tabs:not(.approvals-sectio
     min-width:140px;
   }
 }
+
+/* MOBILE STRUCTURE PATCH - 2026-03-23
+   Purpose: clean stacking for customer-service sheets, check balance, and tellering on phones
+   while leaving desktop layout intact. */
+@media (max-width: 680px){
+  .workspace-card{padding:16px;}
+
+  /* Check Balance: force a true vertical flow */
+  .check-balance-sheet .redesigned-check-grid{
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:stretch !important;
+    gap:10px !important;
+  }
+  .check-balance-sheet .redesigned-check-grid > *{
+    width:100% !important;
+    max-width:none !important;
+    min-width:0 !important;
+    margin:0 !important;
+  }
+  .check-balance-sheet .sheet-label,
+  .check-balance-sheet .check-inline-label{
+    white-space:normal !important;
+    padding:0 !important;
+    justify-self:start !important;
+  }
+  .check-balance-sheet .check-balance-stack,
+  .check-balance-sheet .check-balance-meta-row,
+  .check-balance-sheet .sheet-photo-row{
+    display:flex !important;
+    flex-direction:column !important;
+    gap:8px !important;
+    width:100% !important;
+  }
+  .check-balance-sheet .inline-photo{
+    width:100% !important;
+    max-width:100% !important;
+    min-height:150px !important;
+  }
+  .check-balance-sheet .action-row button{
+    width:100%;
+  }
+
+  /* Account Opening / Maintenance / Reactivation: replace compressed grid with stacked rows */
+  .opening-card .opening-sheet-grid,
+  .maintenance-card .maintenance-sheet-grid,
+  .reactivation-card .reactivation-sheet-grid{
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:stretch !important;
+    gap:0 !important;
+  }
+  .opening-card .opening-sheet-grid > *,
+  .maintenance-card .maintenance-sheet-grid > *,
+  .reactivation-card .reactivation-sheet-grid > *{
+    grid-column:auto !important;
+    width:100% !important;
+    max-width:none !important;
+    min-width:0 !important;
+    margin:0 !important;
+    justify-self:stretch !important;
+  }
+  .opening-card .sheet-label-cell,
+  .opening-card .sheet-label-inline,
+  .maintenance-card .sheet-label-cell,
+  .maintenance-card .sheet-label-inline,
+  .reactivation-card .sheet-label-cell,
+  .reactivation-card .sheet-label-inline{
+    white-space:normal !important;
+    overflow:visible !important;
+    text-overflow:clip !important;
+    min-height:40px !important;
+    padding:10px 12px !important;
+    border-right:none !important;
+  }
+  .opening-card .sheet-input-cell,
+  .maintenance-card .sheet-input-cell,
+  .reactivation-card .sheet-input-cell,
+  .opening-card .cs-inline-btn,
+  .maintenance-card .cs-inline-btn,
+  .reactivation-card .cs-inline-btn,
+  .opening-card .cs-inline-note,
+  .maintenance-card .cs-inline-note,
+  .reactivation-card .cs-inline-note{
+    min-height:44px !important;
+  }
+  .opening-card .sheet-spread-actions.opening-actions{
+    display:flex !important;
+    flex-direction:column !important;
+    gap:8px !important;
+    padding:10px 0 !important;
+  }
+  .opening-card .photo-status,
+  .opening-card .cs-generate-note{
+    white-space:normal !important;
+    overflow:visible !important;
+    text-overflow:clip !important;
+  }
+  .maintenance-card .cs-sheet-footer,
+  .reactivation-card .cs-sheet-footer{
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:stretch !important;
+    gap:10px !important;
+  }
+
+  /* Tellering: vertical entry area + horizontally scrollable journal table */
+  .journal-sheet .redesigned-journal-grid{
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:stretch !important;
+    gap:10px !important;
+  }
+  .journal-sheet .redesigned-journal-grid > *{
+    width:100% !important;
+    max-width:none !important;
+    min-width:0 !important;
+    margin:0 !important;
+  }
+  .journal-sheet .sheet-label,
+  .journal-sheet .sheet-label.inline-label{
+    white-space:normal !important;
+    padding:0 !important;
+    justify-self:start !important;
+  }
+  .journal-sheet .amount-post-wrap{
+    display:flex !important;
+    flex-direction:column !important;
+    gap:8px !important;
+  }
+  .tellering-lower.compact-layout,
+  .tellering-lower.redesigned-tellering-lower{
+    grid-template-columns:1fr !important;
+  }
+  .journal-kpis{
+    grid-template-columns:1fr !important;
+  }
+  .journal-pane .journal-table-wrap{
+    overflow-x:auto !important;
+    -webkit-overflow-scrolling:touch;
+  }
+  .journal-pane .journal-table{
+    min-width:700px !important;
+    table-layout:auto !important;
+  }
+  .journal-pane .journal-table th,
+  .journal-pane .journal-table td{
+    white-space:nowrap !important;
+    word-break:normal !important;
+  }
+
+  /* Tabs on mobile */
+  .tool-tab{
+    min-height:54px;
+  }
+}
