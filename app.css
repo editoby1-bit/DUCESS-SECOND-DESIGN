@@ -2788,3 +2788,123 @@ body[data-theme="ducess-sheet"] .workspace-card .tool-tabs:not(.approvals-sectio
   .journal-pane .journal-table th,
   .journal-pane .journal-table td{white-space:nowrap !important;word-break:normal !important;}
 }
+
+/* final mobile hotfix: account opening + maintenance only */
+@media (max-width: 700px){
+  .opening-card .opening-sheet-grid,
+  .maintenance-card .maintenance-sheet-grid{
+    display:grid !important;
+    grid-template-columns:minmax(0, 1fr) !important;
+    gap:0 !important;
+    align-items:stretch !important;
+  }
+
+  .opening-card .opening-sheet-grid > *,
+  .maintenance-card .maintenance-sheet-grid > *{
+    grid-column:1 / -1 !important;
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    margin:0 !important;
+  }
+
+  .opening-card .sheet-label-cell,
+  .opening-card .sheet-label-inline,
+  .maintenance-card .sheet-label-cell,
+  .maintenance-card .sheet-label-inline{
+    display:flex !important;
+    align-items:center !important;
+    white-space:normal !important;
+    overflow:visible !important;
+    text-overflow:clip !important;
+    line-height:1.15 !important;
+    min-height:44px !important;
+    padding:10px 12px !important;
+    border-right:none !important;
+    justify-content:flex-start !important;
+  }
+
+  .opening-card .sheet-input-cell,
+  .maintenance-card .sheet-input-cell,
+  .opening-card .sheet-input-cell.wide,
+  .maintenance-card .sheet-input-cell.wide,
+  .opening-card .sheet-input-cell.nin,
+  .opening-card .sheet-input-cell.bvn,
+  .opening-card .sheet-input-cell.phone,
+  .opening-card .sheet-input-cell.account,
+  .maintenance-card .sheet-input-cell.nin,
+  .maintenance-card .sheet-input-cell.bvn,
+  .maintenance-card .sheet-input-cell.phone,
+  .maintenance-card .sheet-input-cell.account,
+  .maintenance-card .sheet-input-cell.account.account-near-label{
+    display:block !important;
+    min-height:44px !important;
+    padding:0 !important;
+  }
+
+  .opening-card .sheet-input-cell input,
+  .maintenance-card .sheet-input-cell input{
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    display:block !important;
+  }
+
+  .opening-card .sheet-spread-actions.opening-actions{
+    grid-column:1 / -1 !important;
+    display:grid !important;
+    grid-template-columns:minmax(0, 1fr) !important;
+    gap:10px !important;
+    padding:12px 0 10px !important;
+  }
+
+  .opening-card .opening-sheet-grid > :nth-child(1),
+  .opening-card .opening-sheet-grid > :nth-child(2),
+  .opening-card .opening-sheet-grid > :nth-child(3),
+  .opening-card .opening-sheet-grid > :nth-child(4),
+  .opening-card .opening-sheet-grid > :nth-child(5),
+  .opening-card .opening-sheet-grid > :nth-child(6),
+  .opening-card .opening-sheet-grid > :nth-child(7),
+  .opening-card .opening-sheet-grid > :nth-child(8),
+  .opening-card .opening-sheet-grid > :nth-child(9),
+  .opening-card .opening-sheet-grid > :nth-child(10),
+  .opening-card .opening-sheet-grid > :nth-child(11),
+  .opening-card .opening-sheet-grid > :nth-child(12),
+  .maintenance-card .maintenance-sheet-grid > :nth-child(1),
+  .maintenance-card .maintenance-sheet-grid > :nth-child(2),
+  .maintenance-card .maintenance-sheet-grid > :nth-child(3),
+  .maintenance-card .maintenance-sheet-grid > :nth-child(4),
+  .maintenance-card .maintenance-sheet-grid > :nth-child(5),
+  .maintenance-card .maintenance-sheet-grid > :nth-child(6),
+  .maintenance-card .maintenance-sheet-grid > :nth-child(7),
+  .maintenance-card .maintenance-sheet-grid > :nth-child(8),
+  .maintenance-card .maintenance-sheet-grid > :nth-child(9),
+  .maintenance-card .maintenance-sheet-grid > :nth-child(10),
+  .maintenance-card .maintenance-sheet-grid > :nth-child(11),
+  .maintenance-card .maintenance-sheet-grid > :nth-child(12),
+  .maintenance-card .maintenance-sheet-grid > :nth-child(13),
+  .maintenance-card .maintenance-sheet-grid > :nth-child(14),
+  .maintenance-card .maintenance-sheet-grid > :nth-child(15),
+  .maintenance-card .maintenance-sheet-grid > :nth-child(16),
+  .maintenance-card .maintenance-sheet-grid > :nth-child(17){
+    grid-column:1 / -1 !important;
+    grid-row:auto !important;
+  }
+
+  .maintenance-card .cs-inline-btn{
+    width:100% !important;
+    max-width:100% !important;
+    white-space:normal !important;
+    text-align:left !important;
+    min-height:48px !important;
+  }
+
+  .opening-card .cs-photo-btn,
+  .opening-card .photo-status,
+  .opening-card .cs-generate-note{
+    width:100% !important;
+    max-width:100% !important;
+    white-space:normal !important;
+    text-align:left !important;
+  }
+}
