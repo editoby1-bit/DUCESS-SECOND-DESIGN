@@ -2194,3 +2194,342 @@ body[data-theme="ducess-sheet"] .workspace-card .tool-tabs:not(.approvals-sectio
     min-height:54px;
   }
 }
+
+/* RESPONSIVE / MOBILE FRONTEND LOCK PATCH - FINAL */
+@media (max-width: 700px){
+  html, body{
+    overflow-x:hidden;
+  }
+
+  .shell{
+    padding:12px;
+  }
+
+  .topbar,
+  .hero-card,
+  .workspace-card,
+  .form-card,
+  .table-card,
+  .record-card,
+  .summary-card,
+  .tellering-sheet,
+  .cs-sheet-card,
+  .journal-pane,
+  .tellering-entry-card{
+    min-width:0 !important;
+  }
+
+  .workspace-card,
+  .form-card,
+  .table-card,
+  .record-card,
+  .tellering-sheet,
+  .cs-sheet-card,
+  .journal-pane{
+    padding-left:14px !important;
+    padding-right:14px !important;
+  }
+
+  .workspace-head{
+    align-items:stretch !important;
+  }
+
+  .workspace-right,
+  .global-search{
+    width:100% !important;
+  }
+
+  .tool-tabs{
+    display:grid !important;
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+    gap:10px !important;
+  }
+
+  .tool-tab,
+  .approvals-sections .tool-tab{
+    min-width:0 !important;
+    width:100% !important;
+    min-height:56px !important;
+    white-space:normal !important;
+    line-height:1.2 !important;
+    text-align:center !important;
+    padding:12px 10px !important;
+  }
+
+  .action-row,
+  .modal-actions{
+    flex-direction:column !important;
+    align-items:stretch !important;
+  }
+
+  .action-row button,
+  .modal-actions button{
+    width:100% !important;
+    min-width:0 !important;
+    white-space:normal !important;
+  }
+
+  .modal-back{
+    padding:10px !important;
+    align-items:flex-start !important;
+  }
+
+  .modal{
+    width:100% !important;
+    max-width:100% !important;
+    max-height:calc(100vh - 20px) !important;
+    border-radius:18px !important;
+  }
+
+  .modal-head,
+  .modal-body,
+  .modal-actions{
+    padding-left:14px !important;
+    padding-right:14px !important;
+  }
+
+  .modal-body .form-grid,
+  .modal-body .layout-grid,
+  .modal-body .info-grid,
+  .modal-body .lookup-card{
+    grid-template-columns:minmax(0, 1fr) !important;
+  }
+
+  .modal-body .display-field,
+  .modal-body input,
+  .modal-body textarea,
+  .modal-body select{
+    min-width:0 !important;
+    max-width:100% !important;
+  }
+
+  /* Check Balance */
+  .check-balance-sheet .redesigned-check-grid{
+    display:grid !important;
+    grid-template-columns:minmax(0, 1fr) !important;
+    gap:10px !important;
+  }
+
+  .check-balance-sheet .redesigned-check-grid > *,
+  .check-balance-sheet .redesigned-check-grid .value-wide,
+  .check-balance-sheet .redesigned-check-grid .value-short,
+  .check-balance-sheet .redesigned-check-grid .check-balance-stack,
+  .check-balance-sheet .redesigned-check-grid .check-balance-meta-row,
+  .check-balance-sheet .redesigned-check-grid .sheet-photo-row{
+    grid-column:1 / -1 !important;
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+  }
+
+  .check-balance-sheet .check-balance-stack,
+  .check-balance-sheet .check-balance-meta-row,
+  .check-balance-sheet .sheet-photo-row{
+    display:grid !important;
+    grid-template-columns:minmax(0, 1fr) !important;
+    gap:8px !important;
+  }
+
+  .check-balance-sheet .sheet-label,
+  .check-balance-sheet .check-inline-label{
+    white-space:normal !important;
+    line-height:1.25 !important;
+    padding:0 !important;
+  }
+
+  .check-balance-sheet #lookupBtn,
+  .check-balance-sheet #searchPhotoBtn,
+  .check-balance-sheet #openStatementBtn,
+  .check-balance-sheet #searchByNameBtn{
+    width:100% !important;
+  }
+
+  .check-balance-sheet .inline-photo{
+    width:100% !important;
+    max-width:100% !important;
+    height:auto !important;
+    min-height:160px !important;
+  }
+
+  /* Customer service forms */
+  .opening-card .opening-sheet-grid,
+  .maintenance-card .maintenance-sheet-grid,
+  .reactivation-card .reactivation-sheet-grid{
+    display:grid !important;
+    grid-template-columns:minmax(0, 1fr) !important;
+    gap:0 !important;
+  }
+
+  .opening-card .opening-sheet-grid > *,
+  .maintenance-card .maintenance-sheet-grid > *,
+  .reactivation-card .reactivation-sheet-grid > *{
+    grid-column:1 / -1 !important;
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+  }
+
+  .opening-card .sheet-label-cell,
+  .opening-card .sheet-label-inline,
+  .maintenance-card .sheet-label-cell,
+  .maintenance-card .sheet-label-inline,
+  .reactivation-card .sheet-label-cell,
+  .reactivation-card .sheet-label-inline{
+    white-space:normal !important;
+    overflow:visible !important;
+    text-overflow:clip !important;
+    min-height:40px !important;
+    padding:10px 12px !important;
+    line-height:1.2 !important;
+    border-right:none !important;
+  }
+
+  .opening-card .sheet-input-cell,
+  .maintenance-card .sheet-input-cell,
+  .reactivation-card .sheet-input-cell,
+  .opening-card .cs-inline-btn,
+  .maintenance-card .cs-inline-btn,
+  .reactivation-card .cs-inline-btn,
+  .opening-card .sheet-spread-actions,
+  .maintenance-card .sheet-spread-actions,
+  .reactivation-card .sheet-spread-actions,
+  .opening-card .cs-inline-note,
+  .maintenance-card .cs-inline-note,
+  .reactivation-card .cs-inline-note{
+    min-height:44px !important;
+    max-width:100% !important;
+  }
+
+  .opening-card .sheet-input-cell input,
+  .maintenance-card .sheet-input-cell input,
+  .reactivation-card .sheet-input-cell input{
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+  }
+
+  .opening-card .sheet-spread-actions.opening-actions{
+    display:grid !important;
+    grid-template-columns:minmax(0, 1fr) !important;
+    gap:8px !important;
+    padding:10px 0 !important;
+  }
+
+  .opening-card .cs-photo-btn,
+  .opening-card .photo-status,
+  .opening-card .cs-generate-note,
+  .maintenance-card .cs-inline-btn,
+  .reactivation-card .cs-inline-btn{
+    width:100% !important;
+    white-space:normal !important;
+    text-align:left !important;
+  }
+
+  .maintenance-card .cs-sheet-footer,
+  .reactivation-card .cs-sheet-footer,
+  .cs-system-summary{
+    display:flex !important;
+    flex-direction:column !important;
+    gap:8px !important;
+    align-items:stretch !important;
+  }
+
+  .cs-sheet-note{
+    text-align:left !important;
+  }
+
+  /* Tellering entry and journal */
+  .journal-sheet .redesigned-journal-grid{
+    display:grid !important;
+    grid-template-columns:minmax(0, 1fr) !important;
+    gap:10px !important;
+  }
+
+  .journal-sheet .redesigned-journal-grid > *,
+  .journal-sheet .redesigned-journal-grid #txAcc,
+  .journal-sheet .redesigned-journal-grid #txName,
+  .journal-sheet .redesigned-journal-grid #txBalance,
+  .journal-sheet .redesigned-journal-grid .value-wide,
+  .journal-sheet .redesigned-journal-grid .amount-post-wrap{
+    grid-column:1 / -1 !important;
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+  }
+
+  .journal-sheet .sheet-label,
+  .journal-sheet .sheet-label.inline-label{
+    white-space:normal !important;
+    line-height:1.2 !important;
+    padding:0 !important;
+  }
+
+  .journal-sheet .amount-post-wrap{
+    display:grid !important;
+    grid-template-columns:minmax(0, 1fr) !important;
+    gap:8px !important;
+  }
+
+  .tellering-lower.compact-layout,
+  .tellering-lower.redesigned-tellering-lower,
+  .tellering-entry-card .form-grid.two.compact-fields,
+  .journal-kpis{
+    grid-template-columns:minmax(0, 1fr) !important;
+  }
+
+  .journal-kpis .number{
+    font-size:18px !important;
+  }
+
+  .journal-pane .journal-table-wrap,
+  .table-wrap{
+    overflow-x:auto !important;
+    overflow-y:hidden !important;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  .journal-pane .journal-table{
+    min-width:760px !important;
+    width:max-content !important;
+    table-layout:auto !important;
+  }
+
+  .journal-pane .journal-table th,
+  .journal-pane .journal-table td{
+    white-space:nowrap !important;
+    word-break:normal !important;
+    vertical-align:middle !important;
+  }
+
+  .journal-pane .journal-table th:nth-child(2),
+  .journal-pane .journal-table td:nth-child(2){
+    min-width:150px !important;
+  }
+
+  .journal-pane .journal-table th:nth-child(3),
+  .journal-pane .journal-table td:nth-child(3){
+    min-width:120px !important;
+  }
+
+  .journal-pane .journal-table th:nth-child(5),
+  .journal-pane .journal-table td:nth-child(5){
+    min-width:140px !important;
+  }
+
+  .journal-pane .journal-table th:nth-child(6),
+  .journal-pane .journal-table td:nth-child(6){
+    min-width:110px !important;
+  }
+
+  /* General tables on mobile */
+  .table{
+    min-width:700px !important;
+  }
+
+  .table th,
+  .table td{
+    white-space:nowrap !important;
+    word-break:normal !important;
+    line-height:1.25 !important;
+  }
+}
