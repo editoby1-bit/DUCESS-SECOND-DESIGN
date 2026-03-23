@@ -3058,3 +3058,104 @@ body[data-theme="ducess-sheet"] .workspace-card .tool-tabs:not(.approvals-sectio
     gap:10px !important;
   }
 }
+
+/* ABSOLUTE FINAL MOBILE FIX - ACCOUNT MAINTENANCE ONLY */
+@media (max-width: 760px){
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid{
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) !important;
+    grid-auto-flow:row !important;
+    grid-auto-rows:auto !important;
+    gap:8px !important;
+    width:100% !important;
+    max-width:100% !important;
+    align-items:stretch !important;
+  }
+
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > *{
+    grid-column:1 / -1 !important;
+    grid-row:auto !important;
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    justify-self:stretch !important;
+    align-self:stretch !important;
+    margin:0 !important;
+    float:none !important;
+    transform:none !important;
+  }
+
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > .sheet-label-cell,
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > .sheet-label-inline{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:flex-start !important;
+    min-height:44px !important;
+    padding:10px 12px !important;
+    line-height:1.15 !important;
+    white-space:normal !important;
+    overflow:visible !important;
+    text-overflow:clip !important;
+    box-sizing:border-box !important;
+    border-right:none !important;
+  }
+
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > .sheet-input-cell,
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > .sheet-input-cell.wide,
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > .sheet-input-cell.nin,
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > .sheet-input-cell.bvn,
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > .sheet-input-cell.phone,
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > .sheet-input-cell.account,
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > .sheet-input-cell.account-near-label,
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > .cs-inline-btn{
+    display:block !important;
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    min-height:44px !important;
+    box-sizing:border-box !important;
+  }
+
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > .sheet-input-cell{
+    padding:0 !important;
+  }
+
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > .sheet-input-cell input,
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > .sheet-input-cell .cs-sheet-input{
+    display:block !important;
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    box-sizing:border-box !important;
+  }
+
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > .cs-inline-btn{
+    white-space:normal !important;
+    text-align:center !important;
+  }
+
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > :nth-child(1){order:1 !important;}
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > :nth-child(2){order:2 !important;}
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > :nth-child(3){order:3 !important;}
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > :nth-child(4){order:4 !important;}
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > :nth-child(5){order:5 !important;}
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > :nth-child(6){order:6 !important;}
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > :nth-child(7){order:7 !important;}
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > :nth-child(8){order:8 !important;}
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > :nth-child(9){order:9 !important;}
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > :nth-child(10){order:10 !important;}
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > :nth-child(11){order:11 !important;}
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > :nth-child(12){order:12 !important;}
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > :nth-child(13){order:13 !important;}
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > :nth-child(14){order:14 !important;}
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > :nth-child(15){order:15 !important;}
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > :nth-child(16){order:16 !important;}
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > :nth-child(17){order:17 !important;}
+
+  .cs-sheet-card.maintenance-card .cs-sheet-footer{
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:stretch !important;
+    gap:10px !important;
+  }
+}
