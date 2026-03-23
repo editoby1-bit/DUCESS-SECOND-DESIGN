@@ -2989,3 +2989,72 @@ body[data-theme="ducess-sheet"] .workspace-card .tool-tabs:not(.approvals-sectio
     box-sizing:border-box !important;
   }
 }
+
+/* FINAL MOBILE LOCK - Account Maintenance only */
+@media (max-width: 680px){
+  .maintenance-card .maintenance-sheet-grid{
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) !important;
+    gap:8px !important;
+    align-items:stretch !important;
+  }
+
+  .maintenance-card .maintenance-sheet-grid > *{
+    grid-column:1 / -1 !important;
+    width:100% !important;
+    max-width:none !important;
+    min-width:0 !important;
+    justify-self:stretch !important;
+    align-self:stretch !important;
+    margin:0 !important;
+    float:none !important;
+  }
+
+  .maintenance-card .sheet-label-cell,
+  .maintenance-card .sheet-label-inline,
+  .maintenance-card .sheet-input-cell,
+  .maintenance-card .cs-inline-btn,
+  .maintenance-card .cs-inline-note{
+    display:block !important;
+    box-sizing:border-box !important;
+    flex:none !important;
+  }
+
+  .maintenance-card .sheet-label-cell,
+  .maintenance-card .sheet-label-inline{
+    min-height:auto !important;
+    padding:10px 12px !important;
+    white-space:normal !important;
+    overflow:visible !important;
+    text-overflow:clip !important;
+    border-right:none !important;
+  }
+
+  .maintenance-card .sheet-input-cell{
+    min-height:auto !important;
+    padding:0 !important;
+  }
+
+  .maintenance-card .sheet-input-cell .cs-sheet-input,
+  .maintenance-card .sheet-input-cell input,
+  .maintenance-card .sheet-input-cell textarea,
+  .maintenance-card .sheet-input-cell select{
+    display:block !important;
+    width:100% !important;
+    max-width:none !important;
+    min-width:0 !important;
+    box-sizing:border-box !important;
+  }
+
+  .maintenance-card .cs-inline-btn{
+    width:100% !important;
+    min-height:44px !important;
+  }
+
+  .maintenance-card .cs-sheet-footer{
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:stretch !important;
+    gap:10px !important;
+  }
+}
