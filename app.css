@@ -3159,3 +3159,81 @@ body[data-theme="ducess-sheet"] .workspace-card .tool-tabs:not(.approvals-sectio
     gap:10px !important;
   }
 }
+
+/* SURGICAL MOBILE FIX - ACCOUNT MAINTENANCE ONLY */
+@media (max-width: 760px){
+  .cs-sheet-card.maintenance-card{
+    width:100% !important;
+    max-width:100% !important;
+    overflow-x:hidden !important;
+  }
+
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid{
+    display:flex !important;
+    flex-direction:column !important;
+    gap:8px !important;
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    overflow-x:hidden !important;
+  }
+
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > *{
+    display:block !important;
+    flex:0 0 auto !important;
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    margin:0 !important;
+    grid-column:auto !important;
+    grid-row:auto !important;
+    justify-self:stretch !important;
+    align-self:stretch !important;
+    transform:none !important;
+    float:none !important;
+  }
+
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > .sheet-label-cell,
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > .sheet-label-inline{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:flex-start !important;
+    min-height:42px !important;
+    padding:10px 12px !important;
+    white-space:normal !important;
+    overflow:visible !important;
+    text-overflow:clip !important;
+    border-right:none !important;
+    box-sizing:border-box !important;
+  }
+
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > .sheet-input-cell,
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > .sheet-input-cell.wide,
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > .sheet-input-cell.nin,
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > .sheet-input-cell.bvn,
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > .sheet-input-cell.phone,
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > .sheet-input-cell.account,
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > .sheet-input-cell.account-near-label{
+    padding:0 !important;
+    min-height:42px !important;
+    box-sizing:border-box !important;
+  }
+
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > .sheet-input-cell input,
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > .sheet-input-cell .cs-sheet-input{
+    display:block !important;
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    box-sizing:border-box !important;
+  }
+
+  .cs-sheet-card.maintenance-card .maintenance-sheet-grid > .cs-inline-btn{
+    display:block !important;
+    width:100% !important;
+    max-width:100% !important;
+    min-height:42px !important;
+    white-space:normal !important;
+    text-align:center !important;
+  }
+}
