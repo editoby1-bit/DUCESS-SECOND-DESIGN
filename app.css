@@ -4301,3 +4301,111 @@ body[data-theme="ducess-sheet"] .journal-sheet .forced-amount-label{
   .journal-sheet #txAmount{width:150px !important;max-width:150px !important;min-width:150px !important;}
   .journal-sheet #txPostSingle{width:110px !important;max-width:110px !important;min-width:110px !important;margin:0 !important;}
 }
+
+/* 2026-03-24 surgical desktop fix: fully reveal Amount label in Credit/Debit row only */
+@media (min-width: 761px){
+  .journal-sheet .redesigned-journal-grid{
+    grid-template-columns:190px 90px 150px 86px 256px !important;
+  }
+  .journal-sheet .redesigned-journal-grid > :nth-child(11){
+    grid-column:4 !important;
+    width:86px !important;
+    min-width:86px !important;
+    max-width:86px !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:flex-start !important;
+    overflow:visible !important;
+    white-space:nowrap !important;
+    margin:0 !important;
+    padding:0 !important;
+  }
+  .journal-sheet .redesigned-journal-grid > :nth-child(12){
+    grid-column:5 !important;
+    width:256px !important;
+    min-width:256px !important;
+    max-width:256px !important;
+  }
+  .journal-sheet .amount-post-wrap{
+    grid-template-columns:134px 110px !important;
+    gap:12px !important;
+    width:256px !important;
+    min-width:256px !important;
+    max-width:256px !important;
+  }
+  .journal-sheet #txAmount{
+    width:134px !important;
+    min-width:134px !important;
+    max-width:134px !important;
+  }
+}
+
+/* 2026-03-24 v13 hard override: render Amount label in the existing gap without moving layout */
+@media (min-width: 761px){
+  .journal-sheet .amount-inline-label{
+    display:none !important;
+  }
+
+  .journal-sheet .redesigned-journal-grid > :nth-child(12){
+    grid-column:4 !important;
+    grid-row:3 !important;
+    margin:0 !important;
+    justify-self:start !important;
+    overflow:visible !important;
+  }
+
+  .journal-sheet .amount-post-wrap{
+    position:relative !important;
+    display:grid !important;
+    grid-template-columns:150px 110px !important;
+    gap:12px !important;
+    align-items:center !important;
+    justify-content:start !important;
+    width:272px !important;
+    min-width:272px !important;
+    max-width:272px !important;
+    margin:0 !important;
+    padding:0 !important;
+    overflow:visible !important;
+  }
+
+  .journal-sheet .amount-post-wrap::before{
+    content:"Amount" !important;
+    position:absolute !important;
+    left:-86px !important;
+    top:50% !important;
+    transform:translateY(-50%) !important;
+    width:72px !important;
+    min-width:72px !important;
+    max-width:72px !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:flex-start !important;
+    white-space:nowrap !important;
+    overflow:visible !important;
+    color:var(--text) !important;
+    opacity:1 !important;
+    visibility:visible !important;
+    z-index:5 !important;
+    pointer-events:none !important;
+  }
+
+  .journal-sheet #txBalance{
+    position:relative !important;
+    z-index:1 !important;
+  }
+
+  .journal-sheet #txAmount{
+    width:150px !important;
+    min-width:150px !important;
+    max-width:150px !important;
+    margin:0 !important;
+  }
+
+  .journal-sheet #txPostSingle{
+    width:110px !important;
+    min-width:110px !important;
+    max-width:110px !important;
+    margin:0 !important;
+  }
+}
