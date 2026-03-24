@@ -3638,3 +3638,18 @@ body[data-theme="ducess-sheet"] .workspace-card .tool-tabs:not(.approvals-sectio
     max-width:150px !important;
   }
 }
+
+/* Credit/Debit ultra-surgical patch: force Amount label visible without moving layout */
+.journal-sheet .redesigned-journal-grid > :nth-child(11){
+  position:relative !important;
+  color:transparent !important;
+}
+.journal-sheet .redesigned-journal-grid > :nth-child(11)::before{
+  content:"Amount";
+  color:var(--text) !important;
+  position:relative;
+  display:inline-block;
+  font:inherit;
+  opacity:1 !important;
+  visibility:visible !important;
+}
