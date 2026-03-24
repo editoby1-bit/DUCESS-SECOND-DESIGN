@@ -3653,3 +3653,15 @@ body[data-theme="ducess-sheet"] .workspace-card .tool-tabs:not(.approvals-sectio
   opacity:1 !important;
   visibility:visible !important;
 }
+
+/* Credit/Debit amount label restore: keep layout unchanged, show real label text */
+.journal-sheet .redesigned-journal-grid > :nth-child(11){
+  color:var(--text) !important;
+  opacity:1 !important;
+  visibility:visible !important;
+  font-size:16px !important;
+  line-height:1.2 !important;
+}
+.journal-sheet .redesigned-journal-grid > :nth-child(11)::before{
+  content:none !important;
+}
