@@ -1429,120 +1429,46 @@
   }
 
   function openCODModal() {
-    if (!canCloseBusinessDay()) return showToast('Only Approval Officer or Admin can close day');
-    const postingStaff = state.staff.filter(st => hasPermission('credit', st) || hasPermission('debit', st));
-    const rows = postingStaff.map(st => { const opening=getOpeningBalanceForDate(st.id,businessDate()); const credits=approvedCreditTotalForDate(st.id,businessDate()); const debits=approvedDebitTotalForDate(st.id,businessDate()); const running=currentFloatAvailable(st.id,businessDate()); const expected=Math.max(0, running); const overdraw=currentFloatOverdraw(st.id,businessDate()); return `<tr><td>${st.name}</td><td>${money(opening)}</td><td>${money(credits)}</td><td>${money(debits)}</td><td class="${running<0?'balance-negative':''}">${money(running)}</td><td>${money(expected)}</td><td class="${overdraw>0?'balance-negative':''}">${money(overdraw)}</td><td><input class="entry-input" data-cod-actual="${st.id}" type="number" placeholder="Enter actual cash"></td><td><input class="entry-input" data-cod-note="${st.id}"></td></tr>`; }).join('');
-    openModal('Central Close of Day', `<div class="stack"><div class="note">You are closing business date <strong>${businessDate()}</strong>. Closing opens the next business date immediately.</div><div class="note">Expected Cash is the cash that should physically remain after postings. Remaining Balance shows the ledger position. Overdraw means postings exceeded the opening balance.</div><div class="table-wrap"><table class="table"><thead><tr><th>Staff</th><th>Opening</th><th>Total Credits</th><th>Total Debits</th><th>Remaining Balance</th><th>Expected Cash</th><th>Overdraw</th><th>Actual Cash</th><th>Note</th></tr></thead><tbody>${rows}</tbody></table></div></div>`, [{label:'Cancel', className:'secondary', onClick: closeModal}, {label:'Close Business Day', onClick: ()=> { postingStaff.forEach(st => { const running=currentFloatAvailable(st.id,businessDate()); const expected=Math.max(0,running); const actual=Number(q(`[data-cod-actual="${st.id}"]`)?.value||0); const note=q(`[data-cod-note="${st.id}"]`)?.value?.trim()||''; const variance=actual-expected; state.cod.unshift({id:uid('cod'), staffId:st.id, staffName:st.name, date:businessDate(), actualCash:actual, expectedCash:expected, runningFloat:running, variance, overdraw:Math.max(0,-running), note, fieldPapers:[], status: variance===0 && Math.max(0,-running)===0 ? 'balanced':'flagged', approvedAt:new Date().toISOString(), approvedBy:currentStaff()?.name||''}); }); state.dayClosures.push({date:businessDate(), closedAt:new Date().toISOString(), closedBy:currentStaff()?.name||''}); state.businessDate = nextDate(businessDate()); save(); closeModal(); render(); showToast(`Business day closed. New open date: ${state.businessDate}`); }}]);
-  }
-
-  function openAuditModal() {
-    const st = currentStaff();
-    const rows = state.audit.filter(a => st?.role === 'admin_officer' || a.actorId === st?.id || a.actor === st?.name).map(a=>`<tr><td>${fmtDate(a.at)}</td><td>${a.actor}</td><td>${a.action}</td><td>${a.details}</td></tr>`).join('');
-    openModal('Audit Trail', `<div class="table-wrap"><table class="table"><thead><tr><th>Date</th><th>Actor</th><th>Action</th><th>Details</th></tr></thead><tbody>${rows || '<tr><td colspan="4">No audit records</td></tr>'}</tbody></table></div>`, [{label:'Close', onClick: closeModal}]);
-  }
-
-  function staffName(id) { return state.staff.find(s=>s.id===id)?.name || id; }
-  function customerName(id) { return state.customers.find(c=>c.id===id)?.name || ''; }
-  function getSelectedCustomer() { return state.customers.find(c => c.id === state.ui.selectedCustomerId) || null; }
-  function balanceHtml(n){ return `<span class="${Number(n)<0 ? 'balance-negative' : ''}">${money(n)}</span>`; }
-  function isCustomerFrozen(c){ if(!c) return false; if(c.frozen) return true; const last=(c.transactions||[]).slice().sort((a,b)=>new Date(b.date)-new Date(a.date))[0]; if(!last) return false; const days=(Date.now()-new Date(last.date).getTime())/86400000; return days>=90; }
-  function customerStatusLabel(c){ if(!c) return '—'; return (!c.active || isCustomerFrozen(c)) ? 'Frozen' : 'Active'; }
-  function freezeInactiveCustomer(c){ if(!c) return; if(c.active === false) c.frozen = true; }
-
-  function openCustomerSearchModal(list) {
-    const renderRows = arr => arr.map(c=>`<tr><td>${c.accountNumber}</td><td>${c.name}</td><td>${c.phone}</td><td><span class="linklike" data-pick="${c.id}">Select</span></td></tr>`).join('');
-    openModal('Customer Search', `<div class="stack"><input id="modalCustomerSearch" class="entry-input" placeholder="Search customer by name or account number"><div class="table-wrap"><table class="table"><thead><tr><th>Account Number</th><th>Name</th><th>Phone</th><th></th></tr></thead><tbody id="modalCustomerRows">${renderRows(list)}</tbody></table></div></div>`, [{label:'Close', className:'secondary', onClick: closeModal}]);
-    const bindPicks = () => qq('[data-pick]').forEach(el => el.onclick = () => { state.ui.selectedCustomerId = el.dataset.pick; save(); closeModal(); applySelectedCustomerToActiveTool(); });
-    bindPicks();
-    const search = byId('modalCustomerSearch');
-    if (search) search.oninput = () => {
-      const qv = search.value.trim().toLowerCase();
-      const filtered = !qv ? list : list.filter(c => String(c.accountNumber).includes(qv) || c.name.toLowerCase().includes(qv));
-      byId('modalCustomerRows').innerHTML = renderRows(filtered); bindPicks();
-    };
-  }
-
-  async function toBase64(file) {
-    const dataUrl = await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
+    const postingStaff = state.staff.filter(s => ['admin_officer','administrative_officer','customer_service','tellering_officer','approving_officer'].includes(s.role));
+    const rows = postingStaff.map(st => {
+      const baseOpening = getBaseOpeningBalanceForDate(st.id, businessDate());
+      const floatTopUps = getFloatTopUpsForDate(st.id, businessDate());
+      const effectiveOpening = baseOpening + floatTopUps;
+      const credits = approvedCreditTotalForDate(st.id,businessDate());
+      const debits = approvedDebitTotalForDate(st.id,businessDate());
+      const running = currentFloatAvailable(st.id,businessDate());
+      const expected = Math.max(0, running);
+      const overdraw = currentFloatOverdraw(st.id,businessDate());
+      return `<tr>
+        <td>${st.name}</td>
+        <td>${money(baseOpening)}</td>
+        <td>${money(floatTopUps)}</td>
+        <td>${money(effectiveOpening)}</td>
+        <td>${money(credits)}</td>
+        <td>${money(debits)}</td>
+        <td class="${running<0?'balance-negative':''}">${money(running)}</td>
+        <td>${money(expected)}</td>
+        <td><input class="entry-input" data-cod-actual="${st.id}" type="number" placeholder="Enter actual cash"></td>
+        <td class="" data-cod-variance="${st.id}">${money(0)}</td>
+        <td class="${overdraw>0?'balance-negative':''}">${money(overdraw)}</td>
+        <td><input class="entry-input" data-cod-note="${st.id}"></td>
+      </tr>`;
+    }).join('');
+    openModal('Central Close of Day', `<div class="stack"><div class="note">You are closing business date <strong>${businessDate()}</strong>. Closing opens the next business date immediately.</div><div class="note">Expected Cash is the cash that should physically remain after postings. Remaining Balance shows the ledger position. Variance compares Actual Cash against Expected Cash. Overdraw means postings exceeded the effective opening balance. Actual Cash is saved for reconciliation and audit only.</div><div class="table-wrap"><table class="table"><thead><tr><th>Staff</th><th>Opening Balance</th><th>Float Top-Ups</th><th>Effective Opening Balance</th><th>Total Credits</th><th>Total Debits</th><th>Remaining Balance</th><th>Expected Cash</th><th>Actual Cash</th><th>Variance</th><th>Overdraw</th><th>Note</th></tr></thead><tbody>${rows}</tbody></table></div></div>`, [{label:'Cancel', className:'secondary', onClick: closeModal}, {label:'Close Business Day', onClick: ()=> { postingStaff.forEach(st => { const baseOpening=getBaseOpeningBalanceForDate(st.id,businessDate()); const floatTopUps=getFloatTopUpsForDate(st.id,businessDate()); const effectiveOpening=baseOpening+floatTopUps; const running=currentFloatAvailable(st.id,businessDate()); const expected=Math.max(0,running); const actual=Number(q(`[data-cod-actual="${st.id}"]`)?.value||0); const note=q(`[data-cod-note="${st.id}"]`)?.value?.trim()||''; const variance=actual-expected; state.cod.unshift({id:uid('cod'), staffId:st.id, staffName:st.name, date:businessDate(), openingBalance:baseOpening, floatTopUps, effectiveOpeningBalance:effectiveOpening, actualCash:actual, expectedCash:expected, runningFloat:running, variance, overdraw:Math.max(0,-running), note, fieldPapers:[], status: variance===0 && Math.max(0,-running)===0 ? 'balanced':'flagged', approvedAt:new Date().toISOString(), approvedBy:currentStaff()?.name||''}); }); state.dayClosures.push({date:businessDate(), closedAt:new Date().toISOString(), closedBy:currentStaff()?.name||''}); state.businessDate = nextDate(businessDate()); save(); closeModal(); render(); showToast(`Business day closed. New open date: ${state.businessDate}`); }}]);
+    postingStaff.forEach(st => {
+      const actualInput = q(`[data-cod-actual="${st.id}"]`);
+      const varianceCell = q(`[data-cod-variance="${st.id}"]`);
+      const expected = Math.max(0, currentFloatAvailable(st.id,businessDate()));
+      if (actualInput && varianceCell) {
+        const syncVariance = () => {
+          const variance = Number(actualInput.value || 0) - expected;
+          varianceCell.textContent = money(variance);
+          varianceCell.className = variance < 0 ? 'balance-negative' : '';
+        };
+        actualInput.oninput = syncVariance;
+        syncVariance();
+      }
     });
-    if (!file.type.startsWith('image/')) return dataUrl;
-    try {
-      const img = await new Promise((resolve, reject) => {
-        const el = new Image();
-        el.onload = () => resolve(el);
-        el.onerror = reject;
-        el.src = dataUrl;
-      });
-      const maxSide = 900;
-      let { width, height } = img;
-      const scale = Math.min(1, maxSide / Math.max(width, height));
-      width = Math.max(1, Math.round(width * scale));
-      height = Math.max(1, Math.round(height * scale));
-      const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, width, height);
-      return canvas.toDataURL('image/jpeg', 0.72);
-    } catch (e) {
-      return dataUrl;
-    }
-  }
-
-
-  function applyTheme(theme, persist=true) {
-    state.ui.theme = theme || 'classic';
-    document.body.setAttribute('data-theme', state.ui.theme === 'classic' ? '' : state.ui.theme);
-    const b = byId('btnThemeCycle'); if (b) b.textContent = `Theme: ${THEME_LABELS[state.ui.theme] || 'Classic'}`;
-    if (persist) save();
-  }
-
-  function hasFloatDeclaredOrPending(staffId, dateStr) {
-    return hasBaseOpeningBalanceForDate(staffId, dateStr) || state.approvals.some(r => r.type === 'float_declaration' && r.status === 'pending' && r.payload.staffId === staffId && r.payload.date === dateStr);
-  }
-
-  function hasBaseOpeningBalanceForDate(staffId, dateStr) {
-    const acc = ensureStaffAccount(staffId);
-    return acc.entries.some(e => e.type === 'approved_float' && e.floatDate === dateStr);
-  }
-
-  function hasOpeningBalanceForDate(staffId, dateStr) {
-    const acc = ensureStaffAccount(staffId);
-    return acc.entries.some(e => ['approved_float','approved_float_topup'].includes(e.type) && e.floatDate === dateStr);
-  }
-
-  function getOpeningBalanceForDate(staffId, dateStr) {
-    const acc = ensureStaffAccount(staffId);
-    return acc.entries.filter(e => ['approved_float','approved_float_topup'].includes(e.type) && e.floatDate === dateStr).reduce((s,e)=>s+Number(e.amount||0),0);
-  }
-
-  function approvedCreditTotalForDate(staffId, dateStr) {
-    return (state.approvals||[]).filter(r => ['customer_credit','customer_credit_journal'].includes(r.type) && r.status === 'approved' && r.payload?.staffId === staffId && r.payload?.date === dateStr).reduce((s,r)=> s + (r.type==='customer_credit_journal' ? (r.payload.rows||[]).reduce((a,x)=>a+Number(x.amount||0),0) : Number(r.payload?.amount||0)), 0);
-  }
-
-  function approvedDebitTotalForDate(staffId, dateStr) {
-    return (state.approvals||[]).filter(r => ['customer_debit','customer_debit_journal'].includes(r.type) && r.status === 'approved' && r.payload?.staffId === staffId && r.payload?.date === dateStr).reduce((s,r)=> s + (r.type==='customer_debit_journal' ? (r.payload.rows||[]).reduce((a,x)=>a+Number(x.amount||0),0) : Number(r.payload?.amount||0)), 0);
-  }
-
-  function pendingPostedFloatImpactForDate(staffId, dateStr) {
-    return (state.approvals||[])
-      .filter(r => ['customer_credit','customer_debit','customer_credit_journal','customer_debit_journal'].includes(r.type)
-        && r.status === 'pending'
-        && r.payload?.staffId === staffId
-        && r.payload?.date === dateStr)
-      .reduce((s,r)=> s + (r.type.endsWith('_journal') ? (r.payload.rows||[]).reduce((a,x)=>a+Number(x.amount||0),0) : Number(r.payload?.amount||0)), 0);
-  }
-
-  function currentFloatAvailable(staffId, date=businessDate()) {
-    const opening = getOpeningBalanceForDate(staffId, date);
-    const usedApproved = approvedCreditTotalForDate(staffId, date);
-    const debitsApproved = approvedDebitTotalForDate(staffId, date);
-    const pendingPosted = pendingPostedFloatImpactForDate(staffId, date);
-    return opening - usedApproved - debitsApproved - pendingPosted;
   }
 
   function currentFloatOverdraw(staffId, date=businessDate()) {
@@ -1597,14 +1523,21 @@
     state.ui.myCodDate = selectedDate || state.ui.myCodDate || businessDate();
     const st = currentStaff();
     const c = staffCODRecords((st||{}).id).find(x => x.date === state.ui.myCodDate);
+    const openingBalance = c ? Number(c.openingBalance ?? getBaseOpeningBalanceForDate(c.staffId, c.date)) : 0;
+    const floatTopUps = c ? Number(c.floatTopUps ?? getFloatTopUpsForDate(c.staffId, c.date)) : 0;
+    const effectiveOpening = c ? Number(c.effectiveOpeningBalance ?? (openingBalance + floatTopUps)) : 0;
     const summary = c ? `
       <div class="kpi-row">
-        <div class="kpi"><div class="label">Opening Balance</div><div class="number">${money(getOpeningBalanceForDate(c.staffId, c.date))}</div></div>
+        <div class="kpi"><div class="label">Opening Balance</div><div class="number">${money(openingBalance)}</div></div>
+        <div class="kpi"><div class="label">Float Top-Ups</div><div class="number">${money(floatTopUps)}</div></div>
+        <div class="kpi"><div class="label">Effective Opening Balance</div><div class="number">${money(effectiveOpening)}</div></div>
         <div class="kpi"><div class="label">Credits</div><div class="number">${money(approvedCreditTotalForDate(c.staffId,c.date))}</div></div>
         <div class="kpi"><div class="label">Debits</div><div class="number">${money(approvedDebitTotalForDate(c.staffId,c.date))}</div></div>
+        <div class="kpi"><div class="label">Remaining Balance</div><div class="number ${Number(c.runningFloat||0)<0?'balance-negative':''}">${money(c.runningFloat||0)}</div></div>
         <div class="kpi"><div class="label">Expected Cash</div><div class="number">${money(c.expectedCash)}</div></div>
         <div class="kpi"><div class="label">Actual Cash</div><div class="number">${money(c.actualCash||0)}</div></div>
-        <div class="kpi"><div class="label">Remaining Balance</div><div class="number ${Number(c.runningFloat||0)<0?'balance-negative':''}">${money(c.runningFloat||0)}</div></div><div class="kpi"><div class="label">Variance</div><div class="number ${Number(c.variance||0)<0?'balance-negative':''}">${money(c.variance||0)}</div></div><div class="kpi"><div class="label">Overdraw</div><div class="number ${Number(c.overdraw||0)>0?'balance-negative':''}">${money(c.overdraw||0)}</div></div>
+        <div class="kpi"><div class="label">Variance</div><div class="number ${Number(c.variance||0)<0?'balance-negative':''}">${money(c.variance||0)}</div></div>
+        <div class="kpi"><div class="label">Overdraw</div><div class="number ${Number(c.overdraw||0)>0?'balance-negative':''}">${money(c.overdraw||0)}</div></div>
       </div>
       <div class="note"><strong>Status:</strong> ${c.status || 'balanced'} • <strong>Manager Note:</strong> ${c.resolutionNote || c.note || '—'}</div>` : `<div class="note">No close-of-day record for selected date.</div>`;
     openModal('My Close of Day', `<div class="stack"><div class="action-inline"><div class="inline-field compact"><span>COD Date</span><input type="date" id="myCodDate" value="${state.ui.myCodDate}"></div></div>${summary}</div>`, [{label:'Close', className:'secondary', onClick: closeModal}]);
@@ -1617,44 +1550,74 @@
     if (!cod) return;
     const totalCredits = approvedCreditTotalForDate(cod.staffId, cod.date);
     const totalDebits = approvedDebitTotalForDate(cod.staffId, cod.date);
-    const defaultDebt = Math.max(0, Number(cod.overdraw||0)) + Math.max(0, -(Number(cod.variance||0)));
+    const openingBalance = Number(cod.openingBalance ?? getBaseOpeningBalanceForDate(cod.staffId, cod.date));
+    const floatTopUps = Number(cod.floatTopUps ?? getFloatTopUpsForDate(cod.staffId, cod.date));
+    const effectiveOpening = Number(cod.effectiveOpeningBalance ?? (openingBalance + floatTopUps));
+    const currentLedgerPosition = Number(cod.runningFloat || 0);
+    const defaultAccepted = Number(cod.acceptedPosition ?? currentLedgerPosition);
+    const defaultAdjustment = Number(cod.adjustment ?? (defaultAccepted - currentLedgerPosition));
+    const defaultDebt = Number(cod.debtAmount ?? (Math.max(0, Number(cod.overdraw||0)) + Math.max(0, -(Number(cod.variance||0)))));
     openModal('Resolve Close of Day', `
       <div class="stack">
-        <div class="note">Remaining Balance shows the ledger position after postings. Expected Cash is the physical cash that should remain in hand. Variance compares Actual Cash against Expected Cash. Overdraw shows how much postings exceeded the opening balance.</div>
+        <div class="note">Remaining Balance shows the ledger position after postings. Expected Cash is the physical cash that should remain in hand. Variance compares Actual Cash against Expected Cash. Overdraw shows how much postings exceeded the effective opening balance. Actual Cash is for reconciliation and audit only and never posts directly into balance.</div>
         <div class="kpi-row">
-          <div class="kpi"><div class="label">Opening Balance</div><div class="number">${money(getOpeningBalanceForDate(cod.staffId, cod.date))}</div></div>
+          <div class="kpi"><div class="label">Opening Balance</div><div class="number">${money(openingBalance)}</div></div>
+          <div class="kpi"><div class="label">Float Top-Ups</div><div class="number">${money(floatTopUps)}</div></div>
+          <div class="kpi"><div class="label">Effective Opening Balance</div><div class="number">${money(effectiveOpening)}</div></div>
           <div class="kpi"><div class="label">Total Credits</div><div class="number">${money(totalCredits)}</div></div>
           <div class="kpi"><div class="label">Total Debits</div><div class="number">${money(totalDebits)}</div></div>
-          <div class="kpi"><div class="label">Remaining Balance</div><div class="number ${Number(cod.runningFloat||0)<0?'balance-negative':''}">${money(cod.runningFloat||0)}</div></div>
+          <div class="kpi"><div class="label">Remaining Balance</div><div class="number ${currentLedgerPosition<0?'balance-negative':''}">${money(currentLedgerPosition)}</div></div>
           <div class="kpi"><div class="label">Expected Cash</div><div class="number">${money(cod.expectedCash||0)}</div></div>
           <div class="kpi"><div class="label">Actual Cash</div><div class="number">${money(cod.actualCash||0)}</div></div>
           <div class="kpi"><div class="label">Variance</div><div class="number ${Number(cod.variance||0)<0?'balance-negative':''}">${money(cod.variance||0)}</div></div>
           <div class="kpi"><div class="label">Overdraw</div><div class="number ${Number(cod.overdraw||0)>0?'balance-negative':''}">${money(cod.overdraw||0)}</div></div>
         </div>
         <div class="form-grid two">
-          <div class="field"><label>Resolved Amount</label><input id="codResolvedAmount" class="entry-input" type="number" placeholder="Enter business-resolved amount"></div>
-          <div class="field"><label>Debt Amount</label><input id="codDebtAmount" class="entry-input" type="number" placeholder="Enter teller debt amount"></div>
+          <div class="field"><label>Accepted Position</label><input id="codAcceptedPosition" class="entry-input" type="number" placeholder="Enter accepted ledger position" value="${defaultAccepted}"></div>
+          <div class="field"><label>Adjustment</label><input id="codAdjustment" class="entry-input" type="number" value="${defaultAdjustment}" readonly></div>
         </div>
         <div class="form-grid two">
-          <div class="field"><label>Create Teller Debt</label><select id="codCreateDebt" class="entry-input"><option value="yes">Yes</option><option value="no">No</option></select></div>
-          <div class="field"><label>Resolution Note</label><textarea id="codResolutionNote" class="entry-input"></textarea></div>
+          <div class="field"><label>Debt Amount</label><input id="codDebtAmount" class="entry-input" type="number" placeholder="Enter teller debt amount" value="${defaultDebt}"></div>
+          <div class="field"><label>Create Teller Debt</label><select id="codCreateDebt" class="entry-input"><option value="yes" ${Number(cod.debtAmount||0)>0 ? 'selected' : ''}>Yes</option><option value="no" ${Number(cod.debtAmount||0)<=0 ? 'selected' : ''}>No</option></select></div>
+        </div>
+        <div class="form-grid one">
+          <div class="field"><label>Resolution Note</label><textarea id="codResolutionNote" class="entry-input">${cod.resolutionNote || ''}</textarea></div>
         </div>
       </div>
     `,[
       {label:'Close', className:'secondary', onClick: closeModal},
       {label:'Resolve', onClick: ()=> {
         const note = byId('codResolutionNote').value.trim();
-        const resolvedAmount = Number(byId('codResolvedAmount').value || 0);
+        const acceptedPosition = Number(byId('codAcceptedPosition').value || 0);
+        const adjustment = acceptedPosition - currentLedgerPosition;
         const debtAmt = Math.max(0, Number(byId('codDebtAmount').value || 0));
+        const createDebt = byId('codCreateDebt').value === 'yes';
         if (!note) return showToast('Resolution note required');
         cod.status = 'resolved';
         cod.resolutionNote = note;
         cod.resolvedBy = currentStaff()?.name || 'System';
         cod.resolvedAt = new Date().toISOString();
-        cod.resolvedAmount = resolvedAmount;
-        cod.debtAmount = byId('codCreateDebt').value === 'yes' ? debtAmt : 0;
+        cod.acceptedPosition = acceptedPosition;
+        cod.adjustment = adjustment;
+        cod.debtAmount = createDebt ? debtAmt : 0;
         state.businessExtras ||= [];
-        state.businessExtras.unshift({ date:new Date().toISOString(), accountNumber:'COD', details:`COD resolved for ${cod.staffName}`, kind:'credit', amount:resolvedAmount, balanceAfter:0, receivedOrPaidBy:cod.staffName, postedBy:currentStaff()?.name || 'System' });
+        const existingExtraIndex = state.businessExtras.findIndex(e => e.type === 'cod_adjustment' && e.codId === cod.id);
+        if (existingExtraIndex >= 0) state.businessExtras.splice(existingExtraIndex, 1);
+        if (adjustment !== 0) {
+          state.businessExtras.unshift({
+            id: uid('be'),
+            type: 'cod_adjustment',
+            codId: cod.id,
+            date:new Date().toISOString(),
+            accountNumber:'COD',
+            details:`COD adjustment for ${cod.staffName}`,
+            kind: adjustment > 0 ? 'credit' : 'debit',
+            amount: Math.abs(adjustment),
+            balanceAfter:0,
+            receivedOrPaidBy:cod.staffName,
+            postedBy:currentStaff()?.name || 'System'
+          });
+        }
         const acc = ensureStaffAccount(cod.staffId);
         const existingDebtEntries = (acc.entries||[]).filter(e => e.type === 'cod_resolution_debt' && e.codId === cod.id);
         if (existingDebtEntries.length) {
@@ -1662,13 +1625,24 @@
           acc.entries = (acc.entries||[]).filter(e => !(e.type === 'cod_resolution_debt' && e.codId === cod.id));
           acc.debtBalance = Math.max(0, Number(acc.debtBalance||0) - existingAmt);
         }
-        if (byId('codCreateDebt').value === 'yes' && debtAmt > 0) {
+        if (createDebt && debtAmt > 0) {
           acc.debtBalance = Number(acc.debtBalance||0) + debtAmt;
           addStaffEntry(cod.staffId, 'cod_resolution_debt', debtAmt, 0, `COD debt recorded: ${note}`, { codId: cod.id });
         }
+        recalcStaffBalance(cod.staffId);
         save(); closeModal(); render(); showToast('COD resolved');
       }}
     ]);
+    const acceptedInput = byId('codAcceptedPosition');
+    const adjustmentInput = byId('codAdjustment');
+    if (acceptedInput && adjustmentInput) {
+      const syncAdjustment = () => {
+        const acceptedPosition = Number(acceptedInput.value || 0);
+        adjustmentInput.value = String(acceptedPosition - currentLedgerPosition);
+      };
+      acceptedInput.oninput = syncAdjustment;
+      syncAdjustment();
+    }
   }
 
   function flattenBusinessEntries() {
@@ -1678,12 +1652,18 @@
       details: t.details,
       kind: t.type,
       amount: t.amount,
-      balanceAfter: t.balanceAfter,
       receivedOrPaidBy: t.receivedOrPaidBy,
       postedBy: t.postedBy || t.postedById || ''
     }));
     const extras = (state.businessExtras || []).map(e => ({...e, accountNumber: e.accountNumber || 'STAFF'}));
-    return [...txRows, ...extras].sort((a,b)=>new Date(b.date)-new Date(a.date));
+    const combined = [...txRows, ...extras].sort((a,b)=>new Date(a.date)-new Date(b.date));
+    let bal = 0;
+    combined.forEach(entry => {
+      if (entry.kind === 'credit') bal += Number(entry.amount || 0);
+      if (entry.kind === 'debit') bal -= Number(entry.amount || 0);
+      entry.balanceAfter = bal;
+    });
+    return combined.sort((a,b)=>new Date(b.date)-new Date(a.date));
   }
 
   function renderBalanceFilters(kind) {
