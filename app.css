@@ -3577,3 +3577,64 @@ body[data-theme="ducess-sheet"] .workspace-card .tool-tabs:not(.approvals-sectio
     margin-left:0 !important;
   }
 }
+
+/* Credit/Debit final micro-fix: match Check Balance account width and restore Amount label */
+@media (min-width: 761px){
+  .journal-sheet .redesigned-journal-grid{
+    grid-template-columns:190px 82px 150px 190px !important;
+    gap:10px 12px !important;
+  }
+
+  .journal-sheet #txAcc{
+    width:82px !important;
+    max-width:82px !important;
+    min-width:82px !important;
+  }
+
+  .journal-sheet #txSearch{
+    width:150px !important;
+    max-width:150px !important;
+  }
+
+  .journal-sheet #txJournalAdd{
+    width:190px !important;
+    max-width:190px !important;
+    margin-left:-4px !important;
+  }
+
+  .journal-sheet #txBalance{
+    width:140px !important;
+    max-width:140px !important;
+    min-width:140px !important;
+  }
+
+  .journal-sheet .sheet-label.inline-label{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:flex-start !important;
+    justify-self:start !important;
+    width:auto !important;
+    min-width:max-content !important;
+    text-align:left !important;
+    white-space:nowrap !important;
+    overflow:visible !important;
+    color:var(--text) !important;
+    opacity:1 !important;
+    visibility:visible !important;
+    padding:0 !important;
+    margin-left:-22px !important;
+    position:relative !important;
+    z-index:2 !important;
+  }
+
+  .journal-sheet .amount-post-wrap{
+    grid-template-columns:150px 110px !important;
+    gap:8px !important;
+    margin-left:-34px !important;
+  }
+
+  .journal-sheet #txAmount{
+    width:150px !important;
+    max-width:150px !important;
+  }
+}
