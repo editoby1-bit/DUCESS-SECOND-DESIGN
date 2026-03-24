@@ -1674,7 +1674,7 @@
           <div class="kpi"><div class="label">Overdraw</div><div class="number ${Number(cod.overdraw||0)>0?'balance-negative':''}">${money(cod.overdraw||0)}</div></div>
         </div>
         <div class="form-grid two cod-resolution-grid">
-          <div class="field"><label>Accepted Position</label><input id="codAcceptedPosition" class="entry-input" type="number" placeholder="Enter accepted ledger position" value="${cod.acceptedPosition ?? currentLedgerPosition}"></div>
+          <div class="field"><label>Final Agreed Amount</label><input id="codAcceptedPosition" class="entry-input" type="number" placeholder="Enter final agreed ledger position" value="${cod.acceptedPosition ?? currentLedgerPosition}"></div>
           <div class="field"><label>Adjustment</label><input id="codAdjustment" class="entry-input" type="number" value="${cod.adjustment ?? 0}" readonly></div>
         </div>
         <div class="form-grid two cod-resolution-grid">
