@@ -3665,3 +3665,22 @@ body[data-theme="ducess-sheet"] .workspace-card .tool-tabs:not(.approvals-sectio
 .journal-sheet .redesigned-journal-grid > :nth-child(11)::before{
   content:none !important;
 }
+
+
+/* Final amount-label restore patch */
+.journal-sheet .redesigned-journal-grid > :nth-child(11),
+.journal-sheet .redesigned-journal-grid > :nth-child(11) span{
+  color:var(--text) !important;
+  opacity:1 !important;
+  visibility:visible !important;
+  display:flex !important;
+  align-items:center !important;
+}
+body[data-theme="dark-slate"] .journal-sheet .redesigned-journal-grid > :nth-child(11),
+body[data-theme="dark-slate"] .journal-sheet .redesigned-journal-grid > :nth-child(11) span{
+  color:#eef5ff !important;
+}
+body[data-theme="ducess-sheet"] .journal-sheet .redesigned-journal-grid > :nth-child(11),
+body[data-theme="ducess-sheet"] .journal-sheet .redesigned-journal-grid > :nth-child(11) span{
+  color:#31120d !important;
+}
