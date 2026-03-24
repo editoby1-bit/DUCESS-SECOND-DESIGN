@@ -3502,3 +3502,21 @@ body[data-theme="ducess-sheet"] .workspace-card .tool-tabs:not(.approvals-sectio
     padding:0 !important;
   }
 }
+
+/* Final micro-spacing patch: desktop only */
+.journal-sheet #txJournalAdd{
+  margin-left:-18px !important;
+}
+
+.journal-sheet .redesigned-journal-grid > :nth-child(11),
+.journal-sheet .redesigned-journal-grid > :nth-child(12){
+  margin-left:-18px !important;
+}
+
+@media (max-width: 760px){
+  .journal-sheet #txJournalAdd,
+  .journal-sheet .redesigned-journal-grid > :nth-child(11),
+  .journal-sheet .redesigned-journal-grid > :nth-child(12){
+    margin-left:0 !important;
+  }
+}
