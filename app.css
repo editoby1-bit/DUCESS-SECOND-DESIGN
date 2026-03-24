@@ -3458,3 +3458,47 @@ body[data-theme="ducess-sheet"] .workspace-card .tool-tabs:not(.approvals-sectio
     min-width:0 !important;
   }
 }
+
+/* Final surgical credit/debit spacing patch */
+.journal-sheet .redesigned-journal-grid{
+  grid-template-columns:190px 120px 185px 225px !important;
+  gap:10px 18px !important;
+}
+
+.journal-sheet #txJournalAdd{
+  margin-left:-6px !important;
+}
+
+.journal-sheet .sheet-label.inline-label{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-end !important;
+  justify-self:stretch !important;
+  width:100% !important;
+  min-width:max-content !important;
+  text-align:right !important;
+  white-space:nowrap !important;
+  overflow:visible !important;
+  padding:0 10px 0 0 !important;
+}
+
+.journal-sheet .amount-post-wrap{
+  grid-template-columns:185px 110px !important;
+  gap:18px !important;
+}
+
+@media (max-width: 760px){
+  .journal-sheet #txJournalAdd{
+    margin-left:0 !important;
+  }
+
+  .journal-sheet .sheet-label.inline-label{
+    justify-content:flex-start !important;
+    justify-self:stretch !important;
+    width:100% !important;
+    min-width:0 !important;
+    text-align:left !important;
+    white-space:normal !important;
+    padding:0 !important;
+  }
+}
