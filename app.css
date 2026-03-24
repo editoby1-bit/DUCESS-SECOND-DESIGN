@@ -4409,3 +4409,17 @@ body[data-theme="ducess-sheet"] .journal-sheet .forced-amount-label{
     margin:0 !important;
   }
 }
+
+
+@media (max-width: 640px){
+  #modalBack .modal[data-modal-title="Resolve Close of Day"] .modal-actions{
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+    gap:10px !important;
+    align-items:stretch !important;
+  }
+
+  #modalBack .modal[data-modal-title="Resolve Close of Day"] .modal-actions button{
+    width:100% !important;
+  }
+}

@@ -256,6 +256,8 @@
 
   function openModal(title, bodyHtml, actions=[]) {
     byId('modalTitle').textContent = title;
+    const modalEl = document.querySelector('#modalBack .modal');
+    if (modalEl) modalEl.setAttribute('data-modal-title', title);
     byId('modalBody').innerHTML = bodyHtml;
     const box = byId('modalActions');
     box.innerHTML = '';
@@ -268,7 +270,11 @@
     });
     byId('modalBack').classList.remove('hidden');
   }
-  function closeModal() { byId('modalBack').classList.add('hidden'); }
+  function closeModal() {
+    byId('modalBack').classList.add('hidden');
+    const modalEl = document.querySelector('#modalBack .modal');
+    if (modalEl) modalEl.removeAttribute('data-modal-title');
+  }
 
   function fmtDate(iso) {
     const d = new Date(iso);
