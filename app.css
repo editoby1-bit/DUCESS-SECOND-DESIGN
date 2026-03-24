@@ -3711,3 +3711,34 @@ body[data-theme="ducess-sheet"] .journal-sheet .amount-inline-label{
     padding:0 !important;
   }
 }
+
+
+/* Forced restore: show Amount label inside the amount/post row without touching other UI */
+.journal-sheet .amount-post-wrap{
+  grid-template-columns:auto minmax(120px,150px) 110px !important;
+}
+.journal-sheet .forced-amount-label{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-start !important;
+  white-space:nowrap !important;
+  color:var(--text) !important;
+  opacity:1 !important;
+  visibility:visible !important;
+  font:inherit !important;
+}
+body[data-theme="dark-slate"] .journal-sheet .forced-amount-label{
+  color:#eef5ff !important;
+}
+body[data-theme="ducess-sheet"] .journal-sheet .forced-amount-label{
+  color:#31120d !important;
+}
+@media (max-width: 760px){
+  .journal-sheet .amount-post-wrap{
+    grid-template-columns:1fr !important;
+  }
+  .journal-sheet .forced-amount-label{
+    display:block !important;
+    margin-bottom:6px !important;
+  }
+}
