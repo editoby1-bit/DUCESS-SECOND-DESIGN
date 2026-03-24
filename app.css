@@ -3684,3 +3684,30 @@ body[data-theme="ducess-sheet"] .journal-sheet .redesigned-journal-grid > :nth-c
 body[data-theme="ducess-sheet"] .journal-sheet .redesigned-journal-grid > :nth-child(11) span{
   color:#31120d !important;
 }
+
+
+/* Surgical fix: restore Amount label in Credit/Debit without altering layout */
+.journal-sheet .amount-inline-label{
+  color:var(--text) !important;
+  opacity:1 !important;
+  visibility:visible !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-end !important;
+  white-space:nowrap !important;
+  font-size:16px !important;
+  line-height:1.2 !important;
+}
+body[data-theme="dark-slate"] .journal-sheet .amount-inline-label{
+  color:#eef5ff !important;
+}
+body[data-theme="ducess-sheet"] .journal-sheet .amount-inline-label{
+  color:#31120d !important;
+}
+@media (max-width: 760px){
+  .journal-sheet .amount-inline-label{
+    justify-content:flex-start !important;
+    width:100% !important;
+    padding:0 !important;
+  }
+}

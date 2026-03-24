@@ -814,7 +814,7 @@
 
             <div class="sheet-label">Available Balance</div>
             <div class="display-field value-short" id="txBalance">—</div>
-            <div class="sheet-label inline-label"><span>Amount</span></div>
+            <div class="sheet-label inline-label amount-inline-label">Amount</div>
             <div class="amount-post-wrap">
               <input id="txAmount" class="entry-input sheet-input medium-amt" type="number" />
               <button id="txPostSingle" class="sheet-btn secondary">Post</button>
