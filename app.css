@@ -3520,3 +3520,60 @@ body[data-theme="ducess-sheet"] .workspace-card .tool-tabs:not(.approvals-sectio
     margin-left:0 !important;
   }
 }
+
+/* Ultra-surgical credit/debit spacing correction */
+@media (min-width: 761px){
+  .journal-sheet .redesigned-journal-grid{
+    grid-template-columns:190px 58px 150px 190px !important;
+    gap:10px 10px !important;
+  }
+
+  .journal-sheet #txAcc{
+    width:58px !important;
+    max-width:58px !important;
+    min-width:58px !important;
+  }
+
+  .journal-sheet #txSearch{
+    width:150px !important;
+    max-width:150px !important;
+  }
+
+  .journal-sheet #txJournalAdd{
+    width:190px !important;
+    max-width:190px !important;
+    margin-left:0 !important;
+  }
+
+  .journal-sheet #txBalance{
+    width:140px !important;
+    max-width:140px !important;
+    min-width:140px !important;
+  }
+
+  .journal-sheet .sheet-label.inline-label{
+    width:auto !important;
+    min-width:0 !important;
+    justify-self:start !important;
+    justify-content:flex-start !important;
+    text-align:left !important;
+    padding:0 !important;
+    margin-left:-8px !important;
+  }
+
+  .journal-sheet .amount-post-wrap{
+    grid-template-columns:150px 110px !important;
+    gap:12px !important;
+    margin-left:-22px !important;
+  }
+
+  .journal-sheet #txAmount{
+    width:150px !important;
+    max-width:150px !important;
+  }
+
+  .journal-sheet .redesigned-journal-grid > :nth-child(11),
+  .journal-sheet .redesigned-journal-grid > :nth-child(12){
+    margin-left:0 !important;
+  }
+}
