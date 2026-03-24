@@ -4058,3 +4058,29 @@ body[data-theme="ducess-sheet"] .journal-sheet .forced-amount-label{
     max-width:110px !important;
   }
 }
+
+/* Desktop-only final surgical patch: fully reveal Amount in Credit/Debit without touching other UI */
+@media (min-width: 761px){
+  .journal-sheet .redesigned-journal-grid > :nth-child(12){
+    margin-left:26px !important;
+  }
+
+  .journal-sheet .amount-post-wrap{
+    display:grid !important;
+    grid-template-columns:72px 150px 110px !important;
+    gap:12px !important;
+    align-items:center !important;
+    justify-content:start !important;
+    width:auto !important;
+    max-width:none !important;
+  }
+
+  .journal-sheet .forced-amount-label{
+    width:72px !important;
+    min-width:72px !important;
+    max-width:72px !important;
+    margin:0 !important;
+    white-space:nowrap !important;
+    overflow:visible !important;
+  }
+}
