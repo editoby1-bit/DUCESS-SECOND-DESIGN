@@ -3742,3 +3742,111 @@ body[data-theme="ducess-sheet"] .journal-sheet .forced-amount-label{
     margin-bottom:6px !important;
   }
 }
+
+/* Final polish patch: tighten Available Balance to Amount, match Amount/Post spacing,
+   extend Account Name slightly, and keep Amount visible on mobile. */
+@media (min-width: 761px){
+  .journal-sheet .redesigned-journal-grid{
+    grid-template-columns:190px 140px 150px 190px !important;
+    gap:10px 12px !important;
+  }
+
+  .journal-sheet #txAcc{
+    width:82px !important;
+    max-width:82px !important;
+    min-width:82px !important;
+  }
+
+  .journal-sheet #txSearch{
+    width:150px !important;
+    max-width:150px !important;
+  }
+
+  .journal-sheet #txJournalAdd{
+    width:190px !important;
+    max-width:190px !important;
+    margin-left:0 !important;
+  }
+
+  .journal-sheet #txName{
+    grid-column:2 / 5 !important;
+    width:100% !important;
+    max-width:none !important;
+  }
+
+  .journal-sheet #txBalance{
+    width:140px !important;
+    max-width:140px !important;
+    min-width:140px !important;
+  }
+
+  .journal-sheet .amount-inline-label{
+    display:none !important;
+  }
+
+  .journal-sheet .amount-post-wrap{
+    grid-column:3 / 5 !important;
+    display:grid !important;
+    grid-template-columns:auto 150px 110px !important;
+    gap:12px !important;
+    align-items:center !important;
+    justify-content:start !important;
+    margin-left:0 !important;
+    width:auto !important;
+    max-width:none !important;
+  }
+
+  .journal-sheet .forced-amount-label{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:flex-start !important;
+    white-space:nowrap !important;
+    margin:0 !important;
+    color:var(--text) !important;
+    opacity:1 !important;
+    visibility:visible !important;
+  }
+
+  .journal-sheet #txAmount{
+    width:150px !important;
+    max-width:150px !important;
+  }
+
+  .journal-sheet #txPostSingle{
+    width:110px !important;
+    max-width:110px !important;
+    margin-left:0 !important;
+  }
+}
+
+@media (max-width: 760px){
+  .journal-sheet .amount-inline-label{
+    display:none !important;
+  }
+
+  .journal-sheet .amount-post-wrap{
+    grid-column:1 / -1 !important;
+    display:grid !important;
+    grid-template-columns:1fr 1fr !important;
+    gap:12px !important;
+    width:100% !important;
+    margin-left:0 !important;
+  }
+
+  .journal-sheet .forced-amount-label{
+    grid-column:1 / -1 !important;
+    display:block !important;
+    margin:0 0 6px 0 !important;
+    color:var(--text) !important;
+    opacity:1 !important;
+    visibility:visible !important;
+    white-space:nowrap !important;
+  }
+
+  .journal-sheet #txAmount,
+  .journal-sheet #txPostSingle{
+    width:100% !important;
+    max-width:none !important;
+    min-width:0 !important;
+  }
+}
