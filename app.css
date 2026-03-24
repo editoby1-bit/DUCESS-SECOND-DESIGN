@@ -4130,6 +4130,7 @@ body[data-theme="ducess-sheet"] .journal-sheet .forced-amount-label{
   }
 }
 
+<<<<<<< HEAD
 /* Desktop micro-fix v9: separate Amount label from input and shift only that row slightly right */
 @media (min-width: 761px){
   .journal-sheet .forced-amount-label{
@@ -4177,3 +4178,108 @@ body[data-theme="ducess-sheet"] .journal-sheet .forced-amount-label{
     margin:0 !important;
   }
 }
+
+
+/* FINAL FORCEFUL PATCH: desktop Credit/Debit amount row only */
+@media (min-width: 761px){
+  .journal-sheet .forced-amount-label{display:none !important;}
+  .journal-sheet .redesigned-journal-grid > :nth-child(11){
+    display:flex !important;
+    align-items:center !important;
+    justify-content:flex-start !important;
+    grid-column:3 !important;
+    grid-row:3 !important;
+    width:96px !important;
+    min-width:96px !important;
+    max-width:96px !important;
+    margin:0 0 0 34px !important;
+    padding:0 !important;
+    white-space:nowrap !important;
+    overflow:visible !important;
+    text-align:left !important;
+  }
+  .journal-sheet .redesigned-journal-grid > :nth-child(12){
+    grid-column:4 !important;
+    grid-row:3 !important;
+    margin:0 0 0 18px !important;
+    justify-self:start !important;
+  }
+  .journal-sheet .amount-post-wrap{
+    display:grid !important;
+    grid-template-columns:160px 110px !important;
+    gap:12px !important;
+    align-items:center !important;
+    justify-content:start !important;
+    width:auto !important;
+    max-width:none !important;
+    margin:0 !important;
+  }
+  .journal-sheet #txAmount{
+    width:160px !important;
+    min-width:160px !important;
+    max-width:160px !important;
+    margin:0 !important;
+  }
+  .journal-sheet #txPostSingle{
+    width:110px !important;
+    min-width:110px !important;
+    max-width:110px !important;
+    margin:0 !important;
+  }
+}
+
+@media (max-width: 760px){
+  .journal-sheet .forced-amount-label{display:none !important;}
+  .journal-sheet .amount-inline-label{display:block !important;}
+}
+
+=======
+/* Desktop micro-fix v9: separate Amount label from input and shift only that row slightly right */
+@media (min-width: 761px){
+  .journal-sheet .forced-amount-label{
+    display:none !important;
+  }
+
+  .journal-sheet .redesigned-journal-grid > :nth-child(11){
+    display:flex !important;
+    align-items:center !important;
+    justify-content:flex-start !important;
+    width:86px !important;
+    min-width:86px !important;
+    max-width:86px !important;
+    margin-left:24px !important;
+    margin-right:0 !important;
+    white-space:nowrap !important;
+    overflow:visible !important;
+  }
+
+  .journal-sheet .redesigned-journal-grid > :nth-child(12){
+    margin-left:30px !important;
+  }
+
+  .journal-sheet .amount-post-wrap{
+    display:grid !important;
+    grid-template-columns:150px 110px !important;
+    gap:16px !important;
+    align-items:center !important;
+    justify-content:start !important;
+    width:auto !important;
+    max-width:none !important;
+  }
+
+  .journal-sheet #txAmount{
+    width:150px !important;
+    min-width:150px !important;
+    max-width:150px !important;
+    margin:0 !important;
+  }
+
+  .journal-sheet #txPostSingle{
+    width:110px !important;
+    min-width:110px !important;
+    max-width:110px !important;
+    margin:0 !important;
+  }
+}
+
+>>>>>>> ffc8ab6c627c4030b9a6defa1c8f99bcbcfea5c9
