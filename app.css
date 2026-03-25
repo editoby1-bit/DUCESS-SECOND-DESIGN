@@ -4423,3 +4423,27 @@ body[data-theme="ducess-sheet"] .journal-sheet .forced-amount-label{
     width:100% !important;
   }
 }
+
+
+/* COD UI micro-width patch: slightly widen central COD modal and give Actual Cash/Note a little more room */
+#modalBack .modal[data-modal-title="Central Close of Day"]{
+  width:min(1035px, 100%);
+}
+
+#modalBack .modal[data-modal-title="Central Close of Day"] .table th:nth-child(9),
+#modalBack .modal[data-modal-title="Central Close of Day"] .table td:nth-child(9){
+  min-width:96px;
+}
+
+#modalBack .modal[data-modal-title="Central Close of Day"] .table th:nth-child(12),
+#modalBack .modal[data-modal-title="Central Close of Day"] .table td:nth-child(12){
+  min-width:106px;
+}
+
+#modalBack .modal[data-modal-title="Central Close of Day"] [data-cod-actual]{
+  min-width:96px;
+}
+
+#modalBack .modal[data-modal-title="Central Close of Day"] [data-cod-note]{
+  min-width:106px;
+}
