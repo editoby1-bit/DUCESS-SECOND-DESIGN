@@ -4459,50 +4459,29 @@ body[data-theme="ducess-sheet"] .journal-sheet .forced-amount-label{
   }
 }
 
-/* Central COD desktop note stability patch: keep modal anchored and prevent note typing from dragging the whole table sideways */
-@media (min-width: 901px){
-  #modalBack .modal[data-modal-title="Central Close of Day"]{
-    width:min(1090px, 100%) !important;
-    max-width:min(1090px, 100%) !important;
-    overflow-x:hidden !important;
-  }
 
-  #modalBack .modal[data-modal-title="Central Close of Day"] .modal-body{
+/* COD mobile note field stabilization: keep mobile layout intact while making NOTE usable */
+@media (max-width: 640px){
+  #modalBack .modal[data-modal-title="Central Close of Day"]{
     overflow-x:hidden !important;
   }
 
   #modalBack .modal[data-modal-title="Central Close of Day"] .table-wrap{
-    overflow-x:hidden !important;
-    max-width:100% !important;
+    overflow-x:auto !important;
+    overflow-y:hidden !important;
+    -webkit-overflow-scrolling:touch;
   }
-
-  #modalBack .modal[data-modal-title="Central Close of Day"] .table{
-    width:100% !important;
-    min-width:0 !important;
-    table-layout:fixed !important;
-  }
-
-  #modalBack .modal[data-modal-title="Central Close of Day"] .table th,
-  #modalBack .modal[data-modal-title="Central Close of Day"] .table td{
-    padding-left:8px !important;
-    padding-right:8px !important;
-    overflow:hidden;
-  }
-
-  #modalBack .modal[data-modal-title="Central Close of Day"] .table th:nth-child(1),
-  #modalBack .modal[data-modal-title="Central Close of Day"] .table td:nth-child(1){ width:11% !important; }
-
-  #modalBack .modal[data-modal-title="Central Close of Day"] .table th:nth-child(9),
-  #modalBack .modal[data-modal-title="Central Close of Day"] .table td:nth-child(9){ width:11% !important; }
 
   #modalBack .modal[data-modal-title="Central Close of Day"] .table th:nth-child(12),
-  #modalBack .modal[data-modal-title="Central Close of Day"] .table td:nth-child(12){ width:12% !important; }
+  #modalBack .modal[data-modal-title="Central Close of Day"] .table td:nth-child(12){
+    min-width:92px !important;
+  }
 
-  #modalBack .modal[data-modal-title="Central Close of Day"] [data-cod-actual],
   #modalBack .modal[data-modal-title="Central Close of Day"] [data-cod-note]{
-    display:block !important;
-    width:100% !important;
-    min-width:0 !important;
-    max-width:100% !important;
+    display:block;
+    width:92px !important;
+    min-width:92px !important;
+    max-width:92px !important;
+    box-sizing:border-box;
   }
 }
