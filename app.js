@@ -1437,17 +1437,18 @@
       const effectiveOpening = opening + topups;
       const credits = approvedCreditTotalForDate(st.id, businessDate());
       const debits = approvedDebitTotalForDate(st.id, businessDate());
+      const netBook = credits - debits;
       const running = currentFloatAvailable(st.id, businessDate());
-      const expected = Math.max(0, running);
+      const expected = running;
       const overdraw = currentFloatOverdraw(st.id, businessDate());
-      return `<tr><td>${st.name}</td><td>${money(opening)}</td><td>${money(topups)}</td><td>${money(effectiveOpening)}</td><td>${money(credits)}</td><td>${money(debits)}</td><td class="${running<0?'balance-negative':''}">${money(running)}</td><td>${money(expected)}</td><td><input class="entry-input" data-cod-actual="${st.id}" type="number" placeholder="Enter actual cash"></td><td data-cod-variance-display="${st.id}">${money(0)}</td><td class="${overdraw>0?'balance-negative':''}">${money(overdraw)}</td><td><input class="entry-input" data-cod-note="${st.id}"></td></tr>`;
+      return `<tr><td>${st.name}</td><td>${money(opening)}</td><td>${money(topups)}</td><td>${money(effectiveOpening)}</td><td>${money(credits)}</td><td>${money(debits)}</td><td>${money(netBook)}</td><td class="${running<0?'balance-negative':''}">${money(running)}</td><td>${money(expected)}</td><td><input class="entry-input" data-cod-actual="${st.id}" type="number" placeholder="Enter actual cash"></td><td data-cod-variance-display="${st.id}">${money(0)}</td><td class="${overdraw>0?'balance-negative':''}">${money(overdraw)}</td><td><input class="entry-input" data-cod-note="${st.id}"></td></tr>`;
     }).join('');
-    openModal('Central Close of Day', `<div class="stack"><div class="note">You are closing business date <strong>${businessDate()}</strong>. Closing opens the next business date immediately.</div><div class="note">Expected Cash is the cash that should physically remain after postings. Remaining Balance shows the ledger position. Actual Cash is recorded for reconciliation and audit only. Variance compares Actual Cash against Expected Cash. Overdraw shows how much Remaining Balance fell below zero.</div><div class="table-wrap"><table class="table"><thead><tr><th>Staff</th><th>Opening Balance</th><th>Float Top-Ups</th><th>Effective Opening Balance</th><th>Total Credits</th><th>Total Debits</th><th>Remaining Balance</th><th>Expected Cash</th><th>Actual Cash</th><th>Variance</th><th>Overdraw</th><th>Note</th></tr></thead><tbody>${rows}</tbody></table></div></div>`, [{label:'Cancel', className:'secondary', onClick: closeModal}, {label:'Close Business Day', onClick: ()=> { postingStaff.forEach(st => { const opening=openingBalanceOnlyForDate(st.id,businessDate()); const topups=floatTopUpsForDate(st.id,businessDate()); const effectiveOpening=opening+topups; const credits=approvedCreditTotalForDate(st.id,businessDate()); const debits=approvedDebitTotalForDate(st.id,businessDate()); const running=currentFloatAvailable(st.id,businessDate()); const expected=Math.max(0,running); const actual=Number(q(`[data-cod-actual="${st.id}"]`)?.value||0); const note=q(`[data-cod-note="${st.id}"]`)?.value?.trim()||''; const variance=actual-expected; state.cod.unshift({id:uid('cod'), staffId:st.id, staffName:st.name, date:businessDate(), openingBalance:opening, floatTopUps:topups, effectiveOpeningBalance:effectiveOpening, totalCredits:credits, totalDebits:debits, actualCash:actual, expectedCash:expected, runningFloat:running, variance, overdraw:Math.max(0,-running), note, fieldPapers:[], status: variance===0 && Math.max(0,-running)===0 ? 'balanced':'flagged', approvedAt:new Date().toISOString(), approvedBy:currentStaff()?.name||''}); }); state.dayClosures.push({date:businessDate(), closedAt:new Date().toISOString(), closedBy:currentStaff()?.name||''}); state.businessDate = nextDate(businessDate()); save(); closeModal(); render(); showToast(`Business day closed. New open date: ${state.businessDate}`); }}]);
+    openModal('Central Close of Day', `<div class="stack"><div class="note">You are closing business date <strong>${businessDate()}</strong>. Closing opens the next business date immediately.</div><div class="note">Net Book Balance (System) = Total Credits - Total Debits. Remaining Balance (Cash in Hand) = Opening Balance + Float Top-Ups - Total Credits - Total Debits. Expected Cash follows Remaining Balance. Actual Cash is recorded for reconciliation and audit only and never posts directly into balance.</div><div class="table-wrap"><table class="table"><thead><tr><th>Staff</th><th>Opening Balance</th><th>Float Top-Ups</th><th>Effective Opening Balance</th><th>Total Credits</th><th>Total Debits</th><th>Net Book Balance</th><th>Remaining Balance</th><th>Expected Cash</th><th>Actual Cash</th><th>Variance</th><th>Overdraw</th><th>Note</th></tr></thead><tbody>${rows}</tbody></table></div></div>`, [{label:'Cancel', className:'secondary', onClick: closeModal}, {label:'Close Business Day', onClick: ()=> { postingStaff.forEach(st => { const opening=openingBalanceOnlyForDate(st.id,businessDate()); const topups=floatTopUpsForDate(st.id,businessDate()); const effectiveOpening=opening+topups; const credits=approvedCreditTotalForDate(st.id,businessDate()); const debits=approvedDebitTotalForDate(st.id,businessDate()); const netBook=credits-debits; const running=currentFloatAvailable(st.id,businessDate()); const expected=running; const actual=Number(q(`[data-cod-actual="${st.id}"]`)?.value||0); const note=q(`[data-cod-note="${st.id}"]`)?.value?.trim()||''; const variance=actual-expected; state.cod.unshift({id:uid('cod'), staffId:st.id, staffName:st.name, date:businessDate(), openingBalance:opening, floatTopUps:topups, effectiveOpeningBalance:effectiveOpening, totalCredits:credits, totalDebits:debits, netBookBalance:netBook, actualCash:actual, expectedCash:expected, runningFloat:running, remainingBalance:running, variance, overdraw:Math.max(0,-running), note, fieldPapers:[], status: variance===0 && Math.max(0,-running)===0 ? 'balanced':'flagged', approvedAt:new Date().toISOString(), approvedBy:currentStaff()?.name||''}); }); state.dayClosures.push({date:businessDate(), closedAt:new Date().toISOString(), closedBy:currentStaff()?.name||''}); state.businessDate = nextDate(businessDate()); save(); closeModal(); render(); showToast(`Business day closed. New open date: ${state.businessDate}`); }}]);
     postingStaff.forEach(st => {
       const input = q(`[data-cod-actual="${st.id}"]`);
       const varianceCell = q(`[data-cod-variance-display="${st.id}"]`);
       if (!input || !varianceCell) return;
-      const expected = Math.max(0, currentFloatAvailable(st.id, businessDate()));
+      const expected = currentFloatAvailable(st.id, businessDate());
       const updateVariance = () => {
         const variance = Number(input.value || 0) - expected;
         varianceCell.textContent = money(variance);
@@ -1629,6 +1630,8 @@
     state.ui.myCodDate = selectedDate || state.ui.myCodDate || businessDate();
     const st = currentStaff();
     const c = staffCODRecords((st||{}).id).find(x => x.date === state.ui.myCodDate);
+    const netBook = c ? Number(c.netBookBalance ?? ((c.totalCredits ?? approvedCreditTotalForDate(c.staffId,c.date)) - (c.totalDebits ?? approvedDebitTotalForDate(c.staffId,c.date)))) : 0;
+    const remainingBalance = c ? Number(c.remainingBalance ?? c.runningFloat ?? 0) : 0;
     const summary = c ? `
       <div class="kpi-row">
         <div class="kpi"><div class="label">Opening Balance</div><div class="number">${money(c.openingBalance ?? openingBalanceOnlyForDate(c.staffId, c.date))}</div></div>
@@ -1636,12 +1639,14 @@
         <div class="kpi"><div class="label">Effective Opening Balance</div><div class="number">${money(c.effectiveOpeningBalance ?? getOpeningBalanceForDate(c.staffId, c.date))}</div></div>
         <div class="kpi"><div class="label">Total Credits</div><div class="number">${money(c.totalCredits ?? approvedCreditTotalForDate(c.staffId,c.date))}</div></div>
         <div class="kpi"><div class="label">Total Debits</div><div class="number">${money(c.totalDebits ?? approvedDebitTotalForDate(c.staffId,c.date))}</div></div>
-        <div class="kpi"><div class="label">Remaining Balance</div><div class="number ${Number(c.runningFloat||0)<0?'balance-negative':''}">${money(c.runningFloat||0)}</div></div>
+        <div class="kpi"><div class="label">Net Book Balance</div><div class="number ${netBook<0?'balance-negative':''}">${money(netBook)}</div></div>
+        <div class="kpi"><div class="label">Remaining Balance</div><div class="number ${remainingBalance<0?'balance-negative':''}">${money(remainingBalance)}</div></div>
         <div class="kpi"><div class="label">Expected Cash</div><div class="number">${money(c.expectedCash)}</div></div>
         <div class="kpi"><div class="label">Actual Cash</div><div class="number">${money(c.actualCash||0)}</div></div>
         <div class="kpi"><div class="label">Variance</div><div class="number ${Number(c.variance||0)<0?'balance-negative':''}">${money(c.variance||0)}</div></div>
         <div class="kpi"><div class="label">Overdraw</div><div class="number ${Number(c.overdraw||0)>0?'balance-negative':''}">${money(c.overdraw||0)}</div></div>
       </div>
+      <div class="note">Net Book Balance (System) = Total Credits - Total Debits. Remaining Balance (Cash in Hand) = Opening Balance + Float Top-Ups - Total Credits - Total Debits.</div>
       <div class="note"><strong>Status:</strong> ${c.status || 'balanced'} • <strong>Manager Note:</strong> ${c.resolutionNote || c.note || '—'}</div>` : `<div class="note">No close-of-day record for selected date.</div>`;
     openModal('My Close of Day', `<div class="stack"><div class="action-inline"><div class="inline-field compact"><span>COD Date</span><input type="date" id="myCodDate" value="${state.ui.myCodDate}"></div></div>${summary}</div>`, [{label:'Close', className:'secondary', onClick: closeModal}]);
     const picker = byId('myCodDate');
@@ -1656,31 +1661,32 @@
     const effectiveOpening = cod.effectiveOpeningBalance ?? (opening + topups);
     const totalCredits = cod.totalCredits ?? approvedCreditTotalForDate(cod.staffId, cod.date);
     const totalDebits = cod.totalDebits ?? approvedDebitTotalForDate(cod.staffId, cod.date);
-    const currentLedgerPosition = Number(cod.runningFloat || 0);
+    const currentNetBookBalance = Number(cod.netBookBalance ?? (totalCredits - totalDebits));
+    const currentRemainingBalance = Number(cod.remainingBalance ?? cod.runningFloat ?? ((opening + topups) - totalCredits - totalDebits));
     const defaultDebt = Math.max(0, Number(cod.overdraw||0)) + Math.max(0, -(Number(cod.variance||0)));
     const isAdminOfficer = currentStaff()?.role === 'admin_officer';
-    const savedAcceptedPosition = Number(cod.acceptedPosition ?? currentLedgerPosition);
-    const savedAdjustment = Number(cod.adjustment ?? (savedAcceptedPosition - currentLedgerPosition));
+    const savedAcceptedPosition = Number(cod.acceptedPosition ?? currentNetBookBalance);
+    const savedAdjustment = Number(cod.adjustment ?? (savedAcceptedPosition - currentNetBookBalance));
     const savedCreateDebt = cod.createDebt ?? ((cod.debtAmount || 0) > 0);
     const savedResolutionType = cod.resolutionType || (savedCreateDebt ? 'staff_debt' : 'balanced');
     openModal('Resolve Close of Day', `
       <div class="stack">
-        <div class="note">Remaining Balance shows the ledger position after postings. Expected Cash is the physical cash that should remain in hand. Actual Cash is recorded for reconciliation and audit only. Variance compares Actual Cash against Expected Cash. Overdraw shows how much Remaining Balance fell below zero.</div>
+        <div class="note">Net Book Balance (System) = Total Credits - Total Debits. Remaining Balance (Cash in Hand) = Opening Balance + Float Top-Ups - Total Credits - Total Debits. Final Agreed Amount corrects the system total only. Actual Cash is audit/reconciliation only and never posts directly into balance.</div>
         <div class="kpi-row">
           <div class="kpi"><div class="label">Opening Balance</div><div class="number">${money(opening)}</div></div>
           <div class="kpi"><div class="label">Float Top-Ups</div><div class="number">${money(topups)}</div></div>
           <div class="kpi"><div class="label">Effective Opening Balance</div><div class="number">${money(effectiveOpening)}</div></div>
           <div class="kpi"><div class="label">Total Credits</div><div class="number">${money(totalCredits)}</div></div>
           <div class="kpi"><div class="label">Total Debits</div><div class="number">${money(totalDebits)}</div></div>
-          <div class="kpi"><div class="label">Net Book Balance</div><div class="number ${currentLedgerPosition<0?'balance-negative':''}">${money(currentLedgerPosition)}</div></div>
-          <div class="kpi"><div class="label">Remaining Balance</div><div class="number ${currentLedgerPosition<0?'balance-negative':''}">${money(currentLedgerPosition)}</div></div>
-          <div class="kpi"><div class="label">Expected Cash</div><div class="number">${money(cod.expectedCash||0)}</div></div>
+          <div class="kpi"><div class="label">Net Book Balance</div><div class="number ${currentNetBookBalance<0?'balance-negative':''}">${money(currentNetBookBalance)}</div></div>
+          <div class="kpi"><div class="label">Remaining Balance</div><div class="number ${currentRemainingBalance<0?'balance-negative':''}">${money(currentRemainingBalance)}</div></div>
+          <div class="kpi"><div class="label">Expected Cash</div><div class="number">${money(cod.expectedCash ?? currentRemainingBalance)}</div></div>
           <div class="kpi"><div class="label">Actual Cash</div><div class="number">${money(cod.actualCash||0)}</div></div>
           <div class="kpi"><div class="label">Variance</div><div class="number ${Number(cod.variance||0)<0?'balance-negative':''}">${money(cod.variance||0)}</div></div>
           <div class="kpi"><div class="label">Overdraw</div><div class="number ${Number(cod.overdraw||0)>0?'balance-negative':''}">${money(cod.overdraw||0)}</div></div>
         </div>
         <div class="form-grid two cod-resolution-grid">
-          <div class="field"><label>Final Agreed Amount</label><input id="codAcceptedPosition" class="entry-input" type="number" placeholder="Enter final agreed ledger position" value="${savedAcceptedPosition}" ${isAdminOfficer ? '' : 'readonly'}></div>
+          <div class="field"><label>Final Agreed Amount</label><input id="codAcceptedPosition" class="entry-input" type="number" placeholder="Enter final agreed system amount" value="${savedAcceptedPosition}" ${isAdminOfficer ? '' : 'readonly'}></div>
           <div class="field"><label>Adjustment</label><input id="codAdjustment" class="entry-input" type="number" value="${savedAdjustment}" readonly></div>
         </div>
         <div class="form-grid two cod-resolution-grid">
@@ -1700,7 +1706,7 @@
         const resolutionType = byId('codResolutionType').value;
         const createDebt = byId('codCreateDebt').value === 'yes';
         const acceptedPosition = isAdminOfficer ? Number(byId('codAcceptedPosition').value || 0) : savedAcceptedPosition;
-        const adjustment = isAdminOfficer ? (acceptedPosition - currentLedgerPosition) : savedAdjustment;
+        const adjustment = isAdminOfficer ? (acceptedPosition - currentNetBookBalance) : savedAdjustment;
         const debtAmt = createDebt ? Math.max(0, Number(byId('codDebtAmount').value || 0)) : 0;
         const shouldPostAdjustment = isAdminOfficer && resolutionType !== 'reversal_needed' && adjustment !== 0;
         cod.status = 'resolved';
@@ -1740,7 +1746,7 @@
     const resolutionTypeInput = byId('codResolutionType');
     const syncAdjustment = () => {
       const acceptedPosition = isAdminOfficer ? Number(acceptedInput?.value || 0) : savedAcceptedPosition;
-      const adjustment = acceptedPosition - currentLedgerPosition;
+      const adjustment = acceptedPosition - currentNetBookBalance;
       if (adjustmentInput) adjustmentInput.value = String(resolutionTypeInput?.value === 'reversal_needed' ? 0 : adjustment);
     };
     const syncDebtField = () => {
