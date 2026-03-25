@@ -1658,6 +1658,11 @@
     const totalDebits = cod.totalDebits ?? approvedDebitTotalForDate(cod.staffId, cod.date);
     const currentLedgerPosition = Number(cod.runningFloat || 0);
     const defaultDebt = Math.max(0, Number(cod.overdraw||0)) + Math.max(0, -(Number(cod.variance||0)));
+    const isAdminOfficer = currentStaff()?.role === 'admin_officer';
+    const savedAcceptedPosition = Number(cod.acceptedPosition ?? currentLedgerPosition);
+    const savedAdjustment = Number(cod.adjustment ?? (savedAcceptedPosition - currentLedgerPosition));
+    const savedCreateDebt = cod.createDebt ?? ((cod.debtAmount || 0) > 0);
+    const savedResolutionType = cod.resolutionType || (savedCreateDebt ? 'staff_debt' : 'balanced');
     openModal('Resolve Close of Day', `
       <div class="stack">
         <div class="note">Remaining Balance shows the ledger position after postings. Expected Cash is the physical cash that should remain in hand. Actual Cash is recorded for reconciliation and audit only. Variance compares Actual Cash against Expected Cash. Overdraw shows how much Remaining Balance fell below zero.</div>
@@ -1667,6 +1672,7 @@
           <div class="kpi"><div class="label">Effective Opening Balance</div><div class="number">${money(effectiveOpening)}</div></div>
           <div class="kpi"><div class="label">Total Credits</div><div class="number">${money(totalCredits)}</div></div>
           <div class="kpi"><div class="label">Total Debits</div><div class="number">${money(totalDebits)}</div></div>
+          <div class="kpi"><div class="label">Net Book Balance</div><div class="number ${currentLedgerPosition<0?'balance-negative':''}">${money(currentLedgerPosition)}</div></div>
           <div class="kpi"><div class="label">Remaining Balance</div><div class="number ${currentLedgerPosition<0?'balance-negative':''}">${money(currentLedgerPosition)}</div></div>
           <div class="kpi"><div class="label">Expected Cash</div><div class="number">${money(cod.expectedCash||0)}</div></div>
           <div class="kpi"><div class="label">Actual Cash</div><div class="number">${money(cod.actualCash||0)}</div></div>
@@ -1674,15 +1680,16 @@
           <div class="kpi"><div class="label">Overdraw</div><div class="number ${Number(cod.overdraw||0)>0?'balance-negative':''}">${money(cod.overdraw||0)}</div></div>
         </div>
         <div class="form-grid two cod-resolution-grid">
-          <div class="field"><label>Final Agreed Amount</label><input id="codAcceptedPosition" class="entry-input" type="number" placeholder="Enter final agreed ledger position" value="${cod.acceptedPosition ?? currentLedgerPosition}"></div>
-          <div class="field"><label>Adjustment</label><input id="codAdjustment" class="entry-input" type="number" value="${cod.adjustment ?? 0}" readonly></div>
+          <div class="field"><label>Final Agreed Amount</label><input id="codAcceptedPosition" class="entry-input" type="number" placeholder="Enter final agreed ledger position" value="${savedAcceptedPosition}" ${isAdminOfficer ? '' : 'readonly'}></div>
+          <div class="field"><label>Adjustment</label><input id="codAdjustment" class="entry-input" type="number" value="${savedAdjustment}" readonly></div>
+        </div>
+        <div class="form-grid two cod-resolution-grid">
+          <div class="field"><label>Resolution Type</label><select id="codResolutionType" class="entry-input"><option value="balanced" ${savedResolutionType==='balanced'?'selected':''}>Balanced</option><option value="staff_debt" ${savedResolutionType==='staff_debt'?'selected':''}>Staff Debt</option><option value="reversal_needed" ${savedResolutionType==='reversal_needed'?'selected':''}>Reversal Needed</option></select></div>
+          <div class="field"><label>Create Teller Debt</label><select id="codCreateDebt" class="entry-input"><option value="yes" ${savedCreateDebt?'selected':''}>Yes</option><option value="no" ${!savedCreateDebt?'selected':''}>No</option></select></div>
         </div>
         <div class="form-grid two cod-resolution-grid">
           <div class="field"><label>Debt Amount</label><input id="codDebtAmount" class="entry-input" type="number" placeholder="Enter teller debt amount" value="${cod.debtAmount ?? defaultDebt}"></div>
-          <div class="field"><label>Create Teller Debt</label><select id="codCreateDebt" class="entry-input"><option value="yes" ${(cod.debtAmount||0)>0?'selected':''}>Yes</option><option value="no" ${!(cod.debtAmount>0)?'selected':''}>No</option></select></div>
-        </div>
-        <div class="form-grid cod-resolution-grid">
-          <div class="field"><label>Note</label><textarea id="codResolutionNote" class="entry-input">${cod.resolutionNote || ''}</textarea></div>
+          <div class="field"><label>Resolution Note</label><textarea id="codResolutionNote" class="entry-input">${cod.resolutionNote || ''}</textarea></div>
         </div>
       </div>
     `,[
@@ -1690,21 +1697,25 @@
       {label:'Resolve', onClick: ()=> {
         const note = byId('codResolutionNote').value.trim();
         if (!note) return showToast('Resolution note required');
-        const acceptedPosition = Number(byId('codAcceptedPosition').value || 0);
-        const adjustment = acceptedPosition - currentLedgerPosition;
-        const debtAmt = Math.max(0, Number(byId('codDebtAmount').value || 0));
+        const resolutionType = byId('codResolutionType').value;
         const createDebt = byId('codCreateDebt').value === 'yes';
+        const acceptedPosition = isAdminOfficer ? Number(byId('codAcceptedPosition').value || 0) : savedAcceptedPosition;
+        const adjustment = isAdminOfficer ? (acceptedPosition - currentLedgerPosition) : savedAdjustment;
+        const debtAmt = createDebt ? Math.max(0, Number(byId('codDebtAmount').value || 0)) : 0;
+        const shouldPostAdjustment = isAdminOfficer && resolutionType !== 'reversal_needed' && adjustment !== 0;
         cod.status = 'resolved';
+        cod.resolutionType = resolutionType;
+        cod.reversalNeeded = resolutionType === 'reversal_needed';
         cod.resolutionNote = note;
         cod.resolvedBy = currentStaff()?.name || 'System';
         cod.resolvedAt = new Date().toISOString();
         cod.acceptedPosition = acceptedPosition;
-        cod.adjustment = adjustment;
-        cod.debtAmount = createDebt ? debtAmt : 0;
+        cod.adjustment = resolutionType === 'reversal_needed' ? 0 : adjustment;
+        cod.debtAmount = debtAmt;
         cod.createDebt = createDebt;
         state.businessExtras ||= [];
         state.businessExtras = state.businessExtras.filter(e => !(e.type === 'cod_adjustment' && e.codId === cod.id));
-        if (adjustment !== 0) {
+        if (shouldPostAdjustment) {
           state.businessExtras.unshift({ date:new Date().toISOString(), accountNumber:'COD', details:`COD adjustment for ${cod.staffName} (${cod.date})`, kind:adjustment > 0 ? 'credit' : 'debit', amount:Math.abs(adjustment), balanceAfter:0, receivedOrPaidBy:cod.staffName, postedBy:currentStaff()?.name || 'System', type:'cod_adjustment', codId: cod.id });
         }
         const acc = ensureStaffAccount(cod.staffId);
@@ -1719,18 +1730,32 @@
           acc.debtBalance = Number(acc.debtBalance || 0) + debtAmt;
           addStaffEntry(cod.staffId, 'cod_resolution_debt', debtAmt, 0, `COD debt recorded: ${note}`, { codId: cod.id });
         }
-        save(); closeModal(); render(); showToast('COD resolved');
+        save(); closeModal(); render(); showToast(resolutionType === 'reversal_needed' ? 'COD flagged for reversal/correction' : 'COD resolved');
       }}
     ]);
     const acceptedInput = byId('codAcceptedPosition');
     const adjustmentInput = byId('codAdjustment');
+    const createDebtInput = byId('codCreateDebt');
+    const debtAmountInput = byId('codDebtAmount');
+    const resolutionTypeInput = byId('codResolutionType');
     const syncAdjustment = () => {
-      const acceptedPosition = Number(acceptedInput?.value || 0);
+      const acceptedPosition = isAdminOfficer ? Number(acceptedInput?.value || 0) : savedAcceptedPosition;
       const adjustment = acceptedPosition - currentLedgerPosition;
-      if (adjustmentInput) adjustmentInput.value = String(adjustment);
+      if (adjustmentInput) adjustmentInput.value = String(resolutionTypeInput?.value === 'reversal_needed' ? 0 : adjustment);
     };
-    if (acceptedInput) acceptedInput.oninput = syncAdjustment;
+    const syncDebtField = () => {
+      const debtEnabled = createDebtInput?.value === 'yes';
+      if (debtAmountInput) {
+        debtAmountInput.disabled = !debtEnabled;
+        if (!debtEnabled) debtAmountInput.value = '0';
+        else if (!debtAmountInput.value) debtAmountInput.value = String(cod.debtAmount ?? defaultDebt);
+      }
+    };
+    if (acceptedInput && isAdminOfficer) acceptedInput.oninput = syncAdjustment;
+    if (resolutionTypeInput) resolutionTypeInput.onchange = syncAdjustment;
+    if (createDebtInput) createDebtInput.onchange = syncDebtField;
     syncAdjustment();
+    syncDebtField();
   }
 
   function flattenBusinessEntries() {
