@@ -4429,6 +4429,12 @@ body[data-theme="ducess-sheet"] .journal-sheet .forced-amount-label{
 @media (min-width: 901px){
   #modalBack .modal[data-modal-title="Central Close of Day"]{
     width:min(1048px, 100%);
+    overflow-x:hidden;
+  }
+
+  #modalBack .modal[data-modal-title="Central Close of Day"] .table-wrap{
+    overflow-x:auto;
+    overflow-y:hidden;
   }
 
   #modalBack .modal[data-modal-title="Central Close of Day"] .table th:nth-child(9),
@@ -4443,9 +4449,12 @@ body[data-theme="ducess-sheet"] .journal-sheet .forced-amount-label{
 
   #modalBack .modal[data-modal-title="Central Close of Day"] [data-cod-actual]{
     min-width:96px;
+    width:96px;
   }
 
   #modalBack .modal[data-modal-title="Central Close of Day"] [data-cod-note]{
     min-width:120px;
+    width:120px;
+    max-width:120px;
   }
 }
