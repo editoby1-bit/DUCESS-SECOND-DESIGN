@@ -1,5 +1,11 @@
 (() => {
-  const STORAGE_KEY = 'duces_enterprise_ledger_v1';
+  const runtimeConfig = window.__DUCESS_CONFIG__ || {};
+  const STORAGE_KEY = runtimeConfig.storageKey || 'duces_enterprise_ledger_v1';
+  const gateway = window.DucessGateway?.createGateway?.({
+    storageKey: STORAGE_KEY,
+    useSupabaseBackend: runtimeConfig.useSupabaseBackend === true,
+    supabase: runtimeConfig.supabase || {}
+  }) || null;
   const DATE_FMT = new Intl.DateTimeFormat('en-GB', { day:'2-digit', month:'short', year:'numeric' });
   const THEMES = ['classic','ducess-sheet','ocean','dark-slate','neutral-stone'];
   const THEME_LABELS = { classic:'Classic', 'ducess-sheet':'Ducess Sheet', ocean:'Ocean', 'dark-slate':'Dark Slate', 'neutral-stone':'Neutral Stone' };
@@ -9,6 +15,84 @@
   const byId = (id) => document.getElementById(id);
   const q = (sel, root=document) => root.querySelector(sel);
   const qq = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+
+  const escapeHtml = (value) => String(value ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  const formatFileSize = (bytes) => { const size = Number(bytes || 0); if (size >= 1024 * 1024) return `${(size / (1024 * 1024)).toFixed(1)} MB`; if (size >= 1024) return `${Math.round(size / 1024)} KB`; return `${size} B`; };
+  const isSupportedFieldNoteFile = (file) => !!file && (String(file.type || '').startsWith('image/') || String(file.type || '').toLowerCase() === 'application/pdf' || /\.(pdf|png|jpe?g|gif|webp|bmp)$/i.test(String(file.name || '')));
+  const FIELD_NOTE_MAX_BYTES = 2 * 1024 * 1024;
+  const CUSTOMER_PHOTO_MAX_BYTES = 1024 * 1024;
+  const COMPRESSED_IMAGE_MAX_SIDE = 700;
+  const COMPRESSED_IMAGE_QUALITY = 0.55;
+  const estimateDataUrlBytes = (dataUrl) => {
+    const value = String(dataUrl || '');
+    const base64 = value.includes(',') ? value.split(',')[1] : value;
+    return Math.max(0, Math.floor((base64.length * 3) / 4));
+  };
+  async function fileToDataUrl(file) {
+    return await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.onerror = () => reject(new Error('Unable to read selected file'));
+      reader.readAsDataURL(file);
+    });
+  }
+  async function compressImageFile(file, options = {}) {
+    const maxSide = Number(options.maxSide || COMPRESSED_IMAGE_MAX_SIDE);
+    const quality = Number(options.quality || COMPRESSED_IMAGE_QUALITY);
+    const fallbackDataUrl = await fileToDataUrl(file);
+    try {
+      const img = await new Promise((resolve, reject) => {
+        const el = new Image();
+        el.onload = () => resolve(el);
+        el.onerror = () => reject(new Error('Unable to process selected image'));
+        el.src = fallbackDataUrl;
+      });
+      let { width, height } = img;
+      const scale = Math.min(1, maxSide / Math.max(width, height, 1));
+      width = Math.max(1, Math.round(width * scale));
+      height = Math.max(1, Math.round(height * scale));
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      const dataUrl = canvas.toDataURL('image/jpeg', quality);
+      return {
+        name: String(file.name || 'image').replace(/\.[^.]+$/, '') + '.jpg',
+        type: 'image/jpeg',
+        size: estimateDataUrlBytes(dataUrl),
+        dataUrl
+      };
+    } catch (error) {
+      return {
+        name: file.name || 'image',
+        type: file.type || '',
+        size: Number(file.size || 0),
+        dataUrl: fallbackDataUrl
+      };
+    }
+  }
+  async function readFieldNoteFile(file) {
+    if (!file) return null;
+    if (String(file.type || '').startsWith('image/')) {
+      const compressed = await compressImageFile(file);
+      return {
+        name: compressed.name || 'field-note.jpg',
+        type: compressed.type || 'image/jpeg',
+        size: Number(compressed.size || 0),
+        dataUrl: String(compressed.dataUrl || ''),
+        uploadedAt: new Date().toISOString()
+      };
+    }
+    const dataUrl = await fileToDataUrl(file);
+    return {
+      name: file.name || 'field-note',
+      type: file.type || '',
+      size: Number(file.size || 0),
+      dataUrl,
+      uploadedAt: new Date().toISOString()
+    };
+  }
 
   const ROLE_LABELS = {
     customer_service: 'Customer Service Officer',
@@ -76,11 +160,18 @@
     report_officer: ['check_balance','account_statement','business_balance','operational_balance','teller_balances']
   };
 
+  let realtimeBound = false;
+  let realtimeUnsub = null;
   const state = bootstrapState();
   state.ui = state.ui || { module: 'customer_service', tool: 'check_balance', selectedCustomerId: null, theme: 'classic', businessFilter: { preset: 'all', from: '', to: '' }, operationalFilter: { preset: 'all', from: '', to: '' }, approvalsLimit: 20, businessEntriesLimit: 20, operationalEntriesLimit: 20, tellerEntriesLimit: 20, approvalsSection:'tellering' };
   ensureState();
+  if (isSupabaseApprovalMode()) {
+    syncAllSharedStateFromGateway();
+    setupRealtimeSubscriptions();
+  }
 
   function bootstrapState() {
+    if (gateway?.appState?.bootstrapState) return gateway.appState.bootstrapState(seed);
     const loaded = load();
     return loaded || seed();
   }
@@ -159,6 +250,7 @@
   }
 
   function load() {
+    if (gateway?.appState?.loadState) return gateway.appState.loadState();
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       return raw ? JSON.parse(raw) : null;
@@ -168,6 +260,10 @@
   }
 
   function save() {
+    if (gateway?.appState?.saveState) {
+      gateway.appState.saveState(state);
+      return;
+    }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }
 
@@ -331,6 +427,273 @@
     if (!q) return [];
     return state.customers.filter(c => c.name.toLowerCase().includes(q) || c.accountNumber.includes(q));
   }
+
+  function isSupabaseApprovalMode() { return gateway?.__meta?.adapter === 'supabase' && gateway?.approvals; }
+
+  async function syncApprovalsFromGateway(filters = {}) {
+    if (!isSupabaseApprovalMode() || !gateway.approvals?.listApprovalRequests) return defaultResultOk(state.approvals || []);
+    const result = await gateway.approvals.listApprovalRequests(filters);
+    if (result?.ok && Array.isArray(result.data)) {
+      state.approvals = result.data;
+      save();
+    }
+    return result;
+  }
+
+
+
+
+  async function syncCodFromGateway(filters = {}) {
+    if (!isSupabaseApprovalMode() || !gateway.cod?.listCodSubmissions) return defaultResultOk(state.cod || []);
+    const result = await gateway.cod.listCodSubmissions(filters);
+    if (result?.ok && Array.isArray(result.data)) {
+      const existing = new Map((state.cod || []).map(item => [item.id, item]));
+      result.data.forEach(item => {
+        existing.set(item.id, Object.assign({}, existing.get(item.id) || {}, item, { staffName: staffName(item.staffId) || item.staffName || item.staffId }));
+      });
+      state.cod = Array.from(existing.values()).sort((a,b)=>new Date(b.submittedAt||b.resolvedAt||b.date)-new Date(a.submittedAt||a.resolvedAt||a.date));
+      save();
+    }
+    return result;
+  }
+
+  async function syncDebtBalancesFromGateway(staffId) {
+    if (!isSupabaseApprovalMode() || !gateway.cod?.listDebts) return defaultResultOk(null);
+    const result = await gateway.cod.listDebts(staffId ? { staffId } : {});
+    if (result?.ok && Array.isArray(result.data)) {
+      const grouped = {};
+      result.data.forEach(d => {
+        grouped[d.staffId] = (grouped[d.staffId] || 0) + Number(d.amount || 0);
+      });
+      (state.staff || []).forEach(st => {
+        const acc = ensureStaffAccount(st.id);
+        acc.debtBalance = Number(grouped[st.id] || 0);
+      });
+      save();
+    }
+    return result;
+  }
+
+  async function syncStaffFromGateway(filters = {}) {
+    if (!isSupabaseApprovalMode() || !gateway.staff?.listStaff) return defaultResultOk(state.staff || []);
+    const result = await gateway.staff.listStaff(filters);
+    if (result?.ok && Array.isArray(result.data) && result.data.length) {
+      const existing = new Map((state.staff || []).map(st => [st.id, st]));
+      result.data.forEach(item => {
+        existing.set(item.id, Object.assign({}, existing.get(item.id) || {}, {
+          id: item.id,
+          name: item.fullName || item.name || item.staffId || '',
+          role: item.roleCode || item.role || 'customer_service',
+          active: item.isActive !== false,
+          staffId: item.staffId || item.staff_code || '',
+          branchId: item.branchId || null,
+        }));
+      });
+      state.staff = Array.from(existing.values());
+      normalizeStaffWalletAccounts();
+      syncAllStaffWallets();
+      save();
+    }
+    return result;
+  }
+
+  async function syncCustomersListFromGateway(filters = {}) {
+    if (!isSupabaseApprovalMode() || !gateway.customers?.listCustomers) return defaultResultOk(state.customers || []);
+    const result = await gateway.customers.listCustomers(filters);
+    if (result?.ok && Array.isArray(result.data)) {
+      state.customers = result.data.map(normalizeGatewayCustomerForState).filter(Boolean);
+      normalizeStaffWalletAccounts();
+      syncAllStaffWallets();
+      recalcAllCustomerBalances();
+      recalcAllTellerBalances();
+      save();
+    }
+    return result;
+  }
+
+  async function syncAllSharedStateFromGateway() {
+    await syncStaffFromGateway();
+    await syncCustomersListFromGateway();
+    await syncApprovalsFromGateway();
+    await syncCodFromGateway();
+    await syncDebtBalancesFromGateway();
+    render();
+  }
+
+  function debounceAsync(fn, wait = 250) {
+    let timer = null;
+    return (...args) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => fn(...args).catch(err => console.warn('[DUCESS realtime sync failed]', err)), wait);
+    };
+  }
+
+  function setupRealtimeSubscriptions() {
+    if (!isSupabaseApprovalMode() || !gateway.__realtime?.subscribe || realtimeBound) return;
+    const refreshApprovals = debounceAsync(async () => { await syncApprovalsFromGateway(); render(); }, 150);
+    const refreshCod = debounceAsync(async () => { await syncCodFromGateway(); await syncDebtBalancesFromGateway(); render(); }, 150);
+    const refreshBalances = debounceAsync(async (payload) => {
+      const row = payload?.new || payload?.old || {};
+      if (row.customer_id) await syncCustomerFromGateway({ customerId: row.customer_id });
+      else if (row.account_id && gateway.accounts?.getAccountByNumber) {
+        const acct = await gateway.accounts.getAccountSummary(row.account_id);
+        if (acct?.ok && acct.data?.accountNumber) await syncCustomerFromGateway({ accountNumber: acct.data.accountNumber });
+      } else {
+        await syncCustomersListFromGateway();
+      }
+      render();
+    }, 150);
+    const refreshCustomers = debounceAsync(async () => { await syncCustomersListFromGateway(); render(); }, 200);
+    const refreshStaff = debounceAsync(async () => { await syncStaffFromGateway(); render(); }, 200);
+    realtimeUnsub = gateway.__realtime.subscribe({
+      approval: refreshApprovals,
+      cod: refreshCod,
+      debt: refreshCod,
+      balance: refreshBalances,
+      customer: refreshCustomers,
+      staff: refreshStaff,
+      onStatus: (status) => { state.__realtimeStatus = status; }
+    });
+    realtimeBound = true;
+  }
+
+  function normalizeGatewayCustomerForState(customer) {
+    if (!customer) return null;
+    return {
+      id: customer.id,
+      accountNumber: String(customer.accountNumber || ''),
+      oldAccountNumber: customer.oldAccountNumber || '',
+      name: customer.name || customer.fullName || '',
+      address: customer.address || '',
+      nin: customer.nin || '',
+      bvn: customer.bvn || '',
+      phone: customer.phone || '',
+      balance: Number(customer.balance ?? customer.bookBalance ?? 0),
+      photo: customer.photo || '',
+      active: typeof customer.active === 'boolean' ? customer.active : String(customer.status || 'active').toLowerCase() === 'active',
+      createdAt: customer.createdAt || customer.created_at || new Date().toISOString(),
+      transactions: Array.isArray(customer.transactions) ? customer.transactions : [],
+      staffId: customer.linkedStaffId || customer.staffId || null,
+      accountType: customer.accountType || 'customer'
+    };
+  }
+
+  async function syncCustomerFromGateway(ref = {}) {
+    if (!isSupabaseApprovalMode() || !gateway.customers) return defaultResultOk(null);
+    let result = null;
+    if (ref.customerId && gateway.customers.getCustomerById) result = await gateway.customers.getCustomerById(ref.customerId);
+    else if (ref.accountNumber && gateway.customers.getCustomerByAccountNumber) result = await gateway.customers.getCustomerByAccountNumber(ref.accountNumber);
+    if (!result?.ok || !result.data) return result || defaultResultOk(null);
+    const normalized = normalizeGatewayCustomerForState(result.data);
+    if (!normalized) return defaultResultOk(null);
+    const idx = state.customers.findIndex(c => c.id === normalized.id || c.accountNumber === normalized.accountNumber);
+    if (idx >= 0) state.customers[idx] = { ...state.customers[idx], ...normalized };
+    else state.customers.unshift(normalized);
+    save();
+    return defaultResultOk(normalized);
+  }
+
+  async function syncApprovalEffectsFromGateway(approvalRecord) {
+    if (!approvalRecord?.type) return defaultResultOk(null);
+    if (approvalRecord.type === 'customer_credit' || approvalRecord.type === 'customer_debit') {
+      return syncCustomerFromGateway({ customerId: approvalRecord.payload?.customerId, accountNumber: approvalRecord.payload?.accountNumber });
+    }
+    if (approvalRecord.type === 'customer_credit_journal' || approvalRecord.type === 'customer_debit_journal') {
+      const rows = Array.isArray(approvalRecord.payload?.rows) ? approvalRecord.payload.rows : [];
+      for (const row of rows) {
+        await syncCustomerFromGateway({ customerId: row.customerId, accountNumber: row.accountNumber });
+      }
+      return defaultResultOk(true);
+    }
+    if (approvalRecord.type === 'float_topup' || approvalRecord.type === 'float_declaration') {
+      return syncCodFromGateway({ staffId: approvalRecord.payload?.staffId, businessDate: approvalRecord.payload?.date });
+    }
+    if (approvalRecord.type === 'debt_repayment') {
+      return syncDebtBalancesFromGateway();
+    }
+    return defaultResultOk(null);
+  }
+
+  async function submitApprovalThroughGateway(type, payload, meta = {}) {
+    if (!isSupabaseApprovalMode()) return defaultResultOk(createRequest(type, payload, meta));
+    const staff = currentStaff();
+    let result;
+    if (type === 'account_opening' && gateway.customers?.submitAccountOpening) {
+      result = await gateway.customers.submitAccountOpening({
+        fullName: payload.name, phone: payload.phone, address: payload.address, nin: payload.nin, bvn: payload.bvn, photoRef: payload.photo || null, openedByStaffId: staff?.id || '', requestedByName: staff?.name || 'System'
+      });
+    } else if (type === 'account_maintenance' && gateway.customers?.submitAccountMaintenance) {
+      result = await gateway.customers.submitAccountMaintenance({
+        customerId: payload.customerId,
+        updates: { ...payload.patch },
+        requestedByStaffId: staff?.id || '',
+        requestedByName: staff?.name || 'System'
+      });
+    } else if (type === 'account_reactivation' && gateway.customers?.submitAccountReactivation) {
+      result = await gateway.customers.submitAccountReactivation({
+        customerId: payload.customerId,
+        requestedByStaffId: staff?.id || '',
+        note: payload.note || '',
+        requestedByName: staff?.name || 'System'
+      });
+    } else if ((type === 'customer_credit' || type === 'customer_debit') && gateway.accounts) {
+      const fn = type === 'customer_credit' ? gateway.accounts.submitCredit : gateway.accounts.submitDebit;
+      result = await fn({
+        accountId: payload.customerId,
+        amount: Number(payload.amount || 0),
+        details: payload.details || '',
+        requestedByStaffId: staff?.id || '',
+        businessDate: payload.date,
+        requestedByName: staff?.name || 'System',
+        customerId: payload.customerId, customerName: payload.customerName, accountNumber: payload.accountNumber, receivedOrPaidBy: payload.receivedOrPaidBy, payoutSource: payload.payoutSource, staffId: payload.staffId, date: payload.date
+      });
+    } else if ((type === 'customer_credit_journal' || type === 'customer_debit_journal') && gateway.accounts?.submitJournalEntries) {
+      result = await gateway.accounts.submitJournalEntries({
+        entries: (payload.rows || []).map(row => ({ accountId: row.customerId, txType: type === 'customer_debit_journal' ? 'debit' : 'credit', amount: Number(row.amount || 0), details: row.details || '', customerId: row.customerId, customerName: row.customerName, accountNumber: row.accountNumber, receivedOrPaidBy: row.receivedOrPaidBy, payoutSource: row.payoutSource })),
+        requestedByStaffId: staff?.id || '',
+        requestedByName: staff?.name || 'System',
+        businessDate: payload.date,
+        staffId: payload.staffId,
+        date: payload.date,
+        openingFloat: payload.openingFloat,
+        fieldNote: payload.fieldNote || null
+      });
+    } else if (gateway.approvals?.submitApprovalRequest) {
+      result = await gateway.approvals.submitApprovalRequest({
+        requestType: type,
+        requestedByStaffId: staff?.id || '',
+        requestedByName: staff?.name || 'System',
+        payload
+      });
+    }
+    if (!result?.ok) return result;
+    await syncApprovalsFromGateway();
+    pushAudit('request_created', `${type} by ${staff?.name || 'System'}`);
+    return result;
+  }
+
+  async function approveRequestRemote(id) {
+    if (!isSupabaseApprovalMode()) { approveRequest(id); return defaultResultOk(true); }
+    const staff = currentStaff();
+    const result = await gateway.approvals.approveRequest({ requestId: id, approvedByStaffId: staff?.id || '', approvedByName: staff?.name || 'System' });
+    if (result?.ok) {
+      await syncApprovalsFromGateway();
+      await syncApprovalEffectsFromGateway(result.data);
+      pushAudit('request_approved', `${result.data?.type || 'request'} approved`);
+      render();
+    }
+    return result;
+  }
+
+  async function rejectRequestRemote(id) {
+    if (!isSupabaseApprovalMode()) { rejectRequest(id); return defaultResultOk(true); }
+    const staff = currentStaff();
+    const result = await gateway.approvals.rejectRequest({ requestId: id, rejectedByStaffId: staff?.id || '', rejectedByName: staff?.name || 'System' });
+    if (result?.ok) { await syncApprovalsFromGateway(); pushAudit('request_rejected', `${result.data?.type || 'request'} rejected`); render(); }
+    return result;
+  }
+
+  function defaultResultOk(data) { return { ok: true, data }; }
 
   function createRequest(type, payload, meta={}) {
     const staff = currentStaff();
@@ -843,7 +1206,7 @@
             </div>
             <h3>Journal Generated</h3>
             <div class="table-wrap journal-table-wrap"><table class="table journal-table"><thead><tr><th>S/N</th><th>Account Name</th><th>Account Number</th><th>Amount</th><th>Remaining Balance</th><th>Action</th></tr></thead><tbody id="journalRows"></tbody></table></div>
-            <div class="action-row"><button id="journalSubmit">Submit Journal</button><button class="secondary" id="journalClear">Clear Journal</button></div>
+            <div class="action-row journal-submit-row"><button id="journalSubmit">Submit Journal</button><button class="secondary" id="journalClear">Clear Journal</button><label class="sheet-btn secondary file-trigger-btn" for="journalFieldNoteInput">Upload Field Note</label><input id="journalFieldNoteInput" type="file" accept="image/*,.pdf,application/pdf" class="visually-hidden-file-input"><span class="compact-file-name" id="journalFieldNoteName">No file selected</span></div>
             <div class="note">Post submits a single transaction for approval. Generate Journal adds rows, then Submit Journal sends the full journal for approval.</div>
           </div>
         </div>
@@ -878,7 +1241,7 @@
     const p = a.payload || {};
     if (a.type === 'customer_credit') return `${money(p.amount)} to ${customerName(p.customerId) || p.accountNumber}${p.details ? ' • ' + p.details : ''}`;
     if (a.type === 'customer_debit') return `${money(p.amount)} from ${customerName(p.customerId) || p.accountNumber}${p.details ? ' • ' + p.details : ''}`;
-    if (a.type === 'customer_credit_journal' || a.type === 'customer_debit_journal') { const rows = p.rows || []; const total = rows.reduce((s,r)=>s+Number(r.amount||0),0); return `${rows.length} item${rows.length===1?'':'s'} • Total ${money(total)}`; }
+    if (a.type === 'customer_credit_journal' || a.type === 'customer_debit_journal') { const rows = p.rows || p.entries || []; const total = rows.reduce((s,r)=>s+Number(r.amount||0),0); const attachmentTag = p.fieldNote ? ' • Note attached' : ''; return `${rows.length} item${rows.length===1?'':'s'} • Total ${money(total)}${attachmentTag}`; }
     if (a.type === 'wallet_fund') return `${staffName(p.staffId)} • Wallet fund • ${money(p.amount)}`;
     if (a.type === 'debt_repayment') return `${staffName(p.staffId)} • Debt repayment • ${money(p.amount)}`;
     return requestSummary(a);
@@ -911,17 +1274,19 @@
 
   function openJournalApprovalModal(reqId){
     const req = state.approvals.find(r=>r.id===reqId); if(!req) return;
-    const rows = req.payload?.rows || [];
+    const rows = req.payload?.rows || req.payload?.entries || [];
     const total = rows.reduce((s,r)=>s+Number(r.amount||0),0);
-    const opening = getOpeningBalanceForDate(req.payload?.staffId, req.payload?.date);
+    const opening = getOpeningBalanceForDate(req.payload?.staffId, req.payload?.date || req.payload?.businessDate);
+    const fieldNote = req.payload?.fieldNote || null;
     let running = opening;
-    const bodyRows = rows.map((r,i)=>{ running -= Number(r.amount||0); return `<tr><td>${i+1}</td><td>${r.customerName}</td><td>${r.accountNumber}</td><td>${money(r.amount)}</td><td class="${running<0?'balance-negative':''}">${money(running)}</td></tr>`; }).join('');
+    const bodyRows = rows.map((r,i)=>{ running -= Number(r.amount||0); return `<tr><td>${i+1}</td><td>${escapeHtml(r.customerName || '—')}</td><td>${escapeHtml(r.accountNumber || '—')}</td><td>${money(r.amount)}</td><td class="${running<0?'balance-negative':''}">${money(running)}</td></tr>`; }).join('');
+    const fieldNoteBlock = fieldNote?.dataUrl ? `<div class="journal-attachment-review"><div class="label">Field Note</div><div class="journal-attachment-card"><div class="journal-attachment-meta"><strong>${escapeHtml(fieldNote.name || 'Attached file')}</strong><span>${escapeHtml(formatFileSize(fieldNote.size || 0))}</span></div><a href="${fieldNote.dataUrl}" target="_blank" rel="noopener" download="${escapeHtml(fieldNote.name || 'field-note')}">Open Attachment</a></div></div>` : '';
     const actions = [{label:'Close', className:'secondary', onClick: closeModal}];
     if (req.status === 'pending') {
-      actions.unshift({label:'Reject Journal', className:'danger', onClick: ()=>{ rejectRequest(req.id); closeModal(); }});
-      actions.unshift({label:'Approve Journal', className:'success', onClick: ()=>{ approveRequest(req.id); closeModal(); }});
+      actions.unshift({label:'Reject Journal', className:'danger', onClick: ()=>{ rejectRequestRemote(req.id).then((result)=>{ if(result?.ok===false) showToast(result?.error?.message || 'Unable to reject request'); }); closeModal(); }});
+      actions.unshift({label:'Approve Journal', className:'success', onClick: ()=>{ approveRequestRemote(req.id).then((result)=>{ if(result?.ok===false) showToast(result?.error?.message || 'Unable to approve request'); }); closeModal(); }});
     }
-    openModal('Journal Approval', `<div class="stack"><div class="kpi-row"><div class="kpi"><div class="label">Posted By</div><div class="number">${req.requestedByName}</div></div><div class="kpi"><div class="label">Opening Balance</div><div class="number">${money(opening)}</div></div><div class="kpi"><div class="label">Total</div><div class="number">${money(total)}</div></div><div class="kpi"><div class="label">Overdraw</div><div class="number ${running<0?'balance-negative':''}">${money(Math.max(0,-running))}</div></div></div><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Customer</th><th>Account</th><th>Amount</th><th>Remaining Balance</th></tr></thead><tbody>${bodyRows}</tbody></table></div></div>`, actions);
+    openModal('Journal Approval', `<div class="stack"><div class="kpi-row"><div class="kpi"><div class="label">Posted By</div><div class="number">${escapeHtml(req.requestedByName)}</div></div><div class="kpi"><div class="label">Opening Balance</div><div class="number">${money(opening)}</div></div><div class="kpi"><div class="label">Total</div><div class="number">${money(total)}</div></div><div class="kpi"><div class="label">Overdraw</div><div class="number ${running<0?'balance-negative':''}">${money(Math.max(0,-running))}</div></div></div>${fieldNoteBlock}<div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Customer</th><th>Account</th><th>Amount</th><th>Remaining Balance</th></tr></thead><tbody>${bodyRows}</tbody></table></div></div>`, actions);
   }
 
   function openRequestDetailModal(reqId){
@@ -944,8 +1309,8 @@
     }
     const actions = [{label:'Close', className:'secondary', onClick: closeModal}];
     if (req.status === 'pending') {
-      actions.unshift({label:'Reject', className:'danger', onClick: ()=>{ rejectRequest(req.id); closeModal(); }});
-      actions.unshift({label:'Approve', className:'success', onClick: ()=>{ approveRequest(req.id); closeModal(); }});
+      actions.unshift({label:'Reject', className:'danger', onClick: ()=>{ rejectRequestRemote(req.id).then((result)=>{ if(result?.ok===false) showToast(result?.error?.message || 'Unable to reject request'); }); closeModal(); }});
+      actions.unshift({label:'Approve', className:'success', onClick: ()=>{ approveRequestRemote(req.id).then((result)=>{ if(result?.ok===false) showToast(result?.error?.message || 'Unable to approve request'); }); closeModal(); }});
     }
     openModal(prettyApprovalType(req.type), html, actions);
     const btn = byId('approvalPhotoToggle');
@@ -1174,8 +1539,23 @@
     if (photoInput) photoInput.onchange = async (e) => {
       const f = e.target.files?.[0];
       if (!f) return;
-      photoInput.dataset.base64 = await toBase64(f);
-      if (photoStatus) photoStatus.textContent = f.name.length > 18 ? `${f.name.slice(0, 15)}...` : f.name;
+      try {
+        const base64 = await toBase64(f);
+        if (estimateDataUrlBytes(base64) > CUSTOMER_PHOTO_MAX_BYTES) {
+          photoInput.value = '';
+          photoInput.dataset.base64 = '';
+          if (photoStatus) photoStatus.textContent = 'No photo selected';
+          return showToast('Photo must be 1 MB or less after compression');
+        }
+        photoInput.dataset.base64 = base64;
+        const compressedLabel = `${formatFileSize(estimateDataUrlBytes(base64))}`;
+        if (photoStatus) photoStatus.textContent = f.name.length > 18 ? `${f.name.slice(0, 15)}... • ${compressedLabel}` : `${f.name} • ${compressedLabel}`;
+      } catch (error) {
+        photoInput.value = '';
+        photoInput.dataset.base64 = '';
+        if (photoStatus) photoStatus.textContent = 'No photo selected';
+        showToast(error?.message || 'Unable to process selected photo');
+      }
     };
     byId('submitOpening').onclick = () => {
       const payload = {
@@ -1311,27 +1691,55 @@
   function bindJournal(kind) {
     const staff = currentStaff();
     state.ui.staffJournals ||= {};
+    state.ui.staffJournalAttachments ||= {};
     const key = `${staff.id}:${businessDate()}:${kind}`;
     const journal = state.ui.staffJournals[key] ||= [];
+    const attachmentState = state.ui.staffJournalAttachments[key] ||= { fieldNote: null, loading: false };
     const resetFields = () => { ['txAcc','txAmount','txDetails','txCounterparty'].forEach(id=>{ if(byId(id)) byId(id).value=''; }); if (byId('txName')) byId('txName').textContent='—'; if (byId('txBalance')) byId('txBalance').innerHTML='—'; state.ui.selectedCustomerId=null; };
-    const recalcPreview = () => { const approvedBase = currentFloatAvailable(staff.id, businessDate()); const totalPending = pendingJournalTotal(staff.id, businessDate()); const thisJournalTotal = journal.reduce((s,r)=>s+Number(r.amount||0),0); let running = approvedBase - (totalPending - thisJournalTotal); const withBalances = journal.map((row, i) => { running -= Number(row.amount||0); return { row, index: i, remaining: running }; }); const rows = withBalances.map(({ row, index, remaining }, displayIndex) => `<tr><td>${displayIndex+1}</td><td>${row.customerName}</td><td>${row.accountNumber}</td><td>${money(row.amount)}</td><td class="${remaining<0?'balance-negative':''}">${money(remaining)}</td><td><span class="linklike" data-remove-row="${row.id}">Remove</span></td></tr>`).join('') || '<tr><td colspan="6">No journal entries yet</td></tr>'; byId('journalRows').innerHTML = rows; const shownRunning = money(Math.max(0,running)); const rf=byId('journalRunningFloat'); if(rf) rf.textContent = shownRunning; const hero=byId('journalRunningFloatHero'); if(hero) hero.textContent = shownRunning; const vr=byId('journalVariance'); if(vr) vr.textContent = money(Math.max(0,-running)); qq('[data-remove-row]').forEach(el => el.onclick = () => { const idx = journal.findIndex(r => r.id === el.dataset.removeRow); if (idx >= 0) { journal.splice(idx,1); save(); recalcPreview(); } }); };
+    const recalcPreview = () => { const approvedBase = currentFloatAvailable(staff.id, businessDate()); const totalPending = pendingJournalTotal(staff.id, businessDate()); const thisJournalTotal = journal.reduce((s,r)=>s+Number(r.amount||0),0); let running = approvedBase - (totalPending - thisJournalTotal); const withBalances = journal.map((row, i) => { running -= Number(row.amount||0); return { row, index: i, remaining: running }; }); const rows = withBalances.map(({ row, index, remaining }, displayIndex) => `<tr><td>${displayIndex+1}</td><td>${row.customerName}</td><td>${row.accountNumber}</td><td>${money(row.amount)}</td><td class="${remaining<0?'balance-negative':''}">${money(remaining)}</td><td><span class="linklike" data-remove-row="${row.id}">Remove</span></td></tr>`).join('') || '<tr><td colspan="6">No journal entries yet</td></tr>'; byId('journalRows').innerHTML = rows; const shownRunning = money(Math.max(0,running)); const rf=byId('journalRunningFloat'); if(rf) rf.textContent = shownRunning; const hero=byId('journalRunningFloatHero'); if(hero) hero.textContent = shownRunning; const vr=byId('journalVariance'); if(vr) vr.textContent = money(Math.max(0,-running)); const fileNameEl = byId('journalFieldNoteName'); if (fileNameEl) fileNameEl.textContent = attachmentState.loading ? 'Reading file…' : (attachmentState.fieldNote?.name ? `${attachmentState.fieldNote.name} (${formatFileSize(attachmentState.fieldNote.size)})` : 'No file selected'); const inputEl = byId('journalFieldNoteInput'); if (inputEl) inputEl.disabled = attachmentState.loading; qq('[data-remove-row]').forEach(el => el.onclick = () => { const idx = journal.findIndex(r => r.id === el.dataset.removeRow); if (idx >= 0) { journal.splice(idx,1); save(); recalcPreview(); } }); };
     const search = () => { const c = getCustomerByAccountNo(byId('txAcc').value); if (!c) return showToast('Customer not found'); if (isCustomerFrozen(c) || c.active === false) { freezeInactiveCustomer(c); save(); return showToast('Account is frozen'); } state.ui.selectedCustomerId = c.id; save(); byId('txName').textContent = c.name; byId('txBalance').innerHTML = balanceHtml(c.balance); };
     byId('txSearch').onclick = search; if (byId('txAcc')) { byId('txAcc').onchange = search; byId('txAcc').onkeyup = e => { if(e.key==='Enter') search(); }; }
     byId('txJournalAdd').onclick = () => { const customer = getSelectedCustomer() || getCustomerByAccountNo(byId('txAcc').value); if (!customer) return showToast('Search for customer first'); if (isCustomerFrozen(customer) || customer.active === false) { freezeInactiveCustomer(customer); save(); return showToast('Frozen account cannot accept transactions'); } const amount = Number(byId('txAmount').value || 0); if (!(amount > 0)) return showToast('Enter a valid amount'); journal.unshift({ id: uid('jr'), customerId: customer.id, customerName: customer.name, accountNumber: customer.accountNumber, amount, details: byId('txDetails').value.trim(), receivedOrPaidBy: byId('txCounterparty').value.trim(), payoutSource: byId('txPayoutSource')?.value || 'teller', date: businessDate() }); save(); recalcPreview(); resetFields(); };
-    byId('journalClear').onclick = () => { journal.splice(0); save(); recalcPreview(); resetFields(); };
-    byId('txPostSingle').onclick = () => { if (!hasPermission(kind)) return showToast('No access to post'); if (!hasApprovedFloat(staff.id, businessDate())) return showToast('Approved opening balance required before posting'); const customer = getSelectedCustomer() || getCustomerByAccountNo(byId('txAcc').value); if (!customer) return showToast('Search for customer first'); if (isCustomerFrozen(customer) || customer.active === false) { freezeInactiveCustomer(customer); save(); return showToast('Frozen account cannot accept transactions'); } const amount = Number(byId('txAmount').value || 0); if (!(amount > 0)) return showToast('Enter a valid amount'); confirmAction(`Submit single ${kind} request for approval?`, () => { createRequest(kind === 'credit' ? 'customer_credit' : 'customer_debit', { customerId: customer.id, customerName: customer.name, accountNumber: customer.accountNumber, amount, details: byId('txDetails').value.trim(), receivedOrPaidBy: byId('txCounterparty').value.trim(), payoutSource: byId('txPayoutSource')?.value || 'teller', staffId: staff.id, date: businessDate() }); resetFields(); showToast(`${kind === 'credit' ? 'Credit' : 'Debit'} request sent for approval`); render(); }); };
-    byId('journalSubmit').onclick = () => { if (!hasPermission(kind)) return showToast('No access to post'); if (!hasApprovedFloat(staff.id, businessDate())) return showToast('Approved opening balance required before posting'); if (!journal.length) return showToast('Generate journal first'); confirmAction(`Submit ${kind} journal for approval?`, () => { createRequest(kind === 'credit' ? 'customer_credit_journal' : 'customer_debit_journal', { staffId: staff.id, date: businessDate(), openingFloat: getOpeningBalanceForDate(staff.id, businessDate()), rows: journal.map(row => ({ customerId: row.customerId, customerName: row.customerName, accountNumber: row.accountNumber, amount: row.amount, details: row.details, receivedOrPaidBy: row.receivedOrPaidBy, payoutSource: row.payoutSource })) }); journal.splice(0); save(); recalcPreview(); resetFields(); showToast(`${kind === 'credit' ? 'Credit' : 'Debit'} journal sent for approval`); render(); }); };
+    const fieldNoteInput = byId('journalFieldNoteInput');
+    if (fieldNoteInput) {
+      fieldNoteInput.value = '';
+      fieldNoteInput.onchange = async (event) => {
+        const file = event?.target?.files?.[0] || null;
+        if (!file) { attachmentState.fieldNote = null; attachmentState.loading = false; save(); recalcPreview(); return; }
+        if (!isSupportedFieldNoteFile(file)) { event.target.value = ''; attachmentState.fieldNote = null; attachmentState.loading = false; save(); recalcPreview(); return showToast('Only image and PDF field notes are supported'); }
+        if (!String(file.type || '').startsWith('image/') && Number(file.size || 0) > FIELD_NOTE_MAX_BYTES) { event.target.value = ''; attachmentState.fieldNote = null; attachmentState.loading = false; save(); recalcPreview(); return showToast('Field note must be 2 MB or less'); }
+        attachmentState.loading = true; save(); recalcPreview();
+        try {
+          attachmentState.fieldNote = await readFieldNoteFile(file);
+          if (Number(attachmentState.fieldNote?.size || 0) > FIELD_NOTE_MAX_BYTES) {
+            event.target.value = '';
+            attachmentState.fieldNote = null;
+            throw new Error('Field note must be 2 MB or less');
+          }
+        } catch (error) {
+          attachmentState.fieldNote = null;
+          showToast(error?.message || 'Unable to read selected file');
+        } finally {
+          attachmentState.loading = false;
+          save();
+          recalcPreview();
+        }
+      };
+    }
+    byId('journalClear').onclick = () => { journal.splice(0); attachmentState.fieldNote = null; attachmentState.loading = false; const input = byId('journalFieldNoteInput'); if (input) input.value = ''; save(); recalcPreview(); resetFields(); };
+    byId('txPostSingle').onclick = () => { if (!hasPermission(kind)) return showToast('No access to post'); if (!hasApprovedFloat(staff.id, businessDate())) return showToast('Approved opening balance required before posting'); const customer = getSelectedCustomer() || getCustomerByAccountNo(byId('txAcc').value); if (!customer) return showToast('Search for customer first'); if (isCustomerFrozen(customer) || customer.active === false) { freezeInactiveCustomer(customer); save(); return showToast('Frozen account cannot accept transactions'); } const amount = Number(byId('txAmount').value || 0); if (!(amount > 0)) return showToast('Enter a valid amount'); confirmAction(`Submit single ${kind} request for approval?`, () => { submitApprovalThroughGateway(kind === 'credit' ? 'customer_credit' : 'customer_debit', { customerId: customer.id, customerName: customer.name, accountNumber: customer.accountNumber, amount, details: byId('txDetails').value.trim(), receivedOrPaidBy: byId('txCounterparty').value.trim(), payoutSource: byId('txPayoutSource')?.value || 'teller', staffId: staff.id, date: businessDate() }).then((result) => { if (!result?.ok) return showToast(result?.error?.message || 'Unable to submit request'); resetFields(); showToast(`${kind === 'credit' ? 'Credit' : 'Debit'} request sent for approval`); render(); }); }); };
+    byId('journalSubmit').onclick = () => { if (!hasPermission(kind)) return showToast('No access to post'); if (!hasApprovedFloat(staff.id, businessDate())) return showToast('Approved opening balance required before posting'); if (!journal.length) return showToast('Generate journal first'); if (attachmentState.loading) return showToast('Please wait for the field note to finish loading'); confirmAction(`Submit ${kind} journal for approval?`, () => { submitApprovalThroughGateway(kind === 'credit' ? 'customer_credit_journal' : 'customer_debit_journal', { staffId: staff.id, date: businessDate(), openingFloat: getOpeningBalanceForDate(staff.id, businessDate()), rows: journal.map(row => ({ customerId: row.customerId, customerName: row.customerName, accountNumber: row.accountNumber, amount: row.amount, details: row.details, receivedOrPaidBy: row.receivedOrPaidBy, payoutSource: row.payoutSource })), fieldNote: attachmentState.fieldNote ? { name: attachmentState.fieldNote.name, type: attachmentState.fieldNote.type, size: attachmentState.fieldNote.size, dataUrl: attachmentState.fieldNote.dataUrl, uploadedAt: attachmentState.fieldNote.uploadedAt } : null }).then((result) => { if (!result?.ok) return showToast(result?.error?.message || 'Unable to submit journal'); journal.splice(0); attachmentState.fieldNote = null; attachmentState.loading = false; const input = byId('journalFieldNoteInput'); if (input) input.value = ''; save(); recalcPreview(); resetFields(); showToast(`${kind === 'credit' ? 'Credit' : 'Debit'} journal sent for approval`); render(); }); }); };
     recalcPreview();
   }
 
   function bindApprovals() {
     qq('[data-approve]').forEach(btn => btn.onclick = () => {
       if (!hasPermission('approval_queue')) return showToast('No approval rights');
-      confirmAction('Approve this request?', () => approveRequest(btn.dataset.approve));
+      confirmAction('Approve this request?', () => { approveRequestRemote(btn.dataset.approve).then((result) => { if (result?.ok === false) showToast(result?.error?.message || 'Unable to approve request'); }); });
     });
     qq('[data-reject]').forEach(btn => btn.onclick = () => {
       if (!hasPermission('approval_queue')) return showToast('No approval rights');
-      confirmAction('Reject this request?', () => rejectRequest(btn.dataset.reject));
+      confirmAction('Reject this request?', () => { rejectRequestRemote(btn.dataset.reject).then((result) => { if (result?.ok === false) showToast(result?.error?.message || 'Unable to reject request'); }); });
     });
     qq('[data-cod-resolve]').forEach(btn => btn.onclick = () => openCODResolutionModal(btn.dataset.codResolve));
     const more = byId('approvalsMore');
@@ -1443,7 +1851,8 @@
       const overdraw = currentFloatOverdraw(st.id, businessDate());
       return `<tr><td>${st.name}</td><td>${money(opening)}</td><td>${money(topups)}</td><td>${money(effectiveOpening)}</td><td>${money(credits)}</td><td>${money(debits)}</td><td>${money(netBook)}</td><td class="${running<0?'balance-negative':''}">${money(running)}</td><td>${money(expected)}</td><td><input class="entry-input" data-cod-actual="${st.id}" type="number" placeholder="Enter actual cash"></td><td data-cod-variance-display="${st.id}">${money(0)}</td><td class="${overdraw>0?'balance-negative':''}">${money(overdraw)}</td><td><input class="entry-input" data-cod-note="${st.id}"></td></tr>`;
     }).join('');
-    openModal('Central Close of Day', `<div class="stack"><div class="note">You are closing business date <strong>${businessDate()}</strong>. Closing opens the next business date immediately.</div><div class="note">Net Book Balance (System) = Total Credits - Total Debits. Remaining Balance (Cash in Hand) = Opening Balance + Float Top-Ups - Total Credits - Total Debits. Expected Cash follows Remaining Balance. Actual Cash is recorded for reconciliation and audit only and never posts directly into balance.</div><div class="table-wrap"><table class="table"><thead><tr><th>Staff</th><th>Opening Balance</th><th>Float Top-Ups</th><th>Effective Opening Balance</th><th>Total Credits</th><th>Total Debits</th><th>Net Book Balance</th><th>Remaining Balance</th><th>Expected Cash</th><th>Actual Cash</th><th>Variance</th><th>Overdraw</th><th>Note</th></tr></thead><tbody>${rows}</tbody></table></div></div>`, [{label:'Cancel', className:'secondary', onClick: closeModal}, {label:'Close Business Day', onClick: ()=> { postingStaff.forEach(st => { const opening=openingBalanceOnlyForDate(st.id,businessDate()); const topups=floatTopUpsForDate(st.id,businessDate()); const effectiveOpening=opening+topups; const credits=approvedCreditTotalForDate(st.id,businessDate()); const debits=approvedDebitTotalForDate(st.id,businessDate()); const netBook=credits-debits; const running=currentFloatAvailable(st.id,businessDate()); const expected=running; const actual=Number(q(`[data-cod-actual="${st.id}"]`)?.value||0); const note=q(`[data-cod-note="${st.id}"]`)?.value?.trim()||''; const variance=actual-expected; state.cod.unshift({id:uid('cod'), staffId:st.id, staffName:st.name, date:businessDate(), openingBalance:opening, floatTopUps:topups, effectiveOpeningBalance:effectiveOpening, totalCredits:credits, totalDebits:debits, netBookBalance:netBook, actualCash:actual, expectedCash:expected, runningFloat:running, remainingBalance:running, variance, overdraw:Math.max(0,-running), note, fieldPapers:[], status: variance===0 && Math.max(0,-running)===0 ? 'balanced':'flagged', approvedAt:new Date().toISOString(), approvedBy:currentStaff()?.name||''}); }); state.dayClosures.push({date:businessDate(), closedAt:new Date().toISOString(), closedBy:currentStaff()?.name||''}); state.businessDate = nextDate(businessDate()); save(); closeModal(); render(); showToast(`Business day closed. New open date: ${state.businessDate}`); }}]);
+    openModal('Central Close of Day', `<div class="stack"><div class="note">You are closing business date <strong>${businessDate()}</strong>. Closing opens the next business date immediately.</div><div class="note">Net Book Balance (System) = Total Credits - Total Debits. Remaining Balance (Cash in Hand) = Opening Balance + Float Top-Ups - Total Credits - Total Debits. Expected Cash follows Remaining Balance. Actual Cash is recorded for reconciliation and audit only and never posts directly into balance.</div><div class="table-wrap"><table class="table"><thead><tr><th>Staff</th><th>Opening Balance</th><th>Float Top-Ups</th><th>Effective Opening Balance</th><th>Total Credits</th><th>Total Debits</th><th>Net Book Balance</th><th>Remaining Balance</th><th>Expected Cash</th><th>Actual Cash</th><th>Variance</th><th>Overdraw</th><th>Note</th></tr></thead><tbody>${rows}</tbody></table></div></div>`, [{label:'Cancel', className:'secondary', onClick: closeModal}, {label:'Close Business Day', onClick: async ()=> { if (isSupabaseApprovalMode() && gateway.cod?.submitCod) { for (const st of postingStaff) { const actual=Number(q(`[data-cod-actual="${st.id}"]`)?.value||0); const note=q(`[data-cod-note="${st.id}"]`)?.value?.trim()||''; const result = await gateway.cod.submitCod({ staffId: st.id, businessDate: businessDate(), actualCash: actual, note, submittedByStaffId: currentStaff()?.id || st.id }); if (result?.ok && result.data) { const existingIndex = (state.cod || []).findIndex(item => item.id === result.data.id); const nextRow = Object.assign({}, result.data, { staffName: st.name }); if (existingIndex >= 0) state.cod.splice(existingIndex, 1, nextRow); else state.cod.unshift(nextRow); } else if (result?.ok === false) { showToast(result.error?.message || 'Unable to submit close of day'); return; } } } else { postingStaff.forEach(st => { const opening=openingBalanceOnlyForDate(st.id,businessDate()); const topups=floatTopUpsForDate(st.id,businessDate()); const effectiveOpening=opening+topups; const credits=approvedCreditTotalForDate(st.id,businessDate()); const debits=approvedDebitTotalForDate(st.id,businessDate()); const netBook=credits-debits; const running=currentFloatAvailable(st.id,businessDate()); const expected=running; const actual=Number(q(`[data-cod-actual="${st.id}"]`)?.value||0); const note=q(`[data-cod-note="${st.id}"]`)?.value?.trim()||''; const variance=actual-expected; state.cod.unshift({id:uid('cod'), staffId:st.id, staffName:st.name, date:businessDate(), openingBalance:opening, floatTopUps:topups, effectiveOpeningBalance:effectiveOpening, totalCredits:credits, totalDebits:debits, netBookBalance:netBook, actualCash:actual, expectedCash:expected, runningFloat:running, remainingBalance:running, variance, overdraw:Math.max(0,-running), note, fieldPapers:[], status: variance===0 && Math.max(0,-running)===0 ? 'balanced':'flagged', approvedAt:new Date().toISOString(), approvedBy:currentStaff()?.name||''}); }); }
+      state.dayClosures.push({date:businessDate(), closedAt:new Date().toISOString(), closedBy:currentStaff()?.name||''}); state.businessDate = nextDate(businessDate()); save(); closeModal(); render(); showToast(`Business day closed. New open date: ${state.businessDate}`); }}]);
     postingStaff.forEach(st => {
       const input = q(`[data-cod-actual="${st.id}"]`);
       const varianceCell = q(`[data-cod-variance-display="${st.id}"]`);
@@ -1487,34 +1896,10 @@
   }
 
   async function toBase64(file) {
-    const dataUrl = await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-    if (!file.type.startsWith('image/')) return dataUrl;
-    try {
-      const img = await new Promise((resolve, reject) => {
-        const el = new Image();
-        el.onload = () => resolve(el);
-        el.onerror = reject;
-        el.src = dataUrl;
-      });
-      const maxSide = 900;
-      let { width, height } = img;
-      const scale = Math.min(1, maxSide / Math.max(width, height));
-      width = Math.max(1, Math.round(width * scale));
-      height = Math.max(1, Math.round(height * scale));
-      const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, width, height);
-      return canvas.toDataURL('image/jpeg', 0.72);
-    } catch (e) {
-      return dataUrl;
-    }
+    if (!file) return '';
+    if (!String(file.type || '').startsWith('image/')) return await fileToDataUrl(file);
+    const compressed = await compressImageFile(file);
+    return compressed.dataUrl;
   }
 
 
@@ -1545,6 +1930,9 @@
   }
 
   function floatTopUpsForDate(staffId, dateStr) {
+    if (isSupabaseApprovalMode()) {
+      return (state.approvals || []).filter(r => r.type === 'float_topup' && r.status === 'approved' && r.payload?.staffId === staffId && r.payload?.date === dateStr).reduce((s, r) => s + Number(r.payload?.amount || 0), 0);
+    }
     const acc = ensureStaffAccount(staffId);
     return acc.entries.filter(e => e.type === 'approved_float_topup' && e.floatDate === dateStr).reduce((s,e)=>s+Number(e.amount||0),0);
   }
@@ -1700,7 +2088,7 @@
       </div>
     `,[
       {label:'Close', className:'secondary', onClick: closeModal},
-      {label:'Resolve', onClick: ()=> {
+      {label:'Resolve', onClick: async ()=> {
         const note = byId('codResolutionNote').value.trim();
         if (!note) return showToast('Resolution note required');
         const resolutionType = byId('codResolutionType').value;
@@ -1708,33 +2096,43 @@
         const acceptedPosition = isAdminOfficer ? Number(byId('codAcceptedPosition').value || 0) : savedAcceptedPosition;
         const adjustment = isAdminOfficer ? (acceptedPosition - currentNetBookBalance) : savedAdjustment;
         const debtAmt = createDebt ? Math.max(0, Number(byId('codDebtAmount').value || 0)) : 0;
-        const shouldPostAdjustment = isAdminOfficer && resolutionType !== 'reversal_needed' && adjustment !== 0;
-        cod.status = 'resolved';
-        cod.resolutionType = resolutionType;
-        cod.reversalNeeded = resolutionType === 'reversal_needed';
-        cod.resolutionNote = note;
-        cod.resolvedBy = currentStaff()?.name || 'System';
-        cod.resolvedAt = new Date().toISOString();
-        cod.acceptedPosition = acceptedPosition;
-        cod.adjustment = resolutionType === 'reversal_needed' ? 0 : adjustment;
-        cod.debtAmount = debtAmt;
-        cod.createDebt = createDebt;
-        state.businessExtras ||= [];
-        state.businessExtras = state.businessExtras.filter(e => !(e.type === 'cod_adjustment' && e.codId === cod.id));
-        if (shouldPostAdjustment) {
-          state.businessExtras.unshift({ date:new Date().toISOString(), accountNumber:'COD', details:`COD adjustment for ${cod.staffName} (${cod.date})`, kind:adjustment > 0 ? 'credit' : 'debit', amount:Math.abs(adjustment), balanceAfter:0, receivedOrPaidBy:cod.staffName, postedBy:currentStaff()?.name || 'System', type:'cod_adjustment', codId: cod.id });
-        }
-        const acc = ensureStaffAccount(cod.staffId);
-        const existingDebtEntries = (acc.entries||[]).filter(e => e.type === 'cod_resolution_debt' && e.codId === cod.id);
-        if (existingDebtEntries.length) {
-          acc.entries = (acc.entries||[]).filter(e => !(e.type === 'cod_resolution_debt' && e.codId === cod.id));
-          const previousDebt = existingDebtEntries.reduce((s,e)=>s+Number(e.amount||0),0);
-          acc.debtBalance = Math.max(0, Number(acc.debtBalance || 0) - previousDebt);
-          recalcStaffBalance(cod.staffId);
-        }
-        if (createDebt && debtAmt > 0) {
-          acc.debtBalance = Number(acc.debtBalance || 0) + debtAmt;
-          addStaffEntry(cod.staffId, 'cod_resolution_debt', debtAmt, 0, `COD debt recorded: ${note}`, { codId: cod.id });
+        if (isSupabaseApprovalMode() && gateway.cod?.resolveCod) {
+          const result = await gateway.cod.resolveCod({ codSubmissionId: cod.id, finalAgreedAmount: acceptedPosition, debtAmount: debtAmt, resolutionNote: note, resolvedByStaffId: currentStaff()?.id || '' });
+          if (result?.ok === false) return showToast(result.error?.message || 'Unable to resolve COD');
+          if (result?.ok && result.data) {
+            Object.assign(cod, result.data, { status: 'resolved', resolutionType, reversalNeeded: resolutionType === 'reversal_needed', createDebt, staffName: cod.staffName });
+            await syncCodFromGateway({ staffId: cod.staffId, businessDate: cod.date });
+            await syncDebtBalancesFromGateway(cod.staffId);
+          }
+        } else {
+          const shouldPostAdjustment = isAdminOfficer && resolutionType !== 'reversal_needed' && adjustment !== 0;
+          cod.status = 'resolved';
+          cod.resolutionType = resolutionType;
+          cod.reversalNeeded = resolutionType === 'reversal_needed';
+          cod.resolutionNote = note;
+          cod.resolvedBy = currentStaff()?.name || 'System';
+          cod.resolvedAt = new Date().toISOString();
+          cod.acceptedPosition = acceptedPosition;
+          cod.adjustment = resolutionType === 'reversal_needed' ? 0 : adjustment;
+          cod.debtAmount = debtAmt;
+          cod.createDebt = createDebt;
+          state.businessExtras ||= [];
+          state.businessExtras = state.businessExtras.filter(e => !(e.type === 'cod_adjustment' && e.codId === cod.id));
+          if (shouldPostAdjustment) {
+            state.businessExtras.unshift({ date:new Date().toISOString(), accountNumber:'COD', details:`COD adjustment for ${cod.staffName} (${cod.date})`, kind:adjustment > 0 ? 'credit' : 'debit', amount:Math.abs(adjustment), balanceAfter:0, receivedOrPaidBy:cod.staffName, postedBy:currentStaff()?.name || 'System', type:'cod_adjustment', codId: cod.id });
+          }
+          const acc = ensureStaffAccount(cod.staffId);
+          const existingDebtEntries = (acc.entries||[]).filter(e => e.type === 'cod_resolution_debt' && e.codId === cod.id);
+          if (existingDebtEntries.length) {
+            acc.entries = (acc.entries||[]).filter(e => !(e.type === 'cod_resolution_debt' && e.codId === cod.id));
+            const previousDebt = existingDebtEntries.reduce((s,e)=>s+Number(e.amount||0),0);
+            acc.debtBalance = Math.max(0, Number(acc.debtBalance || 0) - previousDebt);
+            recalcStaffBalance(cod.staffId);
+          }
+          if (createDebt && debtAmt > 0) {
+            acc.debtBalance = Number(acc.debtBalance || 0) + debtAmt;
+            addStaffEntry(cod.staffId, 'cod_resolution_debt', debtAmt, 0, `COD debt recorded: ${note}`, { codId: cod.id });
+          }
         }
         save(); closeModal(); render(); showToast(resolutionType === 'reversal_needed' ? 'COD flagged for reversal/correction' : 'COD resolved');
       }}
@@ -1890,6 +2288,9 @@
   function startApp() {
     applyTheme(state.ui.theme || 'classic', false);
     render();
+    if (isSupabaseApprovalMode()) {
+      syncApprovalsFromGateway().then((result) => { if (result?.ok) render(); });
+    }
   }
 
   if (document.readyState === 'loading') {
@@ -1898,3 +2299,6 @@
     startApp();
   }
 })();
+
+
+
