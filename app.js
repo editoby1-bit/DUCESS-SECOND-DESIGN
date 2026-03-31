@@ -107,19 +107,19 @@
       title: 'Customer Service',
       desc: 'Check balance, open, maintain, reactivate accounts and print statements.',
       icon: '👤',
-      tools: ['check_balance','account_opening','account_maintenance','account_reactivation','account_statement']
+      tools: ['check_balance','account_opening','account_maintenance','account_reactivation','account_statement','operational_accounts']
     },
     tellering: {
       title: 'Tellering',
       desc: 'Credit and debit customers through a journal workflow with approved float control.',
       icon: '💳',
-      tools: ['check_balance','credit','debit','my_balance']
+      tools: ['check_balance','credit','debit','operational_accounts','my_balance','opening_balance','my_close_day']
     },
     approvals: {
       title: 'Approval',
       desc: 'Approve or reject submitted requests and review close-of-day activity.',
       icon: '✅',
-      tools: ['approval_queue','my_close_day']
+      tools: ['approval_queue','approval_customer_service','approval_tellering','approval_others']
     },
     administration: {
       title: 'Administration',
@@ -144,8 +144,12 @@
     credit: 'Credit',
     debit: 'Debit',
     my_balance: 'My Balance',
+    opening_balance: 'Opening Balance',
     my_close_day: 'My Close of Day',
     approval_queue: 'Approval Queue',
+    approval_customer_service: 'Customer Service',
+    approval_tellering: 'Tellering',
+    approval_others: 'Others',
     permissions: 'Permissions Matrix',
     operational_posting: 'Income & Expense Posting',
     operational_accounts: 'Income & Expense Accounts',
@@ -156,17 +160,19 @@
   };
 
   const DEFAULT_PERMS = {
-    customer_service: ['check_balance','account_opening','account_maintenance','account_reactivation','account_statement'],
-    teller: ['check_balance','account_statement','credit','debit'],
-    approving_officer: ['check_balance','account_opening','account_maintenance','account_reactivation','account_statement','credit','debit','approval_queue','business_balance','operational_balance'],
-    admin_officer: ['check_balance','account_opening','account_maintenance','account_reactivation','account_statement','credit','debit','approval_queue','permissions','operational_accounts','staff_directory','business_balance','operational_balance','teller_balances'],
-    report_officer: ['check_balance','account_statement','business_balance','operational_balance','teller_balances']
+    customer_service: ['check_balance','account_opening','account_maintenance','account_reactivation','account_statement','operational_accounts'],
+    teller: ['check_balance','account_statement','credit','debit','operational_accounts','my_balance','opening_balance','my_close_day'],
+    approving_officer: ['check_balance','account_opening','account_maintenance','account_reactivation','account_statement','credit','debit','approval_queue','approval_customer_service','approval_tellering','approval_others','business_balance','operational_balance','operational_accounts','my_balance','opening_balance','my_close_day'],
+    admin_officer: ['check_balance','account_opening','account_maintenance','account_reactivation','account_statement','credit','debit','approval_queue','approval_customer_service','approval_tellering','approval_others','permissions','operational_accounts','operational_posting','staff_directory','business_balance','operational_balance','teller_balances','my_balance','opening_balance','my_close_day'],
+    report_officer: ['check_balance','account_statement','business_balance','operational_balance','teller_balances','operational_accounts']
   };
 
   let realtimeBound = false;
   let realtimeUnsub = null;
   const state = bootstrapState();
   state.ui = state.ui || { module: null, tool: null, selectedCustomerId: null, theme: 'classic', businessFilter: { preset: 'all', from: '', to: '' }, operationalFilter: { preset: 'all', from: '', to: '' }, approvalsLimit: 20, businessEntriesLimit: 20, operationalEntriesLimit: 20, tellerEntriesLimit: 20, approvalsSection:'tellering', generatedJournals:{} };
+  state.ui.module = null;
+  state.ui.tool = null;
   ensureState();
   if (isSupabaseApprovalMode()) {
     syncAllSharedStateFromGateway();
@@ -342,6 +348,7 @@
   }
 
   function moduleAllowed(moduleKey, staff=currentStaff()) {
+    if (moduleKey === 'administration' && staff?.role !== 'admin_officer') return false;
     return MODULES[moduleKey].tools.some(t => hasPermission(t, staff));
   }
 
@@ -930,7 +937,7 @@
     const staffSel = byId('staffSelect');
     staffSel.innerHTML = state.staff.map(s => `<option value="${s.id}">${s.name} — ${ROLE_LABELS[s.role] || s.role}</option>`).join('');
     staffSel.value = state.activeStaffId;
-    staffSel.onchange = () => { state.activeStaffId = staffSel.value; save(); render(); };
+    staffSel.onchange = () => { state.activeStaffId = staffSel.value; state.ui.module = null; state.ui.tool = null; save(); render(); };
     byId('btnTodayFloat').onclick = openFloatModal;
     byId('btnCOD').onclick = () => canCloseBusinessDay() ? confirmAction(`Close business date ${businessDate()}? This will open ${nextDate(businessDate())}.`, openCODModal) : showToast('Only Approval Officer or Admin can close day');
     byId('btnCOD').disabled = !canCloseBusinessDay();
@@ -978,8 +985,13 @@
       card.onclick = () => {
         const key = card.dataset.module;
         if (!moduleAllowed(key)) return showToast('No access for this section');
-        state.ui.module = key;
-        state.ui.tool = null;
+        if (state.ui.module === key) {
+          state.ui.module = null;
+          state.ui.tool = null;
+        } else {
+          state.ui.module = key;
+          state.ui.tool = null;
+        }
         save();
         render();
       };
@@ -996,16 +1008,32 @@
     if (card) card.classList.remove('hidden');
     byId('workspaceLabel').textContent = module.title;
     byId('workspaceTitle').textContent = state.ui.tool ? (TOOL_LABELS[state.ui.tool] || module.title) : `${module.title} Tools`;
-    const tabs = `<div class="workspace-switcher"><div class="tool-tabs vertical-tool-tabs">${module.tools.map(t => `<button class="tool-tab ${state.ui.tool===t?'active':''}" data-tool="${t}" ${hasPermission(t)?'':'disabled'}>${TOOL_LABELS[t]}</button>`).join('')}</div><div class="workspace-tool-body">${state.ui.tool ? renderTool(state.ui.tool) : `<div class="tool-empty-state"><div class="tool-empty-title">${module.title}</div><div class="tool-empty-note">Select a heading to open that work area.</div></div>`}</div></div>`;
+    const renderToolButtons = () => {
+      if (state.ui.module === 'tellering') {
+        const left = ['check_balance','credit','debit','operational_accounts'];
+        const right = ['my_balance','opening_balance','my_close_day'];
+        return `<div class="tool-columns"><div class="tool-column"><div class="tool-column-title">Tellering Tools</div>${left.filter(t => module.tools.includes(t)).map(t => `<button class="tool-tab ${state.ui.tool===t?'active':''}" data-tool="${t}" ${hasPermission(t)?'':'disabled'}>${TOOL_LABELS[t]}</button>`).join('')}</div><div class="tool-column"><div class="tool-column-title">Tellering Actions</div>${right.filter(t => module.tools.includes(t)).map(t => `<button class="tool-tab ${state.ui.tool===t?'active':''}" data-tool="${t}" ${hasPermission(t)?'':'disabled'}>${TOOL_LABELS[t]}</button>`).join('')}</div></div>`;
+      }
+      return module.tools.map(t => `<button class="tool-tab ${state.ui.tool===t?'active':''}" data-tool="${t}" ${hasPermission(t)?'':'disabled'}>${TOOL_LABELS[t]}</button>`).join('');
+    };
+    const tabs = `<div class="workspace-switcher"><div class="tool-tabs vertical-tool-tabs ${state.ui.module==='tellering'?'tellering-tool-tabs':''}">${renderToolButtons()}</div><div class="workspace-tool-body">${state.ui.tool ? renderTool(state.ui.tool) : `<div class="tool-empty-state"><div class="tool-empty-title">${module.title}</div><div class="tool-empty-note">Select a heading to open that work area.</div></div>`}</div></div>`;
     byId('workspace').innerHTML = tabs;
     qq('.tool-tab').forEach(btn => btn.onclick = () => {
       const nextTool = btn.dataset.tool;
-      state.ui.tool = nextTool;
+      if (state.ui.tool === nextTool) {
+        state.ui.tool = null;
+      } else {
+        state.ui.tool = nextTool;
+        if (nextTool === 'approval_customer_service') state.ui.approvalsSection = 'customer_service';
+        if (nextTool === 'approval_tellering') state.ui.approvalsSection = 'tellering';
+        if (nextTool === 'approval_others') state.ui.approvalsSection = 'others';
+      }
       if (state.ui.tool === 'check_balance') state.ui.checkBalanceLoaded = false;
       save();
       renderWorkspace();
-      if (nextTool === 'my_balance') openMyBalanceModal();
-      if (nextTool === 'my_close_day') openMyCODModal();
+      if (nextTool === 'my_balance' && state.ui.tool === 'my_balance') openMyBalanceModal();
+      if (nextTool === 'opening_balance' && state.ui.tool === 'opening_balance') openFloatModal();
+      if (nextTool === 'my_close_day' && state.ui.tool === 'my_close_day') openMyCODModal();
     });
     if (state.ui.tool) bindToolHandlers();
   }
@@ -1019,9 +1047,13 @@
       case 'account_statement': return renderAccountStatement();
       case 'credit': return renderJournalTool('credit');
       case 'debit': return renderJournalTool('debit');
-      case 'approval_queue': return renderApprovals();
       case 'my_balance': return `<div class="tool-empty-state"><div class="tool-empty-title">My Balance</div><div class="tool-empty-note">Balance details open in a modal when this heading is selected.</div></div>`;
+      case 'opening_balance': return `<div class="tool-empty-state"><div class="tool-empty-title">Opening Balance</div><div class="tool-empty-note">Opening balance opens in a modal when this heading is selected.</div></div>`;
       case 'my_close_day': return `<div class="tool-empty-state"><div class="tool-empty-title">My Close of Day</div><div class="tool-empty-note">Close-of-day details open in a modal when this heading is selected.</div></div>`;
+      case 'approval_customer_service':
+      case 'approval_tellering':
+      case 'approval_others':
+      case 'approval_queue': return renderApprovals();
       case 'permissions': return renderPermissions();
       case 'operational_posting': return renderOperationalPosting();
       case 'operational_accounts': return renderOperationalAccounts();
@@ -1488,7 +1520,10 @@
       case 'account_statement': bindStatement(); break;
       case 'credit': bindJournal('credit'); break;
       case 'debit': bindJournal('debit'); break;
-      case 'approval_queue': bindApprovals(); break;
+      case 'approval_queue':
+      case 'approval_customer_service':
+      case 'approval_tellering':
+      case 'approval_others': bindApprovals(); break;
       case 'permissions': bindPermissions(); break;
       case 'operational_posting': bindOperationalAccounts(); break;
       case 'operational_accounts': bindOperationalAccounts(); break;
