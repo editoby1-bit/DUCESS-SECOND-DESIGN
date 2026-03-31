@@ -971,6 +971,13 @@
     return `<div class="summary-card ${action ? 'clickable' : ''}" ${action ? `data-hero-card="${action}"` : ''}><div class="section-label">${label}</div><div class="value">${value}</div><div class="hint">${hint}</div></div>`;
   }
 
+  function smoothScrollToOpenedSegment(selector) {
+    requestAnimationFrame(() => {
+      const target = (selector && q(selector)) || q('.workspace-card');
+      target?.scrollIntoView({ behavior:'smooth', block:'start' });
+    });
+  }
+
   function renderModules() {
     const current = state.ui.module;
     byId('moduleGrid').innerHTML = Object.entries(MODULES).map(([key,m]) => {
@@ -994,6 +1001,7 @@
         }
         save();
         render();
+        if (state.ui.module) smoothScrollToOpenedSegment('.workspace-card');
       };
     });
   }
@@ -1034,7 +1042,12 @@
       if (nextTool === 'my_balance' && state.ui.tool === 'my_balance') openMyBalanceModal();
       if (nextTool === 'opening_balance' && state.ui.tool === 'opening_balance') openFloatModal();
       if (nextTool === 'my_close_day' && state.ui.tool === 'my_close_day') openMyCODModal();
-      if (['approval_customer_service','approval_tellering','approval_others'].includes(nextTool) && state.ui.tool === nextTool) requestAnimationFrame(() => { q('#approvalsSectionTabs')?.scrollIntoView({ behavior:'smooth', block:'start' }); });
+      if (['my_balance','opening_balance','my_close_day'].includes(nextTool)) return;
+      if (['approval_customer_service','approval_tellering','approval_others'].includes(nextTool) && state.ui.tool === nextTool) {
+        smoothScrollToOpenedSegment('#approvalsSectionTabs');
+        return;
+      }
+      if (state.ui.tool === nextTool) smoothScrollToOpenedSegment('.workspace-tool-body');
     });
     if (state.ui.tool) bindToolHandlers();
   }
@@ -1989,7 +2002,7 @@
     if (less) less.onclick = () => { state.ui.approvalsLimit = Math.max(20, (state.ui.approvalsLimit || 20) - 20); save(); renderWorkspace(); };
     const codDate = byId('codAdminDate');
     if (codDate) codDate.onchange = () => { state.ui.codAdminDate = codDate.value || businessDate(); save(); renderWorkspace(); };
-    qq('[data-approval-section]').forEach(btn => btn.onclick = ()=>{ state.ui.approvalsSection = btn.dataset.approvalSection; save(); renderWorkspace(); });
+    qq('[data-approval-section]').forEach(btn => btn.onclick = ()=>{ state.ui.approvalsSection = btn.dataset.approvalSection; save(); renderWorkspace(); smoothScrollToOpenedSegment('#approvalsSectionTabs'); });
     const assignTopup = byId('assignFloatTopupFromApprovals');
     if (assignTopup) assignTopup.onclick = () => openFloatTopUpModal();
     qq('[data-inspect-journal]').forEach(btn => btn.onclick = ()=> openJournalApprovalModal(btn.dataset.inspectJournal));

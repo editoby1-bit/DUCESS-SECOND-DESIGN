@@ -4726,3 +4726,51 @@ body[data-theme="ducess-sheet"] .journal-sheet .forced-amount-label{
     grid-template-columns: 1fr;
   }
 }
+
+
+/* ===== 2026-03-31 surgical patch: auto-jump + tighter label/input spacing ===== */
+@media (min-width: 761px){
+  /* Check Balance: move fields closer to their labels */
+  .check-balance-sheet .redesigned-check-grid{
+    grid-template-columns:150px 82px 110px 110px 110px !important;
+    gap:8px 10px !important;
+  }
+
+  /* Credit / Debit: reduce label-to-field gap without altering logic */
+  .journal-sheet .redesigned-journal-grid{
+    grid-template-columns:150px 82px 150px 190px !important;
+    max-width:608px !important;
+    width:608px !important;
+    gap:10px 10px !important;
+  }
+
+  /* Account Opening / Maintenance / Reactivation: pull first input column closer */
+  .opening-card .opening-sheet-grid,
+  .maintenance-card .maintenance-sheet-grid,
+  .reactivation-card .reactivation-sheet-grid{
+    grid-template-columns:145px 105px 96px 105px 105px !important;
+    gap:0 !important;
+  }
+
+  .opening-card .sheet-label-cell,
+  .opening-card .sheet-label-inline,
+  .maintenance-card .sheet-label-cell,
+  .maintenance-card .sheet-label-inline,
+  .reactivation-card .sheet-label-cell,
+  .reactivation-card .sheet-label-inline{
+    padding-right:6px !important;
+  }
+
+  .reactivation-card .sheet-input-cell.account.reactivation-account.half-account,
+  .maintenance-card .sheet-input-cell.account.account-near-label{
+    grid-column:2 / 3 !important;
+    justify-self:start !important;
+    margin-left:0 !important;
+  }
+
+  .maintenance-card .sheet-input-cell.wide,
+  .opening-card .sheet-input-cell.wide,
+  .reactivation-card .sheet-input-cell.wide{
+    grid-column:2 / 6 !important;
+  }
+}
