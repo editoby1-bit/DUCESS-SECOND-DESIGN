@@ -791,7 +791,10 @@ body[data-theme="ducess-sheet"] .journal-kpis .kpi.small{border-color:#d9b4a3;ba
 /* Phase 2D micro polish - pass 2 */
 .opening-sheet-grid,
 .maintenance-sheet-grid{
-  grid-template-columns:190px minmax(0,150px) minmax(0,150px) minmax(0,150px) minmax(0,150px);
+  grid-template-columns:172px minmax(0,140px) minmax(0,140px) minmax(0,140px) minmax(0,140px);
+}
+.reactivation-sheet-grid{
+  grid-template-columns:172px 78px 104px 104px 104px;
 }
 
 /* keep label/input spacing visually even across the NIN/BVN and Phone/Old Account rows */
@@ -906,12 +909,12 @@ body[data-theme="ducess-sheet"] .sheet-grid .entry-input{background:#ecd4ca !imp
 
 /* tighter, aligned tellering rows like the client sheet */
 .redesigned-check-grid{
-  grid-template-columns:190px minmax(220px,260px) 104px 104px 116px;
-  gap:10px 12px;
+  grid-template-columns:168px minmax(220px,250px) 100px 100px 112px;
+  gap:8px 8px;
 }
 .redesigned-journal-grid{
-  grid-template-columns:190px minmax(260px,1fr) 110px 170px;
-  gap:10px 12px;
+  grid-template-columns:168px minmax(240px,1fr) 104px 160px;
+  gap:8px 8px;
 }
 .redesigned-check-grid #lookupAcc,
 .redesigned-journal-grid #txAcc{
