@@ -113,25 +113,25 @@
       title: 'Tellering',
       desc: 'Credit and debit customers through a journal workflow with approved float control.',
       icon: '💳',
-      tools: ['check_balance','credit','debit']
+      tools: ['check_balance','credit','debit','my_balance']
     },
     approvals: {
       title: 'Approval',
-      desc: 'Approve or reject every submitted request, including float, posting and administration actions.',
+      desc: 'Approve or reject submitted requests and review close-of-day activity.',
       icon: '✅',
-      tools: ['approval_queue']
+      tools: ['approval_queue','my_close_day']
     },
     administration: {
       title: 'Administration',
-      desc: 'Manage working tools, temporary grants, operational accounts, and staff settings.',
+      desc: 'Manage working tools, operational postings, temporary grants, and staff settings.',
       icon: '🛠️',
-      tools: ['permissions','staff_directory']
+      tools: ['operational_posting','operational_accounts','permissions','staff_directory']
     },
     balances: {
       title: 'Balances',
       desc: 'Review business balance and operational balance with filters and teller summaries.',
       icon: '📊',
-      tools: ['business_balance','operational_balance','operational_accounts','teller_balances']
+      tools: ['business_balance','operational_balance','teller_balances']
     }
   };
 
@@ -143,8 +143,11 @@
     account_statement: 'Account Statement',
     credit: 'Credit',
     debit: 'Debit',
+    my_balance: 'My Balance',
+    my_close_day: 'My Close of Day',
     approval_queue: 'Approval Queue',
     permissions: 'Permissions Matrix',
+    operational_posting: 'Income & Expense Posting',
     operational_accounts: 'Income & Expense Accounts',
     staff_directory: 'Staff Directory',
     business_balance: 'Business Balance',
@@ -163,7 +166,7 @@
   let realtimeBound = false;
   let realtimeUnsub = null;
   const state = bootstrapState();
-  state.ui = state.ui || { module: 'customer_service', tool: 'check_balance', selectedCustomerId: null, theme: 'classic', businessFilter: { preset: 'all', from: '', to: '' }, operationalFilter: { preset: 'all', from: '', to: '' }, approvalsLimit: 20, businessEntriesLimit: 20, operationalEntriesLimit: 20, tellerEntriesLimit: 20, approvalsSection:'tellering' };
+  state.ui = state.ui || { module: null, tool: null, selectedCustomerId: null, theme: 'classic', businessFilter: { preset: 'all', from: '', to: '' }, operationalFilter: { preset: 'all', from: '', to: '' }, approvalsLimit: 20, businessEntriesLimit: 20, operationalEntriesLimit: 20, tellerEntriesLimit: 20, approvalsSection:'tellering', generatedJournals:{} };
   ensureState();
   if (isSupabaseApprovalMode()) {
     syncAllSharedStateFromGateway();
@@ -332,7 +335,7 @@
 
   function hasPermission(tool, staff=currentStaff()) {
     if (!staff) return false;
-    if (tool === 'check_balance' || tool === 'operational_accounts') return true;
+    if (['check_balance','operational_accounts','my_balance','my_close_day'].includes(tool)) return true;
     const base = DEFAULT_PERMS[staff.role] || [];
     const grantOn = state.tempGrants.some(g => g.staffId === staff.id && g.tool === tool && g.enabled);
     return base.includes(tool) || grantOn;
@@ -783,6 +786,7 @@
         if (!c || isCustomerFrozen(c) || c.active === false) break;
         c.transactions.push(txObj('credit', req.payload.amount, req.payload.details, req.requestedByName, req.requestedBy, currentStaff()?.name || '', 'customer', req.payload.date, {
           receivedOrPaidBy: req.payload.receivedOrPaidBy,
+          paymentMode: req.payload.paymentMode || req.payload.payoutSource || '',
           postedBy: req.requestedByName,
           approvedBy: currentStaff()?.name || ''
         }));
@@ -795,6 +799,7 @@
         if (!c || isCustomerFrozen(c) || c.active === false) break;
         c.transactions.push(txObj('debit', req.payload.amount, req.payload.details, req.requestedByName, req.requestedBy, currentStaff()?.name || '', 'customer', req.payload.date, {
           receivedOrPaidBy: req.payload.receivedOrPaidBy,
+          paymentMode: req.payload.paymentMode || req.payload.payoutSource || '',
           postedBy: req.requestedByName,
           approvedBy: currentStaff()?.name || ''
         }));
@@ -951,27 +956,8 @@
   }
 
   function renderHero() {
-    const businessCredit = allApprovedCustomerTx('credit').reduce((s,t)=>s+t.amount,0);
-    const businessDebit = allApprovedCustomerTx('debit').reduce((s,t)=>s+t.amount,0);
-    const operationalIncome = state.operations.entries.filter(e => e.kind === 'income').reduce((s,e)=>s+Number(e.amount||0),0);
-    const operationalExpense = state.operations.entries.filter(e => e.kind === 'expense').reduce((s,e)=>s+Number(e.amount||0),0);
-    const pending = state.approvals.filter(a => a.status === 'pending').length;
-    const acc = ensureStaffAccount(currentStaff()?.id || '');
-    const openingToday = getOpeningBalanceForDate(currentStaff()?.id, businessDate());
-    const remaining = currentFloatAvailable(currentStaff()?.id, businessDate());
-    byId('heroStats').innerHTML = [
-      cardMetric('My Balance', money(Number(acc.walletBalance||0)), `Wallet ${money(acc.walletBalance||0)} • Debt -${money(acc.debtBalance||0)} • Business Day ${businessDate()} • Opening ${money(openingToday)}`, 'my-balance'),
-      cardMetric('My Close of Day', businessDate(), `View your close-of-day summaries and manager notes`, 'my-cod'),
-      cardMetric('Operational Income', money(operationalIncome), `${state.operations.incomeAccounts.length} income accounts`, 'operational-accounts'),
-      cardMetric('Operational Expense', money(operationalExpense), `${state.operations.expenseAccounts.length} expense accounts`, 'operational-accounts')
-    ].join('');
-    qq('[data-hero-card]').forEach(el => el.onclick = () => {
-      const act = el.dataset.heroCard;
-      if (act === 'my-balance') openMyBalanceModal();
-      if (act === 'my-cod') { openMyCODModal(); }
-      if (act === 'operational-balance') { state.ui.module = 'balances'; state.ui.tool = 'operational_balance'; save(); render(); setTimeout(()=>byId('workspace')?.scrollIntoView({behavior:'smooth', block:'start'}),80); }
-      if (act === 'operational-accounts') { state.ui.module = 'balances'; state.ui.tool = 'operational_accounts'; save(); render(); setTimeout(()=>byId('workspace')?.scrollIntoView({behavior:'smooth', block:'start'}),80); }
-    });
+    const hero = q('.hero-card');
+    if (hero) hero.classList.add('hidden');
   }
 
   function cardMetric(label, value, hint, action='') {
@@ -993,7 +979,7 @@
         const key = card.dataset.module;
         if (!moduleAllowed(key)) return showToast('No access for this section');
         state.ui.module = key;
-        state.ui.tool = MODULES[key].tools.find(t => hasPermission(t)) || MODULES[key].tools[0];
+        state.ui.tool = null;
         save();
         render();
       };
@@ -1001,18 +987,27 @@
   }
 
   function renderWorkspace() {
-    const module = MODULES[state.ui.module];
+    const card = q('.workspace-card');
+    const module = state.ui.module ? MODULES[state.ui.module] : null;
+    if (!module) {
+      if (card) card.classList.add('hidden');
+      return;
+    }
+    if (card) card.classList.remove('hidden');
     byId('workspaceLabel').textContent = module.title;
-    byId('workspaceTitle').textContent = TOOL_LABELS[state.ui.tool] || module.title;
-    const tabs = `<div class="tool-tabs">${module.tools.map(t => `<button class="tool-tab ${state.ui.tool===t?'active':''}" data-tool="${t}" ${hasPermission(t)?'':'disabled'}>${TOOL_LABELS[t]}</button>`).join('')}</div>`;
-    byId('workspace').innerHTML = tabs + renderTool(state.ui.tool);
+    byId('workspaceTitle').textContent = state.ui.tool ? (TOOL_LABELS[state.ui.tool] || module.title) : `${module.title} Tools`;
+    const tabs = `<div class="workspace-switcher"><div class="tool-tabs vertical-tool-tabs">${module.tools.map(t => `<button class="tool-tab ${state.ui.tool===t?'active':''}" data-tool="${t}" ${hasPermission(t)?'':'disabled'}>${TOOL_LABELS[t]}</button>`).join('')}</div><div class="workspace-tool-body">${state.ui.tool ? renderTool(state.ui.tool) : `<div class="tool-empty-state"><div class="tool-empty-title">${module.title}</div><div class="tool-empty-note">Select a heading to open that work area.</div></div>`}</div></div>`;
+    byId('workspace').innerHTML = tabs;
     qq('.tool-tab').forEach(btn => btn.onclick = () => {
-      state.ui.tool = btn.dataset.tool;
+      const nextTool = btn.dataset.tool;
+      state.ui.tool = nextTool;
       if (state.ui.tool === 'check_balance') state.ui.checkBalanceLoaded = false;
       save();
       renderWorkspace();
+      if (nextTool === 'my_balance') openMyBalanceModal();
+      if (nextTool === 'my_close_day') openMyCODModal();
     });
-    bindToolHandlers();
+    if (state.ui.tool) bindToolHandlers();
   }
 
   function renderTool(tool) {
@@ -1025,7 +1020,10 @@
       case 'credit': return renderJournalTool('credit');
       case 'debit': return renderJournalTool('debit');
       case 'approval_queue': return renderApprovals();
+      case 'my_balance': return `<div class="tool-empty-state"><div class="tool-empty-title">My Balance</div><div class="tool-empty-note">Balance details open in a modal when this heading is selected.</div></div>`;
+      case 'my_close_day': return `<div class="tool-empty-state"><div class="tool-empty-title">My Close of Day</div><div class="tool-empty-note">Close-of-day details open in a modal when this heading is selected.</div></div>`;
       case 'permissions': return renderPermissions();
+      case 'operational_posting': return renderOperationalPosting();
       case 'operational_accounts': return renderOperationalAccounts();
       case 'staff_directory': return renderStaffDirectory();
       case 'business_balance': return renderBusinessBalance();
@@ -1161,6 +1159,8 @@
     const st = currentStaff();
     const opening = getOpeningBalanceForDate(st?.id, businessDate());
     const running = currentFloatAvailable(st?.id, businessDate());
+    state.ui.generatedJournals ||= {};
+    const journalVisible = !!state.ui.generatedJournals[`${st?.id || 'staff'}:${businessDate()}:${kind}`];
     return `
       <div class="tellering-stack">
         <div class="tellering-sheet journal-sheet">
@@ -1172,9 +1172,9 @@
           </div>
           <div class="sheet-grid credit-sheet-grid redesigned-journal-grid">
             <div class="sheet-label">Account Number</div>
-            <input id="txAcc" class="entry-input sheet-input short-code" />
+            <input id="txAcc" class="entry-input sheet-input short-code" maxlength="4" />
             <button id="txSearch" class="sheet-btn">Search</button>
-            <button id="txJournalAdd" class="sheet-btn secondary">Generate Journal</button>
+            <button id="txJournalAdd" class="sheet-btn secondary">${journalVisible ? 'Journal Ready' : 'Generate Journal'}</button>
 
             <div class="sheet-label">Account Name</div>
             <div class="display-field value-wide" id="txName">—</div>
@@ -1193,21 +1193,39 @@
         <div class="tellering-lower compact-layout redesigned-tellering-lower">
           <div class="tellering-left form-card compact-left tellering-entry-card">
             <div class="form-grid two compact-fields">
-              <div class="field"><label>Received or Paid By</label><input id="txCounterparty" class="entry-input"></div>
+              <div class="field">
+                <label>${kind === 'credit' ? 'Received By' : 'Paid To'}</label>
+                <input id="txCounterparty" class="entry-input">
+              </div>
+              <div class="field">
+                <label>${kind === 'credit' ? 'Mode' : 'Payout Source'}</label>
+                <div class="tx-mode-toggle">
+                  <label class="tx-toggle-pill"><input type="radio" name="txMode" value="cash" checked> <span>Cash</span></label>
+                  <label class="tx-toggle-pill"><input type="radio" name="txMode" value="transfer"> <span>Transfer</span></label>
+                </div>
+              </div>
               <div class="field"><label>Business Date</label><div class="display-field">${businessDate()}</div></div>
               <div class="field"><label>Details</label><input id="txDetails" class="entry-input"></div>
             </div>
           </div>
-          <div class="journal-pane form-card spacious-journal-pane">
+          <div class="journal-pane form-card spacious-journal-pane ${journalVisible ? '' : 'hidden'}" id="journalPane">
             <div class="journal-kpis">
               <div class="kpi small"><div class="label">Opening Balance</div><div class="number">${money(opening)}</div></div>
               <div class="kpi small running-kpi"><div class="label">Remaining Balance</div><div class="number" id="journalRunningFloat">${money(Math.max(0, running))}</div></div>
               <div class="kpi small"><div class="label">Variance</div><div class="number balance-negative" id="journalVariance">${money(Math.max(0, -running))}</div></div>
             </div>
             <h3>Journal Generated</h3>
+            <div class="form-grid three journal-entry-grid">
+              <div class="field"><label>Journal Account Number</label><input id="journalAcc" class="entry-input" maxlength="4"></div>
+              <div class="field"><label>Journal Account Name</label><div class="display-field" id="journalName">—</div></div>
+              <div class="field"><label>Journal Amount</label><input id="journalAmount" class="entry-input" type="number"></div>
+              <div class="field"><label>${kind === 'credit' ? 'Received By' : 'Paid To'}</label><input id="journalCounterparty" class="entry-input"></div>
+              <div class="field"><label>Journal Details</label><input id="journalDetails" class="entry-input"></div>
+              <div class="field journal-add-field"><label>&nbsp;</label><button id="journalAddRow" class="sheet-btn">Add to Journal</button></div>
+            </div>
             <div class="table-wrap journal-table-wrap"><table class="table journal-table"><thead><tr><th>S/N</th><th>Account Name</th><th>Account Number</th><th>Amount</th><th>Remaining Balance</th><th>Action</th></tr></thead><tbody id="journalRows"></tbody></table></div>
             <div class="action-row journal-submit-row"><button id="journalSubmit">Submit Journal</button><button class="secondary" id="journalClear">Clear Journal</button><label class="sheet-btn secondary file-trigger-btn" for="journalFieldNoteInput">Upload Field Note</label><input id="journalFieldNoteInput" type="file" accept="image/*,.pdf,application/pdf" class="visually-hidden-file-input"><span class="compact-file-name" id="journalFieldNoteName">No file selected</span></div>
-            <div class="note">Post submits a single transaction for approval. Generate Journal adds rows, then Submit Journal sends the full journal for approval.</div>
+            <div class="note">Generate Journal reveals a separate journal entry area. Journal rows use their own account number, customer lookup, amount, and add button.</div>
           </div>
         </div>
       </div>`;
@@ -1338,6 +1356,27 @@
       </div>`;
   }
 
+  function renderOperationalPosting() {
+    const allAccts = [
+      ...state.operations.incomeAccounts.map(a=>({...a,category:'income'})),
+      ...state.operations.expenseAccounts.map(a=>({...a,category:'expense'}))
+    ];
+    return `
+      <div class="stack">
+        <div class="form-card">
+          <h3>Income & Expense Posting</h3>
+          <div class="form-grid three">
+            <div class="field"><label>Account</label><select id="oeAccount" class="entry-input">${allAccts.map(a=>`<option value="${a.id}">${a.accountNumber} — ${a.name}</option>`).join('')}</select></div>
+            <div class="field"><label>Amount</label><input id="oeAmount" class="entry-input" type="number"></div>
+            <div class="field"><label>Date</label><input id="oeDate" class="entry-input" type="date" value="${businessDate()}"></div>
+            <div class="field"><label>Note</label><input id="oeNote" class="entry-input"></div>
+            <div class="field"><label>Type</label><div class="display-field" id="oeKindDisplay">Auto from account</div></div>
+          </div>
+          <div class="action-row"><button id="oeSubmit">Submit for Approval</button></div>
+        </div>
+      </div>`;
+  }
+
   function renderOperationalAccounts() {
     const allAccts = [
       ...state.operations.incomeAccounts.map(a=>({...a,category:'income'})),
@@ -1451,6 +1490,7 @@
       case 'debit': bindJournal('debit'); break;
       case 'approval_queue': bindApprovals(); break;
       case 'permissions': bindPermissions(); break;
+      case 'operational_posting': bindOperationalAccounts(); break;
       case 'operational_accounts': bindOperationalAccounts(); break;
       case 'staff_directory': bindStaffDirectory(); break;
       case 'business_balance': bindBalanceFilters('business'); break;
@@ -1515,7 +1555,8 @@
       save();
       lookupFill(byId('workspace'), c);
     };
-    byId('lookupBtn').onclick = () => doLookup(false);
+    byId('lookupBtn').onclick = () => openCustomerSearchModal(state.customers);
+    byId('lookupAcc').oninput = () => { const v = (byId('lookupAcc')?.value || '').trim(); if (/^\d{4}$/.test(v)) doLookup(true); };
     byId('lookupAcc').onchange = () => doLookup(true);
     byId('lookupAcc').onkeyup = (e) => { if (e.key === "Enter") doLookup(false); };
     byId('openStatementBtn').onclick = () => { state.ui.tool = 'account_statement'; renderWorkspace(); setTimeout(()=>{ byId('stmtAcc').value = getSelectedCustomer()?.accountNumber || ''; }, 30); };
@@ -1692,14 +1733,103 @@
     const staff = currentStaff();
     state.ui.staffJournals ||= {};
     state.ui.staffJournalAttachments ||= {};
-    const key = `${staff.id}:${businessDate()}:${kind}`;
-    const journal = state.ui.staffJournals[key] ||= [];
-    const attachmentState = state.ui.staffJournalAttachments[key] ||= { fieldNote: null, loading: false };
+    state.ui.generatedJournals ||= {};
+    const visibilityKey = `${staff.id}:${businessDate()}:${kind}`;
+    const journal = state.ui.staffJournals[visibilityKey] ||= [];
+    const attachmentState = state.ui.staffJournalAttachments[visibilityKey] ||= { fieldNote: null, loading: false };
+
+    const selectedMode = () => q('input[name="txMode"]:checked')?.value || 'cash';
     const resetFields = () => { ['txAcc','txAmount','txDetails','txCounterparty'].forEach(id=>{ if(byId(id)) byId(id).value=''; }); if (byId('txName')) byId('txName').textContent='—'; if (byId('txBalance')) byId('txBalance').innerHTML='—'; state.ui.selectedCustomerId=null; };
-    const recalcPreview = () => { const approvedBase = currentFloatAvailable(staff.id, businessDate()); const totalPending = pendingJournalTotal(staff.id, businessDate()); const thisJournalTotal = journal.reduce((s,r)=>s+Number(r.amount||0),0); let running = approvedBase - (totalPending - thisJournalTotal); const withBalances = journal.map((row, i) => { running -= Number(row.amount||0); return { row, index: i, remaining: running }; }); const rows = withBalances.map(({ row, index, remaining }, displayIndex) => `<tr><td>${displayIndex+1}</td><td>${row.customerName}</td><td>${row.accountNumber}</td><td>${money(row.amount)}</td><td class="${remaining<0?'balance-negative':''}">${money(remaining)}</td><td><span class="linklike" data-remove-row="${row.id}">Remove</span></td></tr>`).join('') || '<tr><td colspan="6">No journal entries yet</td></tr>'; byId('journalRows').innerHTML = rows; const shownRunning = money(Math.max(0,running)); const rf=byId('journalRunningFloat'); if(rf) rf.textContent = shownRunning; const hero=byId('journalRunningFloatHero'); if(hero) hero.textContent = shownRunning; const vr=byId('journalVariance'); if(vr) vr.textContent = money(Math.max(0,-running)); const fileNameEl = byId('journalFieldNoteName'); if (fileNameEl) fileNameEl.textContent = attachmentState.loading ? 'Reading file…' : (attachmentState.fieldNote?.name ? `${attachmentState.fieldNote.name} (${formatFileSize(attachmentState.fieldNote.size)})` : 'No file selected'); const inputEl = byId('journalFieldNoteInput'); if (inputEl) inputEl.disabled = attachmentState.loading; qq('[data-remove-row]').forEach(el => el.onclick = () => { const idx = journal.findIndex(r => r.id === el.dataset.removeRow); if (idx >= 0) { journal.splice(idx,1); save(); recalcPreview(); } }); };
-    const search = () => { const c = getCustomerByAccountNo(byId('txAcc').value); if (!c) return showToast('Customer not found'); if (isCustomerFrozen(c) || c.active === false) { freezeInactiveCustomer(c); save(); return showToast('Account is frozen'); } state.ui.selectedCustomerId = c.id; save(); byId('txName').textContent = c.name; byId('txBalance').innerHTML = balanceHtml(c.balance); };
-    byId('txSearch').onclick = search; if (byId('txAcc')) { byId('txAcc').onchange = search; byId('txAcc').onkeyup = e => { if(e.key==='Enter') search(); }; }
-    byId('txJournalAdd').onclick = () => { const customer = getSelectedCustomer() || getCustomerByAccountNo(byId('txAcc').value); if (!customer) return showToast('Search for customer first'); if (isCustomerFrozen(customer) || customer.active === false) { freezeInactiveCustomer(customer); save(); return showToast('Frozen account cannot accept transactions'); } const amount = Number(byId('txAmount').value || 0); if (!(amount > 0)) return showToast('Enter a valid amount'); journal.unshift({ id: uid('jr'), customerId: customer.id, customerName: customer.name, accountNumber: customer.accountNumber, amount, details: byId('txDetails').value.trim(), receivedOrPaidBy: byId('txCounterparty').value.trim(), payoutSource: byId('txPayoutSource')?.value || 'teller', date: businessDate() }); save(); recalcPreview(); resetFields(); };
+    const resetJournalEntryFields = () => { ['journalAcc','journalAmount','journalCounterparty','journalDetails'].forEach(id=>{ if(byId(id)) byId(id).value=''; }); if (byId('journalName')) byId('journalName').textContent='—'; state.ui.selectedJournalCustomerId = null; };
+
+    const recalcPreview = () => {
+      const approvedBase = currentFloatAvailable(staff.id, businessDate());
+      const totalPending = pendingJournalTotal(staff.id, businessDate());
+      const thisJournalTotal = journal.reduce((acc,row)=>acc+Number(row.amount||0),0);
+      let running = approvedBase - (totalPending - thisJournalTotal);
+      const withBalances = journal.map((row) => { running -= Number(row.amount||0); return { row, remaining: running }; });
+      const rows = withBalances.map(({ row, remaining }, displayIndex) => `<tr><td>${displayIndex+1}</td><td>${row.customerName}</td><td>${row.accountNumber}</td><td>${money(row.amount)}</td><td class="${remaining<0?'balance-negative':''}">${money(remaining)}</td><td><span class="linklike" data-remove-row="${row.id}">Remove</span></td></tr>`).join('') || '<tr><td colspan="6">No journal entries yet</td></tr>';
+      if (byId('journalRows')) byId('journalRows').innerHTML = rows;
+      if (byId('journalRunningFloat')) byId('journalRunningFloat').textContent = money(Math.max(0,running));
+      if (byId('journalVariance')) byId('journalVariance').textContent = money(Math.max(0,-running));
+      const fileNameEl = byId('journalFieldNoteName');
+      if (fileNameEl) fileNameEl.textContent = attachmentState.loading ? 'Reading file…' : (attachmentState.fieldNote?.name ? `${attachmentState.fieldNote.name} (${formatFileSize(attachmentState.fieldNote.size)})` : 'No file selected');
+      const inputEl = byId('journalFieldNoteInput');
+      if (inputEl) inputEl.disabled = attachmentState.loading;
+      qq('[data-remove-row]').forEach(el => el.onclick = () => {
+        const idx = journal.findIndex(r => r.id === el.dataset.removeRow);
+        if (idx >= 0) {
+          journal.splice(idx,1);
+          save();
+          recalcPreview();
+        }
+      });
+    };
+
+    const searchSingle = () => {
+      const value = (byId('txAcc')?.value || '').trim();
+      const c = getCustomerByAccountNo(value);
+      if (!c) return showToast('Customer not found');
+      if (isCustomerFrozen(c) || c.active === false) { freezeInactiveCustomer(c); save(); return showToast('Account is frozen'); }
+      state.ui.selectedCustomerId = c.id;
+      save();
+      if (byId('txName')) byId('txName').textContent = c.name;
+      if (byId('txBalance')) byId('txBalance').innerHTML = balanceHtml(c.balance);
+    };
+
+    const searchJournal = () => {
+      const value = (byId('journalAcc')?.value || '').trim();
+      const c = getCustomerByAccountNo(value);
+      if (!c) return showToast('Customer not found');
+      if (isCustomerFrozen(c) || c.active === false) { freezeInactiveCustomer(c); save(); return showToast('Account is frozen'); }
+      state.ui.selectedJournalCustomerId = c.id;
+      save();
+      if (byId('journalName')) byId('journalName').textContent = c.name;
+    };
+
+    if (byId('txSearch')) byId('txSearch').onclick = () => openCustomerSearchModal(state.customers);
+    if (byId('txAcc')) {
+      byId('txAcc').oninput = () => { const v = (byId('txAcc').value || '').trim(); if (/^\d{4}$/.test(v)) searchSingle(); };
+      byId('txAcc').onchange = searchSingle;
+      byId('txAcc').onkeyup = e => { if(e.key==='Enter') searchSingle(); };
+    }
+
+    if (byId('txJournalAdd')) byId('txJournalAdd').onclick = () => {
+      state.ui.generatedJournals[visibilityKey] = true;
+      save();
+      renderWorkspace();
+    };
+
+    if (byId('journalAcc')) {
+      byId('journalAcc').oninput = () => { const v = (byId('journalAcc').value || '').trim(); if (/^\d{4}$/.test(v)) searchJournal(); };
+      byId('journalAcc').onchange = searchJournal;
+      byId('journalAcc').onkeyup = e => { if(e.key==='Enter') searchJournal(); };
+    }
+
+    if (byId('journalAddRow')) byId('journalAddRow').onclick = () => {
+      const customer = (state.ui.selectedJournalCustomerId && state.customers.find(c => c.id === state.ui.selectedJournalCustomerId)) || getCustomerByAccountNo(byId('journalAcc')?.value || '');
+      if (!customer) return showToast('Search for customer first');
+      if (isCustomerFrozen(customer) || customer.active === false) { freezeInactiveCustomer(customer); save(); return showToast('Frozen account cannot accept transactions'); }
+      const amount = Number(byId('journalAmount')?.value || 0);
+      if (!(amount > 0)) return showToast('Enter a valid amount');
+      const mode = selectedMode();
+      journal.unshift({
+        id: uid('jr'),
+        customerId: customer.id,
+        customerName: customer.name,
+        accountNumber: customer.accountNumber,
+        amount,
+        details: byId('journalDetails')?.value.trim() || '',
+        receivedOrPaidBy: byId('journalCounterparty')?.value.trim() || '',
+        payoutSource: mode,
+        paymentMode: mode,
+        date: businessDate()
+      });
+      save();
+      recalcPreview();
+      resetJournalEntryFields();
+    };
+
     const fieldNoteInput = byId('journalFieldNoteInput');
     if (fieldNoteInput) {
       fieldNoteInput.value = '';
@@ -1726,9 +1856,84 @@
         }
       };
     }
-    byId('journalClear').onclick = () => { journal.splice(0); attachmentState.fieldNote = null; attachmentState.loading = false; const input = byId('journalFieldNoteInput'); if (input) input.value = ''; save(); recalcPreview(); resetFields(); };
-    byId('txPostSingle').onclick = () => { if (!hasPermission(kind)) return showToast('No access to post'); if (!hasApprovedFloat(staff.id, businessDate())) return showToast('Approved opening balance required before posting'); const customer = getSelectedCustomer() || getCustomerByAccountNo(byId('txAcc').value); if (!customer) return showToast('Search for customer first'); if (isCustomerFrozen(customer) || customer.active === false) { freezeInactiveCustomer(customer); save(); return showToast('Frozen account cannot accept transactions'); } const amount = Number(byId('txAmount').value || 0); if (!(amount > 0)) return showToast('Enter a valid amount'); confirmAction(`Submit single ${kind} request for approval?`, () => { submitApprovalThroughGateway(kind === 'credit' ? 'customer_credit' : 'customer_debit', { customerId: customer.id, customerName: customer.name, accountNumber: customer.accountNumber, amount, details: byId('txDetails').value.trim(), receivedOrPaidBy: byId('txCounterparty').value.trim(), payoutSource: byId('txPayoutSource')?.value || 'teller', staffId: staff.id, date: businessDate() }).then((result) => { if (!result?.ok) return showToast(result?.error?.message || 'Unable to submit request'); resetFields(); showToast(`${kind === 'credit' ? 'Credit' : 'Debit'} request sent for approval`); render(); }); }); };
-    byId('journalSubmit').onclick = () => { if (!hasPermission(kind)) return showToast('No access to post'); if (!hasApprovedFloat(staff.id, businessDate())) return showToast('Approved opening balance required before posting'); if (!journal.length) return showToast('Generate journal first'); if (attachmentState.loading) return showToast('Please wait for the field note to finish loading'); confirmAction(`Submit ${kind} journal for approval?`, () => { submitApprovalThroughGateway(kind === 'credit' ? 'customer_credit_journal' : 'customer_debit_journal', { staffId: staff.id, date: businessDate(), openingFloat: getOpeningBalanceForDate(staff.id, businessDate()), rows: journal.map(row => ({ customerId: row.customerId, customerName: row.customerName, accountNumber: row.accountNumber, amount: row.amount, details: row.details, receivedOrPaidBy: row.receivedOrPaidBy, payoutSource: row.payoutSource })), fieldNote: attachmentState.fieldNote ? { name: attachmentState.fieldNote.name, type: attachmentState.fieldNote.type, size: attachmentState.fieldNote.size, dataUrl: attachmentState.fieldNote.dataUrl, uploadedAt: attachmentState.fieldNote.uploadedAt } : null }).then((result) => { if (!result?.ok) return showToast(result?.error?.message || 'Unable to submit journal'); journal.splice(0); attachmentState.fieldNote = null; attachmentState.loading = false; const input = byId('journalFieldNoteInput'); if (input) input.value = ''; save(); recalcPreview(); resetFields(); showToast(`${kind === 'credit' ? 'Credit' : 'Debit'} journal sent for approval`); render(); }); }); };
+
+    if (byId('journalClear')) byId('journalClear').onclick = () => {
+      journal.splice(0);
+      attachmentState.fieldNote = null;
+      attachmentState.loading = false;
+      state.ui.generatedJournals[visibilityKey] = false;
+      const input = byId('journalFieldNoteInput');
+      if (input) input.value = '';
+      save();
+      renderWorkspace();
+    };
+
+    if (byId('txPostSingle')) byId('txPostSingle').onclick = () => {
+      if (!hasPermission(kind)) return showToast('No access to post');
+      if (!hasApprovedFloat(staff.id, businessDate())) return showToast('Approved opening balance required before posting');
+      const customer = getSelectedCustomer() || getCustomerByAccountNo(byId('txAcc').value);
+      if (!customer) return showToast('Search for customer first');
+      if (isCustomerFrozen(customer) || customer.active === false) { freezeInactiveCustomer(customer); save(); return showToast('Frozen account cannot accept transactions'); }
+      const amount = Number(byId('txAmount').value || 0);
+      if (!(amount > 0)) return showToast('Enter a valid amount');
+      const mode = selectedMode();
+      confirmAction(`Submit single ${kind} request for approval?`, () => {
+        submitApprovalThroughGateway(kind === 'credit' ? 'customer_credit' : 'customer_debit', {
+          customerId: customer.id,
+          customerName: customer.name,
+          accountNumber: customer.accountNumber,
+          amount,
+          details: byId('txDetails').value.trim(),
+          receivedOrPaidBy: byId('txCounterparty').value.trim(),
+          payoutSource: mode,
+          paymentMode: mode,
+          staffId: staff.id,
+          date: businessDate()
+        }).then((result) => {
+          if (!result?.ok) return showToast(result?.error?.message || 'Unable to submit request');
+          resetFields();
+          showToast(`${kind === 'credit' ? 'Credit' : 'Debit'} request sent for approval`);
+          render();
+        });
+      });
+    };
+
+    if (byId('journalSubmit')) byId('journalSubmit').onclick = () => {
+      if (!hasPermission(kind)) return showToast('No access to post');
+      if (!hasApprovedFloat(staff.id, businessDate())) return showToast('Approved opening balance required before posting');
+      if (!journal.length) return showToast('Generate journal first');
+      if (attachmentState.loading) return showToast('Please wait for the field note to finish loading');
+      confirmAction(`Submit ${kind} journal for approval?`, () => {
+        submitApprovalThroughGateway(kind === 'credit' ? 'customer_credit_journal' : 'customer_debit_journal', {
+          staffId: staff.id,
+          date: businessDate(),
+          openingFloat: getOpeningBalanceForDate(staff.id, businessDate()),
+          rows: journal.map(row => ({
+            customerId: row.customerId,
+            customerName: row.customerName,
+            accountNumber: row.accountNumber,
+            amount: row.amount,
+            details: row.details,
+            receivedOrPaidBy: row.receivedOrPaidBy,
+            payoutSource: row.payoutSource,
+            paymentMode: row.paymentMode
+          })),
+          fieldNote: attachmentState.fieldNote ? { name: attachmentState.fieldNote.name, type: attachmentState.fieldNote.type, size: attachmentState.fieldNote.size, dataUrl: attachmentState.fieldNote.dataUrl, uploadedAt: attachmentState.fieldNote.uploadedAt } : null
+        }).then((result) => {
+          if (!result?.ok) return showToast(result?.error?.message || 'Unable to submit journal');
+          journal.splice(0);
+          attachmentState.fieldNote = null;
+          attachmentState.loading = false;
+          state.ui.generatedJournals[visibilityKey] = false;
+          const input = byId('journalFieldNoteInput');
+          if (input) input.value = '';
+          save();
+          showToast(`${kind === 'credit' ? 'Credit' : 'Debit'} journal sent for approval`);
+          renderWorkspace();
+        });
+      });
+    };
+
     recalcPreview();
   }
 
@@ -2263,6 +2468,8 @@
       if (byId('txAcc')) byId('txAcc').value = c.accountNumber;
       if (byId('txName')) byId('txName').textContent = c.name;
       if (byId('txBalance')) byId('txBalance').textContent = money(c.balance);
+      if (byId('journalAcc')) byId('journalAcc').value = c.accountNumber;
+      if (byId('journalName')) byId('journalName').textContent = c.name;
       return;
     }
     if (state.ui.tool === 'account_statement') {

@@ -4573,3 +4573,114 @@ body[data-theme="ducess-sheet"] .journal-sheet .forced-amount-label{
     align-items:flex-start;
   }
 }
+
+
+/* 2026-03-31 surgical workspace navigation + home simplification */
+.hero-card,
+#btnTodayFloat,
+#btnCOD,
+#btnAudit,
+#btnThemeCycle,
+.workspace-right {
+  display: none !important;
+}
+
+.top-actions {
+  margin-left: auto;
+}
+
+.workspace-switcher {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.vertical-tool-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 0;
+}
+
+.vertical-tool-tabs .tool-tab {
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+  min-height: 54px;
+  font-size: 16px;
+}
+
+.workspace-tool-body {
+  min-width: 0;
+}
+
+.tool-empty-state {
+  min-height: 220px;
+  border: 1px dashed var(--line);
+  border-radius: 18px;
+  padding: 28px;
+  background: var(--soft);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+}
+
+.tool-empty-title {
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.tool-empty-note {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.tx-mode-toggle {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  min-height: 47px;
+  align-items: center;
+}
+
+.tx-toggle-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--soft);
+  font-weight: 600;
+}
+
+.tx-toggle-pill input {
+  width: auto;
+  margin: 0;
+}
+
+.journal-entry-grid {
+  margin-bottom: 16px;
+}
+
+.journal-add-field button {
+  width: 100%;
+}
+
+@media (max-width: 980px) {
+  .workspace-switcher {
+    grid-template-columns: 1fr;
+  }
+
+  .vertical-tool-tabs {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .vertical-tool-tabs .tool-tab {
+    width: auto;
+    min-width: 180px;
+  }
+}
