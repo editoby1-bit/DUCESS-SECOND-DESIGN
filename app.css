@@ -35,8 +35,8 @@ button, input, select, textarea { font: inherit; }
 }
 .topbar {
   padding: 18px 22px;
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 16px;
 }
@@ -48,8 +48,9 @@ button, input, select, textarea { font: inherit; }
   font-weight: 800;
 }
 .eyebrow { font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
-.topbar h1 { font-size: 22px; margin: 4px 0 0; }
-.top-actions { display:flex; gap:10px; flex-wrap: wrap; align-items:center; }
+.topbar h1 { font-size: 22px; margin: 0; }
+.dashboard-title { text-align: center; justify-self: center; font-size: 24px; letter-spacing: .02em; }
+.top-actions { display:flex; gap:10px; flex-wrap: wrap; align-items:center; justify-content:flex-end; }
 .inline-field { display:flex; flex-direction:column; gap:6px; }
 .inline-field span { font-size: 12px; color: var(--muted); font-weight: 600; }
 .inline-field.compact select { min-width: 220px; }
@@ -83,7 +84,10 @@ button:disabled { opacity: .55; cursor:not-allowed; }
 .summary-card { padding: 16px; }
 .summary-card .value { font-size: 24px; font-weight: 800; margin-top: 6px; }
 .summary-card .hint { color: var(--muted); font-size: 13px; margin-top: 6px; }
-.module-grid { margin-top:18px; display:grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap:14px; }
+.module-grid { margin-top:18px; display:grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap:14px; }
+.module-grid > .module-card { grid-column: span 2; }
+.module-grid > .module-card:nth-child(4) { grid-column: 2 / span 2; }
+.module-grid > .module-card:nth-child(5) { grid-column: 4 / span 2; }
 .module-card {
   padding: 18px; cursor:pointer; transition: transform .18s ease, border-color .18s ease;
   min-height: 145px; position:relative;
@@ -182,12 +186,16 @@ button:disabled { opacity: .55; cursor:not-allowed; }
 .upload-list { display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; }
 .upload-pill { padding:8px 12px; border-radius:999px; background:#edf4fb; border:1px solid #d5e3ef; font-size:12px; }
 @media (max-width: 1120px) {
+  .topbar { grid-template-columns: 1fr; }
+  .dashboard-title { order: 2; }
+  .brand-wrap, .top-actions { justify-self: stretch; }
   .module-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .module-grid > .module-card, .module-grid > .module-card:nth-child(4), .module-grid > .module-card:nth-child(5) { grid-column: auto; }
   .layout-grid.two, .layout-grid.three, .kpi-row, .hero-card { grid-template-columns:1fr; flex-direction:column; }
   .hero-stats { min-width: 100%; }
 }
 @media (max-width: 760px) {
-  .topbar, .workspace-head { flex-direction: column; align-items: stretch; }
+  .workspace-head { flex-direction: column; align-items: stretch; }
   .form-grid, .info-grid { grid-template-columns: 1fr; }
   .module-grid { grid-template-columns:1fr; }
   .global-search { width:100%; }
@@ -210,7 +218,7 @@ body[data-theme="dark-slate"] .display-field, body[data-theme="dark-slate"] sele
 body[data-theme="neutral-stone"]{--bg:#f1f0ec;--panel:#fffdfa;--line:#d8d2c6;--text:#2c2a27;--muted:#726d64;--brand:#77614b;--brand-2:#9a8165;--accent:#ebe5da;--entry:#e2d3b8;--soft:#faf7f1;--shadow:0 12px 24px rgba(80,64,40,.08)}
 
 .balance-negative{color: var(--danger)!important;}
-.theme-cycle-btn{min-width:180px;text-align:center;}
+.theme-cycle-btn{min-width:84px;padding:8px 10px;font-size:12px;text-align:center;opacity:.9;}
 body[data-theme="ducess-sheet"]{--bg:#0d0b10;--panel:#050507;--line:#5f1111;--text:#f7f4ea;--muted:#d8c8c8;--brand:#6b0000;--brand-2:#00eaff;--accent:#160b14;--entry:#efcfd1;--soft:#0c1014;--danger:#ff7070;--success:#53c68c;--warning:#f3a65a;}
 body[data-theme="ducess-sheet"] button.secondary, body[data-theme="ducess-sheet"] .tool-tab, body[data-theme="ducess-sheet"] .filter-chip{background:#f2ebea;color:#1b1515;border:1px solid #d8b9b9;}
 body[data-theme="ducess-sheet"] .module-card, body[data-theme="ducess-sheet"] .workspace-card, body[data-theme="ducess-sheet"] .hero-card, body[data-theme="ducess-sheet"] .topbar{background:#000;border-color:#5f1111;}
