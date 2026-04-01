@@ -1227,14 +1227,16 @@
 
             <div class="sheet-label">Account Name</div>
             <div class="display-field value-wide" id="txName">—</div>
-
-            <div class="sheet-label">Available Balance</div>
-            <div class="display-field value-short" id="txBalance">—</div>
-            <div class="sheet-label inline-label amount-inline-label">Amount</div>
-            <div class="amount-post-wrap">
-              <input id="txAmount" class="entry-input sheet-input medium-amt" type="number" />
-              <button id="txPostSingle" class="sheet-btn secondary">Post</button>
+            <div class="posting-kpis compact-posting-kpis">
+              <div class="mini-kpi small"><span class="mini-kpi-label">Opening Balance</span><span class="mini-kpi-value">${money(opening)}</span></div>
+              <div class="mini-kpi small"><span class="mini-kpi-label">Remaining Balance</span><span class="mini-kpi-value" id="postingRunningFloat">${money(Math.max(0, running))}</span></div>
+              <div class="mini-kpi small"><span class="mini-kpi-label">Variance</span><span class="mini-kpi-value balance-negative" id="postingVariance">${money(Math.max(0, -running))}</span></div>
             </div>
+
+            <div class="sheet-label">Amount</div>
+            <input id="txAmount" class="entry-input sheet-input medium-amt" type="number" />
+            <button id="txPostSingle" class="sheet-btn secondary">Post</button>
+            <div class="display-field value-short visually-hidden-balance" id="txBalance">—</div>
           </div>
         </div>
         <div class="tellering-inline-meta form-card compact-left tellering-entry-card">
@@ -1248,11 +1250,6 @@
         <div class="journal-pane form-card spacious-journal-pane standalone-journal-pane ${journalVisible ? '' : 'hidden'}" id="journalPane">
           <div class="journal-pane-head compact-journal-head">
             <h3>Journal Generated</h3>
-            <div class="journal-head-kpis compact-journal-kpis">
-              <div class="mini-kpi"><span class="mini-kpi-label">Opening Balance</span><span class="mini-kpi-value">${money(opening)}</span></div>
-              <div class="mini-kpi"><span class="mini-kpi-label">Remaining Balance</span><span class="mini-kpi-value" id="journalRunningFloat">${money(Math.max(0, running))}</span></div>
-              <div class="mini-kpi"><span class="mini-kpi-label">Variance</span><span class="mini-kpi-value balance-negative" id="journalVariance">${money(Math.max(0, -running))}</span></div>
-            </div>
             <div class="journal-pane-actions ${journalCollapsed ? "" : "journal-pane-actions-hidden"}"><button id="journalCollapseTopBtn" class="secondary">${journalCollapsed ? 'Expand Journal' : 'Collapse Journal'}</button></div>
           </div>
           <div class="journal-pane-body ${journalCollapsed ? 'hidden' : ''}" id="journalPaneBody">
@@ -1805,8 +1802,8 @@
       });
       const rows = withBalances.map(({ row, before, remaining, variance }, displayIndex) => `<tr><td>${displayIndex+1}</td><td>${row.customerName}</td><td>${row.accountNumber}</td><td>${money(before)}</td><td>${money(row.amount)}</td><td class="${remaining<0?'balance-negative':''}">${money(remaining)}</td><td class="${variance>0?'balance-negative':''}">${money(variance)}</td><td><span class="linklike" data-remove-row="${row.id}">Remove</span></td></tr>`).join('') || '<tr><td colspan="8">No journal entries yet</td></tr>';
       if (byId('journalRows')) byId('journalRows').innerHTML = rows;
-      if (byId('journalRunningFloat')) byId('journalRunningFloat').textContent = money(Math.max(0,running));
-      if (byId('journalVariance')) byId('journalVariance').textContent = money(Math.max(0,-running));
+      ['journalRunningFloat','postingRunningFloat'].forEach(id => { if (byId(id)) byId(id).textContent = money(Math.max(0,running)); });
+      ['journalVariance','postingVariance'].forEach(id => { if (byId(id)) byId(id).textContent = money(Math.max(0,-running)); });
       const fileNameEl = byId('journalFieldNoteName');
       if (fileNameEl) fileNameEl.textContent = attachmentState.loading ? 'Reading file…' : (attachmentState.fieldNote?.name ? `${attachmentState.fieldNote.name} (${formatFileSize(attachmentState.fieldNote.size)})` : 'No file selected');
       const inputEl = byId('journalFieldNoteInput');

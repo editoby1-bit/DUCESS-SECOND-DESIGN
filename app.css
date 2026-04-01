@@ -5222,3 +5222,90 @@ body[data-theme="ducess-sheet"] .journal-sheet .forced-amount-label{
 .journal-pane-actions-hidden{
   display:none;
 }
+
+/* Surgical patch: tellering amount de-duplication, posting KPIs inside posting modal, centered standalone journal */
+.polished-credit-grid{
+  grid-template-columns:168px minmax(220px,260px) 120px minmax(300px,1fr) !important;
+  align-items:start;
+}
+.polished-credit-grid .value-wide{
+  grid-column:2 / 4 !important;
+}
+.polished-credit-grid .posting-kpis{
+  grid-column:4 / 5 !important;
+  grid-row:1 / 4 !important;
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+  align-content:start;
+}
+.polished-credit-grid .posting-kpis .mini-kpi.small{
+  min-width:0;
+  padding:8px 10px;
+}
+.polished-credit-grid .posting-kpis .mini-kpi-value{
+  font-size:16px;
+}
+.polished-credit-grid .visually-hidden-balance{
+  display:none !important;
+}
+.journal-sheet .amount-inline-label,
+.polished-credit-grid .sheet-label.inline-label{
+  display:none !important;
+}
+.standalone-journal-pane{
+  width:min(1280px, calc(100% - 64px)) !important;
+  max-width:min(1280px, calc(100% - 64px)) !important;
+  margin-left:auto !important;
+  margin-right:auto !important;
+}
+.compact-journal-head{
+  justify-content:space-between !important;
+}
+.journal-head-kpis,
+.compact-journal-kpis{
+  display:none !important;
+}
+.journal-pane .journal-table-wrap{
+  overflow-x:hidden !important;
+}
+.journal-pane .journal-table{
+  width:100% !important;
+  min-width:100% !important;
+  table-layout:fixed !important;
+}
+.journal-pane .journal-table th:nth-child(1),
+.journal-pane .journal-table td:nth-child(1){width:5%;}
+.journal-pane .journal-table th:nth-child(2),
+.journal-pane .journal-table td:nth-child(2){width:18%;}
+.journal-pane .journal-table th:nth-child(3),
+.journal-pane .journal-table td:nth-child(3){width:13%;}
+.journal-pane .journal-table th:nth-child(4),
+.journal-pane .journal-table td:nth-child(4){width:13%;}
+.journal-pane .journal-table th:nth-child(5),
+.journal-pane .journal-table td:nth-child(5){width:10%;}
+.journal-pane .journal-table th:nth-child(6),
+.journal-pane .journal-table td:nth-child(6){width:14%;}
+.journal-pane .journal-table th:nth-child(7),
+.journal-pane .journal-table td:nth-child(7){width:11%;}
+.journal-pane .journal-table th:nth-child(8),
+.journal-pane .journal-table td:nth-child(8){width:10%;}
+@media (max-width: 980px){
+  .polished-credit-grid{
+    grid-template-columns:150px minmax(0,1fr) !important;
+  }
+  .polished-credit-grid .value-wide,
+  .polished-credit-grid .posting-kpis,
+  .polished-credit-grid #txPostSingle,
+  .polished-credit-grid #txAmount{
+    grid-column:2 / 3 !important;
+    grid-row:auto !important;
+  }
+  .polished-credit-grid .posting-kpis{
+    grid-template-columns:1fr;
+  }
+  .standalone-journal-pane{
+    width:100% !important;
+    max-width:none !important;
+  }
+}
