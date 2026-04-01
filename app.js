@@ -1220,7 +1220,7 @@
             </div>
           </div>
           <div class="sheet-grid credit-sheet-grid redesigned-journal-grid polished-credit-grid">
-            <div class="sheet-label">Account Number</div>
+            <div class="sheet-label posting-label-account">Account Number</div>
             <input id="txAcc" class="entry-input sheet-input short-code" maxlength="4" />
             <button id="txSearch" class="sheet-btn">Search</button>
             <button id="txJournalAdd" class="sheet-btn secondary">${journalVisible ? 'Journal Ready' : 'Generate Journal'}</button>
@@ -1230,7 +1230,7 @@
               <div class="mini-kpi small"><span class="mini-kpi-label">Variance</span><span class="mini-kpi-value balance-negative" id="postingVariance">${money(Math.max(0, -running))}</span></div>
             </div>
 
-            <div class="sheet-label">Account Name</div>
+            <div class="sheet-label posting-label-name">Account Name</div>
             <div class="display-field value-wide" id="txName">—</div>
 
             <div class="sheet-label amount-primary-label">Amount</div>
@@ -1246,7 +1246,8 @@
             <div class="field"><label>Details</label><input id="txDetails" class="entry-input"></div>
           </div>
         </div>
-        <div class="journal-pane form-card spacious-journal-pane standalone-journal-pane ${journalVisible ? '' : 'hidden'}" id="journalPane">
+        <div class="journal-center-wrap ${journalVisible ? '' : 'hidden'}" id="journalPaneWrap">
+        <div class="journal-pane form-card spacious-journal-pane standalone-journal-pane" id="journalPane">
           <div class="journal-pane-head compact-journal-head">
             <h3>Journal Generated</h3>
             <div class="journal-pane-actions ${journalCollapsed ? "" : "journal-pane-actions-hidden"}"><button id="journalCollapseTopBtn" class="secondary">${journalCollapsed ? 'Expand Journal' : 'Collapse Journal'}</button></div>
@@ -1268,6 +1269,7 @@
             </div>
             <div class="action-row journal-submit-row"><button id="journalSubmit">Submit Journal</button><button class="secondary" id="journalClear">Clear Journal</button><label class="sheet-btn secondary file-trigger-btn" for="journalFieldNoteInput">Upload Field Note</label><input id="journalFieldNoteInput" type="file" accept="image/*,.pdf,application/pdf" class="visually-hidden-file-input"><span class="compact-file-name" id="journalFieldNoteName">No file selected</span></div>
           </div>
+        </div>
         </div>
       </div>`;
   }
