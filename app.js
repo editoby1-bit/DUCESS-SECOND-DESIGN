@@ -1219,23 +1219,33 @@
               <div class="sheet-title">${title}</div>
             </div>
           </div>
-          <div class="sheet-grid credit-sheet-grid redesigned-journal-grid polished-credit-grid">
-            <div class="sheet-label posting-label-account">Account Number</div>
-            <input id="txAcc" class="entry-input sheet-input short-code" maxlength="4" />
-            <button id="txSearch" class="sheet-btn">Search</button>
-            <button id="txJournalAdd" class="sheet-btn secondary">${journalVisible ? 'Journal Ready' : 'Generate Journal'}</button>
-            <div class="posting-kpis compact-posting-kpis">
-              <div class="mini-kpi small"><span class="mini-kpi-label">Opening Balance</span><span class="mini-kpi-value">${money(opening)}</span></div>
-              <div class="mini-kpi small"><span class="mini-kpi-label">Remaining Balance</span><span class="mini-kpi-value" id="postingRunningFloat">${money(Math.max(0, running))}</span></div>
-              <div class="mini-kpi small"><span class="mini-kpi-label">Variance</span><span class="mini-kpi-value balance-negative" id="postingVariance">${money(Math.max(0, -running))}</span></div>
+          <div class="posting-modal-rows polished-posting-modal">
+            <div class="posting-row posting-row-top">
+              <div class="posting-row-left">
+                <div class="posting-inline-group posting-inline-account">
+                  <label class="sheet-label posting-label-account" for="txAcc">Account Number</label>
+                  <input id="txAcc" class="entry-input sheet-input short-code" maxlength="4" />
+                  <button id="txSearch" class="sheet-btn">Search</button>
+                  <button id="txJournalAdd" class="sheet-btn secondary">${journalVisible ? 'Journal Ready' : 'Generate Journal'}</button>
+                </div>
+              </div>
+              <div class="posting-kpis compact-posting-kpis">
+                <div class="mini-kpi small"><span class="mini-kpi-label">Opening Balance</span><span class="mini-kpi-value">${money(opening)}</span></div>
+                <div class="mini-kpi small"><span class="mini-kpi-label">Remaining Balance</span><span class="mini-kpi-value" id="postingRunningFloat">${money(Math.max(0, running))}</span></div>
+                <div class="mini-kpi small"><span class="mini-kpi-label">Variance</span><span class="mini-kpi-value balance-negative" id="postingVariance">${money(Math.max(0, -running))}</span></div>
+              </div>
             </div>
 
-            <div class="sheet-label posting-label-name">Account Name</div>
-            <div class="display-field value-wide" id="txName">—</div>
+            <div class="posting-row posting-row-name">
+              <label class="sheet-label posting-label-name" for="txName">Account Name</label>
+              <div class="display-field value-wide" id="txName">—</div>
+            </div>
 
-            <div class="sheet-label amount-primary-label">Amount</div>
-            <input id="txAmount" class="entry-input sheet-input medium-amt" type="number" />
-            <button id="txPostSingle" class="sheet-btn secondary">Post</button>
+            <div class="posting-row posting-row-amount">
+              <label class="sheet-label amount-primary-label" for="txAmount">Amount</label>
+              <input id="txAmount" class="entry-input sheet-input medium-amt" type="number" />
+              <button id="txPostSingle" class="sheet-btn secondary">Post</button>
+            </div>
           </div>
         </div>
         <div class="tellering-inline-meta form-card compact-left tellering-entry-card">
@@ -1246,7 +1256,8 @@
             <div class="field"><label>Details</label><input id="txDetails" class="entry-input"></div>
           </div>
         </div>
-        <div class="journal-center-wrap ${journalVisible ? '' : 'hidden'}" id="journalPaneWrap">
+        <div class="w-full flex justify-center journal-center-wrap ${journalVisible ? '' : 'hidden'}" id="journalPaneWrap">
+        <div class="journal-wrapper">
         <div class="journal-pane form-card spacious-journal-pane standalone-journal-pane" id="journalPane">
           <div class="journal-pane-head compact-journal-head">
             <h3>Journal Generated</h3>
@@ -1269,6 +1280,7 @@
             </div>
             <div class="action-row journal-submit-row"><button id="journalSubmit">Submit Journal</button><button class="secondary" id="journalClear">Clear Journal</button><label class="sheet-btn secondary file-trigger-btn" for="journalFieldNoteInput">Upload Field Note</label><input id="journalFieldNoteInput" type="file" accept="image/*,.pdf,application/pdf" class="visually-hidden-file-input"><span class="compact-file-name" id="journalFieldNoteName">No file selected</span></div>
           </div>
+        </div>
         </div>
         </div>
       </div>`;
