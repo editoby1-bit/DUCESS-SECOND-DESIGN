@@ -1189,10 +1189,10 @@
       <div class="stack">
         <div class="form-card">
           <h3>Account Statement</h3>
-          <div class="form-grid three account-statement-filter-grid">
+          <div class="form-grid three account-statement-filter-grid polished-statement-grid">
             <div class="field stmt-field stmt-acc-field"><label>Account Number</label><input id="stmtAcc" class="entry-input stmt-acc-input" inputmode="numeric" maxlength="4"></div>
-            <div class="field stmt-field stmt-date-field"><label>From Date</label><input id="stmtFrom" class="entry-input stmt-date-input" type="date"></div>
-            <div class="field stmt-field stmt-date-field"><label>To Date</label><input id="stmtTo" class="entry-input stmt-date-input" type="date"></div>
+            <div class="field stmt-field stmt-date-field"><label>From Date</label><input id="stmtFrom" class="entry-input stmt-date-input polished-date-input" type="date"></div>
+            <div class="field stmt-field stmt-date-field"><label>To Date</label><input id="stmtTo" class="entry-input stmt-date-input polished-date-input" type="date"></div>
           </div>
           <div class="action-row"><button id="stmtGenerate">Generate Statement</button><button class="secondary" id="stmtPrintBtn">Print Statement</button></div>
         </div>
@@ -1206,17 +1206,20 @@
     const opening = getOpeningBalanceForDate(st?.id, businessDate());
     const running = currentFloatAvailable(st?.id, businessDate());
     state.ui.generatedJournals ||= {};
-    const journalVisible = !!state.ui.generatedJournals[`${st?.id || 'staff'}:${businessDate()}:${kind}`];
+    state.ui.collapsedJournals ||= {};
+    const journalKey = `${st?.id || 'staff'}:${businessDate()}:${kind}`;
+    const journalVisible = !!state.ui.generatedJournals[journalKey];
+    const journalCollapsed = !!state.ui.collapsedJournals[journalKey];
     return `
       <div class="tellering-stack">
-        <div class="tellering-sheet journal-sheet">
+        <div class="tellering-sheet journal-sheet standalone-posting-sheet">
           <div class="sheet-head-row single-head">
             <div>
               <div class="sheet-super">TELLERING</div>
               <div class="sheet-title">${title}</div>
             </div>
           </div>
-          <div class="sheet-grid credit-sheet-grid redesigned-journal-grid">
+          <div class="sheet-grid credit-sheet-grid redesigned-journal-grid polished-credit-grid">
             <div class="sheet-label">Account Number</div>
             <input id="txAcc" class="entry-input sheet-input short-code" maxlength="4" />
             <button id="txSearch" class="sheet-btn">Search</button>
@@ -1224,8 +1227,11 @@
 
             <div class="sheet-label">Account Name</div>
             <div class="display-field value-wide" id="txName">—</div>
-            <div class="sheet-spacer"></div>
-            <div class="sheet-spacer"></div>
+            <div class="top-kpi-row tellering-inline-kpis">
+              <div class="kpi small"><div class="label">Opening Balance</div><div class="number">${money(opening)}</div></div>
+              <div class="kpi small running-kpi"><div class="label">Remaining Balance</div><div class="number" id="topRunningFloat">${money(Math.max(0, running))}</div></div>
+              <div class="kpi small"><div class="label">Variance</div><div class="number balance-negative" id="topVariance">${money(Math.max(0, -running))}</div></div>
+            </div>
 
             <div class="sheet-label">Available Balance</div>
             <div class="display-field value-short" id="txBalance">—</div>
@@ -1236,42 +1242,39 @@
             </div>
           </div>
         </div>
-        <div class="tellering-lower compact-layout redesigned-tellering-lower">
-          <div class="tellering-left form-card compact-left tellering-entry-card">
-            <div class="form-grid two compact-fields">
-              <div class="field">
-                <label>${kind === 'credit' ? 'Received By' : 'Paid To'}</label>
-                <input id="txCounterparty" class="entry-input">
-              </div>
-              <div class="field">
-                <label>${kind === 'credit' ? 'Mode' : 'Payout Source'}</label>
-                <div class="tx-mode-toggle">
-                  <label class="tx-toggle-pill"><input type="radio" name="txMode" value="cash" checked> <span>Cash</span></label>
-                  <label class="tx-toggle-pill"><input type="radio" name="txMode" value="transfer"> <span>Transfer</span></label>
-                </div>
-              </div>
-              <div class="field"><label>Business Date</label><div class="display-field">${businessDate()}</div></div>
-              <div class="field"><label>Details</label><input id="txDetails" class="entry-input"></div>
-            </div>
+        <div class="tellering-inline-meta form-card compact-left tellering-entry-card">
+          <div class="form-grid tellering-meta-line compact-fields-inline">
+            <div class="field"><label>${kind === 'credit' ? 'Received By' : 'Paid To'}</label><input id="txCounterparty" class="entry-input"></div>
+            <div class="field"><label>${kind === 'credit' ? 'Mode' : 'Payout Source'}</label><div class="tx-mode-toggle inline-mode-toggle"><label class="tx-toggle-pill"><input type="radio" name="txMode" value="cash" checked> <span>Cash</span></label><label class="tx-toggle-pill"><input type="radio" name="txMode" value="transfer"> <span>Transfer</span></label></div></div>
+            <div class="field"><label>Business Date</label><div class="display-field">${businessDate()}</div></div>
+            <div class="field"><label>Details</label><input id="txDetails" class="entry-input"></div>
           </div>
-          <div class="journal-pane form-card spacious-journal-pane ${journalVisible ? '' : 'hidden'}" id="journalPane">
-            <div class="journal-kpis">
+        </div>
+        <div class="journal-pane form-card spacious-journal-pane standalone-journal-pane ${journalVisible ? '' : 'hidden'}" id="journalPane">
+          <div class="journal-pane-head">
+            <h3>Journal Generated</h3>
+            <div class="journal-pane-actions"><button id="journalCollapseBtn" class="secondary">${journalCollapsed ? 'Expand Journal' : 'Collapse Journal'}</button></div>
+          </div>
+          <div class="journal-pane-body ${journalCollapsed ? 'hidden' : ''}" id="journalPaneBody">
+            <div class="journal-kpis compact-journal-kpis">
               <div class="kpi small"><div class="label">Opening Balance</div><div class="number">${money(opening)}</div></div>
               <div class="kpi small running-kpi"><div class="label">Remaining Balance</div><div class="number" id="journalRunningFloat">${money(Math.max(0, running))}</div></div>
               <div class="kpi small"><div class="label">Variance</div><div class="number balance-negative" id="journalVariance">${money(Math.max(0, -running))}</div></div>
             </div>
-            <h3>Journal Generated</h3>
-            <div class="form-grid three journal-entry-grid">
-              <div class="field"><label>Journal Account Number</label><input id="journalAcc" class="entry-input" maxlength="4"></div>
-              <div class="field"><label>Journal Account Name</label><div class="display-field" id="journalName">—</div></div>
-              <div class="field"><label>Journal Amount</label><input id="journalAmount" class="entry-input" type="number"></div>
-              <div class="field"><label>${kind === 'credit' ? 'Received By' : 'Paid To'}</label><input id="journalCounterparty" class="entry-input"></div>
-              <div class="field"><label>Journal Details</label><input id="journalDetails" class="entry-input"></div>
-              <div class="field journal-add-field"><label>&nbsp;</label><button id="journalAddRow" class="sheet-btn">Add to Journal</button></div>
+            <div class="journal-entry-shell">
+              <div class="journal-entry-top row-one">
+                <div class="journal-cell"><input id="journalAcc" class="entry-input" maxlength="4"><div class="journal-cell-label">Account Number</div></div>
+                <div class="journal-cell grow"><div class="display-field" id="journalName">—</div><div class="journal-cell-label">Account Name</div></div>
+                <div class="journal-cell"><input id="journalAmount" class="entry-input" type="number"><div class="journal-cell-label">Amount</div></div>
+              </div>
+              <div class="journal-entry-top row-two">
+                <div class="journal-cell grow"><input id="journalCounterparty" class="entry-input"><div class="journal-cell-label">${kind === 'credit' ? 'Received By' : 'Paid To'}</div></div>
+                <div class="journal-cell grow"><input id="journalDetails" class="entry-input"><div class="journal-cell-label">Details</div></div>
+                <div class="journal-cell action"><button id="journalAddRow" class="sheet-btn">Add to Journal</button></div>
+              </div>
             </div>
             <div class="table-wrap journal-table-wrap"><table class="table journal-table"><thead><tr><th>S/N</th><th>Account Name</th><th>Account Number</th><th>Amount</th><th>Remaining Balance</th><th>Action</th></tr></thead><tbody id="journalRows"></tbody></table></div>
             <div class="action-row journal-submit-row"><button id="journalSubmit">Submit Journal</button><button class="secondary" id="journalClear">Clear Journal</button><label class="sheet-btn secondary file-trigger-btn" for="journalFieldNoteInput">Upload Field Note</label><input id="journalFieldNoteInput" type="file" accept="image/*,.pdf,application/pdf" class="visually-hidden-file-input"><span class="compact-file-name" id="journalFieldNoteName">No file selected</span></div>
-            <div class="note">Generate Journal reveals a separate journal entry area. Journal rows use their own account number, customer lookup, amount, and add button.</div>
           </div>
         </div>
       </div>`;
@@ -1784,6 +1787,7 @@
     state.ui.staffJournalAttachments ||= {};
     state.ui.generatedJournals ||= {};
     const visibilityKey = `${staff.id}:${businessDate()}:${kind}`;
+    state.ui.collapsedJournals ||= {};
     const journal = state.ui.staffJournals[visibilityKey] ||= [];
     const attachmentState = state.ui.staffJournalAttachments[visibilityKey] ||= { fieldNote: null, loading: false };
 
@@ -1801,6 +1805,8 @@
       if (byId('journalRows')) byId('journalRows').innerHTML = rows;
       if (byId('journalRunningFloat')) byId('journalRunningFloat').textContent = money(Math.max(0,running));
       if (byId('journalVariance')) byId('journalVariance').textContent = money(Math.max(0,-running));
+      if (byId('topRunningFloat')) byId('topRunningFloat').textContent = money(Math.max(0,running));
+      if (byId('topVariance')) byId('topVariance').textContent = money(Math.max(0,-running));
       const fileNameEl = byId('journalFieldNoteName');
       if (fileNameEl) fileNameEl.textContent = attachmentState.loading ? 'Reading file…' : (attachmentState.fieldNote?.name ? `${attachmentState.fieldNote.name} (${formatFileSize(attachmentState.fieldNote.size)})` : 'No file selected');
       const inputEl = byId('journalFieldNoteInput');
@@ -1845,6 +1851,13 @@
 
     if (byId('txJournalAdd')) byId('txJournalAdd').onclick = () => {
       state.ui.generatedJournals[visibilityKey] = true;
+      state.ui.collapsedJournals[visibilityKey] = false;
+      save();
+      renderWorkspace();
+    };
+
+    if (byId('journalCollapseBtn')) byId('journalCollapseBtn').onclick = () => {
+      state.ui.collapsedJournals[visibilityKey] = !state.ui.collapsedJournals[visibilityKey];
       save();
       renderWorkspace();
     };
