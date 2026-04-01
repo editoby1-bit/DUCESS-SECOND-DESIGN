@@ -4777,3 +4777,125 @@ body[data-theme="ducess-sheet"] .journal-sheet .forced-amount-label{
     grid-column:2 / 6 !important;
   }
 }
+
+
+/* 2026-04-01 surgical sizing patch: tighter label spacing + exact-fit inputs */
+.digit-11-input{
+  font-variant-numeric:tabular-nums;
+}
+
+@media (min-width: 761px){
+  /* pull label-to-input spacing even tighter in the affected customer-service/tellering sheets */
+  .check-balance-sheet .redesigned-check-grid{
+    grid-template-columns:136px 82px 110px 110px 110px !important;
+    gap:6px 8px !important;
+  }
+
+  .journal-sheet .redesigned-journal-grid{
+    grid-template-columns:136px 82px 144px 190px !important;
+    max-width:592px !important;
+    width:592px !important;
+    gap:8px 8px !important;
+  }
+
+  .opening-card .opening-sheet-grid,
+  .maintenance-card .maintenance-sheet-grid,
+  .reactivation-card .reactivation-sheet-grid{
+    gap:0 !important;
+  }
+
+  .opening-card .opening-sheet-grid,
+  .maintenance-card .maintenance-sheet-grid{
+    grid-template-columns:132px 118px 70px 118px 68px !important;
+  }
+
+  .reactivation-card .reactivation-sheet-grid{
+    grid-template-columns:132px 82px 110px 110px 110px !important;
+  }
+
+  .opening-card .sheet-label-cell,
+  .opening-card .sheet-label-inline,
+  .maintenance-card .sheet-label-cell,
+  .maintenance-card .sheet-label-inline,
+  .reactivation-card .sheet-label-cell,
+  .reactivation-card .sheet-label-inline{
+    padding-left:12px !important;
+    padding-right:4px !important;
+  }
+
+  .opening-card .sheet-input-cell.nin,
+  .opening-card .sheet-input-cell.phone,
+  .opening-card .sheet-input-cell.bvn,
+  .maintenance-card .sheet-input-cell.nin,
+  .maintenance-card .sheet-input-cell.phone,
+  .maintenance-card .sheet-input-cell.bvn{
+    width:118px !important;
+    max-width:118px !important;
+  }
+
+  .opening-card .sheet-input-cell.account,
+  .maintenance-card .sheet-input-cell.account:not(.account-near-label){
+    width:68px !important;
+    max-width:68px !important;
+  }
+
+  .opening-card .sheet-label-inline.bvn-label,
+  .maintenance-card .sheet-label-inline.bvn-label,
+  .opening-card .sheet-label-inline.old-account-label,
+  .maintenance-card .sheet-label-inline.old-account-label{
+    padding-left:6px !important;
+    padding-right:4px !important;
+  }
+
+  .opening-card .sheet-input-cell.account.account-near-label,
+  .reactivation-card .sheet-input-cell.account.reactivation-account.half-account,
+  .maintenance-card .sheet-input-cell.account.account-near-label{
+    grid-column:2 / 3 !important;
+    justify-self:start !important;
+  }
+
+  .opening-card .sheet-input-cell.wide,
+  .maintenance-card .sheet-input-cell.wide,
+  .reactivation-card .sheet-input-cell.wide{
+    grid-column:2 / 6 !important;
+  }
+
+  .account-statement-filter-grid{
+    grid-template-columns:82px 150px 150px !important;
+    column-gap:14px !important;
+    row-gap:10px !important;
+    align-items:end !important;
+    justify-content:start !important;
+  }
+
+  .account-statement-filter-grid .stmt-field{
+    min-width:0;
+  }
+
+  .account-statement-filter-grid .stmt-acc-field,
+  .account-statement-filter-grid .stmt-date-field{
+    max-width:max-content !important;
+  }
+
+  .account-statement-filter-grid .stmt-acc-input{
+    width:82px !important;
+    max-width:82px !important;
+    font-variant-numeric:tabular-nums;
+  }
+
+  .account-statement-filter-grid .stmt-date-input{
+    width:150px !important;
+    max-width:150px !important;
+    min-width:150px !important;
+    font-variant-numeric:tabular-nums;
+    padding-right:28px !important;
+  }
+
+  .account-statement-filter-grid .stmt-date-input::-webkit-calendar-picker-indicator{
+    margin-left:2px;
+  }
+
+  .account-statement-filter-grid .field label{
+    margin-bottom:4px !important;
+  }
+}

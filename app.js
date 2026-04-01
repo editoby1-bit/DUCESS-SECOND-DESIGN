@@ -1126,12 +1126,12 @@
           <div class="sheet-input-cell wide"><input id="openAddress" class="entry-input cs-sheet-input"></div>
 
           <div class="sheet-label-cell">NIN</div>
-          <div class="sheet-input-cell nin"><input id="openNin" class="entry-input cs-sheet-input"></div>
+          <div class="sheet-input-cell nin"><input id="openNin" class="entry-input cs-sheet-input digit-11-input" inputmode="numeric" maxlength="11"></div>
           <div class="sheet-label-inline bvn-label">BVN</div>
-          <div class="sheet-input-cell bvn"><input id="openBvn" class="entry-input cs-sheet-input"></div>
+          <div class="sheet-input-cell bvn"><input id="openBvn" class="entry-input cs-sheet-input digit-11-input" inputmode="numeric" maxlength="11"></div>
 
           <div class="sheet-label-inline phone-inline-label">Phone Number</div>
-          <div class="sheet-input-cell phone"><input id="openPhone" class="entry-input cs-sheet-input"></div>
+          <div class="sheet-input-cell phone"><input id="openPhone" class="entry-input cs-sheet-input digit-11-input" inputmode="numeric" maxlength="11"></div>
           <div class="sheet-label-inline old-account-label">Old Account Number</div>
           <div class="sheet-input-cell account"><input id="openOldAccount" class="entry-input cs-sheet-input"></div>
 
@@ -1169,9 +1169,9 @@
 
           ${isReactivation ? '' : `<div class="sheet-label-cell">Address</div><div class="sheet-input-cell wide"><input id="${prefix}Address" class="entry-input cs-sheet-input cs-detail-input"></div>`}
 
-          ${isReactivation ? `<div class="sheet-label-cell blank"></div>` : `<div class="sheet-label-cell">NIN</div><div class="sheet-input-cell nin"><input id="${prefix}Nin" class="entry-input cs-sheet-input cs-detail-input"></div><div class="sheet-label-inline bvn-label">BVN</div><div class="sheet-input-cell bvn"><input id="${prefix}Bvn" class="entry-input cs-sheet-input cs-detail-input"></div>`}
+          ${isReactivation ? `<div class="sheet-label-cell blank"></div>` : `<div class="sheet-label-cell">NIN</div><div class="sheet-input-cell nin"><input id="${prefix}Nin" class="entry-input cs-sheet-input cs-detail-input digit-11-input" inputmode="numeric" maxlength="11"></div><div class="sheet-label-inline bvn-label">BVN</div><div class="sheet-input-cell bvn"><input id="${prefix}Bvn" class="entry-input cs-sheet-input cs-detail-input digit-11-input" inputmode="numeric" maxlength="11"></div>`}
 
-          ${isReactivation ? '' : `<div class="sheet-label-inline phone-inline-label">Phone Number</div><div class="sheet-input-cell phone"><input id="${prefix}Phone" class="entry-input cs-sheet-input cs-detail-input"></div><div class="sheet-label-inline old-account-label">Old Account Number</div><div class="sheet-input-cell account"><input id="${prefix}OldAccount" class="entry-input cs-sheet-input cs-detail-input"></div>`}
+          ${isReactivation ? '' : `<div class="sheet-label-inline phone-inline-label">Phone Number</div><div class="sheet-input-cell phone"><input id="${prefix}Phone" class="entry-input cs-sheet-input cs-detail-input digit-11-input" inputmode="numeric" maxlength="11"></div><div class="sheet-label-inline old-account-label">Old Account Number</div><div class="sheet-input-cell account"><input id="${prefix}OldAccount" class="entry-input cs-sheet-input cs-detail-input"></div>`}
         </div>
         <div class="cs-sheet-footer">
           <div class="cs-system-summary">
@@ -1189,10 +1189,10 @@
       <div class="stack">
         <div class="form-card">
           <h3>Account Statement</h3>
-          <div class="form-grid three">
-            <div class="field"><label>Account Number</label><input id="stmtAcc" class="entry-input"></div>
-            <div class="field"><label>From Date</label><input id="stmtFrom" class="entry-input" type="date"></div>
-            <div class="field"><label>To Date</label><input id="stmtTo" class="entry-input" type="date"></div>
+          <div class="form-grid three account-statement-filter-grid">
+            <div class="field stmt-field stmt-acc-field"><label>Account Number</label><input id="stmtAcc" class="entry-input stmt-acc-input" inputmode="numeric" maxlength="4"></div>
+            <div class="field stmt-field stmt-date-field"><label>From Date</label><input id="stmtFrom" class="entry-input stmt-date-input" type="date"></div>
+            <div class="field stmt-field stmt-date-field"><label>To Date</label><input id="stmtTo" class="entry-input stmt-date-input" type="date"></div>
           </div>
           <div class="action-row"><button id="stmtGenerate">Generate Statement</button><button class="secondary" id="stmtPrintBtn">Print Statement</button></div>
         </div>
