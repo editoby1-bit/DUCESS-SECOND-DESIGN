@@ -1224,19 +1224,18 @@
             <input id="txAcc" class="entry-input sheet-input short-code" maxlength="4" />
             <button id="txSearch" class="sheet-btn">Search</button>
             <button id="txJournalAdd" class="sheet-btn secondary">${journalVisible ? 'Journal Ready' : 'Generate Journal'}</button>
-
-            <div class="sheet-label">Account Name</div>
-            <div class="display-field value-wide" id="txName">—</div>
             <div class="posting-kpis compact-posting-kpis">
               <div class="mini-kpi small"><span class="mini-kpi-label">Opening Balance</span><span class="mini-kpi-value">${money(opening)}</span></div>
               <div class="mini-kpi small"><span class="mini-kpi-label">Remaining Balance</span><span class="mini-kpi-value" id="postingRunningFloat">${money(Math.max(0, running))}</span></div>
               <div class="mini-kpi small"><span class="mini-kpi-label">Variance</span><span class="mini-kpi-value balance-negative" id="postingVariance">${money(Math.max(0, -running))}</span></div>
             </div>
 
-            <div class="sheet-label">Amount</div>
+            <div class="sheet-label">Account Name</div>
+            <div class="display-field value-wide" id="txName">—</div>
+
+            <div class="sheet-label amount-primary-label">Amount</div>
             <input id="txAmount" class="entry-input sheet-input medium-amt" type="number" />
             <button id="txPostSingle" class="sheet-btn secondary">Post</button>
-            <div class="display-field value-short visually-hidden-balance" id="txBalance">—</div>
           </div>
         </div>
         <div class="tellering-inline-meta form-card compact-left tellering-entry-card">
