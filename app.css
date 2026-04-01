@@ -5875,3 +5875,121 @@ body[data-theme="ducess-sheet"] .journal-sheet .forced-amount-label{
     margin-right:auto !important;
   }
 }
+
+/* v15 surgical desktop refinement: tighten posting labels/inputs, shrink top buttons, and viewport-center journal */
+@media (min-width: 981px){
+  .polished-posting-modal{
+    --posting-kpi-strip-width: 320px;
+    --posting-left-column-width: calc(100% - var(--posting-kpi-strip-width) - 18px);
+  }
+
+  .posting-inline-group,
+  .posting-row-name,
+  .posting-row-amount{
+    gap:8px !important;
+  }
+
+  .posting-inline-group .sheet-label,
+  .posting-row-name .sheet-label,
+  .posting-row-amount .sheet-label{
+    flex:0 0 148px !important;
+  }
+
+  .posting-inline-account #txAcc{
+    width:108px !important;
+    min-width:108px !important;
+    max-width:108px !important;
+  }
+
+  .posting-inline-account #txSearch{
+    width:150px !important;
+    min-width:150px !important;
+    max-width:150px !important;
+  }
+
+  .posting-inline-account #txJournalAdd{
+    width:196px !important;
+    min-width:196px !important;
+    max-width:196px !important;
+  }
+
+  .posting-row-name,
+  .posting-row-amount,
+  .posting-row-top .posting-row-left{
+    width:var(--posting-left-column-width) !important;
+    max-width:var(--posting-left-column-width) !important;
+  }
+
+  .posting-row-name .value-wide{
+    flex:0 1 470px !important;
+    width:470px !important;
+    max-width:470px !important;
+  }
+
+  .posting-row-amount #txAmount{
+    width:200px !important;
+    min-width:200px !important;
+    max-width:200px !important;
+  }
+
+  .posting-row-amount #txPostSingle{
+    width:146px !important;
+    min-width:146px !important;
+    max-width:146px !important;
+  }
+
+  .posting-row-top .posting-kpis{
+    flex:0 0 var(--posting-kpi-strip-width) !important;
+    width:var(--posting-kpi-strip-width) !important;
+    min-width:var(--posting-kpi-strip-width) !important;
+    max-width:var(--posting-kpi-strip-width) !important;
+    margin-top:58px !important;
+    gap:10px !important;
+  }
+
+  .posting-row-top .posting-kpis .mini-kpi.small{
+    width:100px !important;
+    min-width:100px !important;
+    max-width:100px !important;
+    padding:8px 10px !important;
+  }
+
+  .journal-center-wrap{
+    width:100% !important;
+    display:block !important;
+    margin:0 !important;
+    padding:0 !important;
+  }
+
+  .journal-wrapper{
+    width:calc(100vw - 260px) !important;
+    max-width:none !important;
+    margin-left:calc(50% - 50vw + 130px) !important;
+    margin-right:0 !important;
+  }
+
+  .standalone-journal-pane{
+    width:100% !important;
+    max-width:none !important;
+    margin-left:auto !important;
+    margin-right:auto !important;
+  }
+
+  .journal-entry-shell{
+    max-width:1120px !important;
+    margin-left:0 !important;
+    margin-right:0 !important;
+  }
+
+  .journal-entry-top.row-one{
+    grid-template-columns:120px minmax(280px, 520px) 120px !important;
+    justify-content:start !important;
+    gap:16px !important;
+  }
+
+  .journal-entry-top.row-two{
+    grid-template-columns:minmax(240px, 280px) minmax(260px, 330px) 210px 230px !important;
+    justify-content:start !important;
+    gap:16px !important;
+  }
+}
