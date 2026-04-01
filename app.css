@@ -5993,3 +5993,147 @@ body[data-theme="ducess-sheet"] .journal-sheet .forced-amount-label{
     gap:16px !important;
   }
 }
+
+/* v16 surgical patch: credit modal gap, true centered journal, and account statement label separation */
+@media (min-width: 981px){
+  .polished-posting-modal{
+    position:relative !important;
+    --posting-kpi-strip-width: 318px !important;
+    padding-right:var(--posting-kpi-strip-width) !important;
+    gap:8px !important;
+  }
+
+  .posting-row-top{
+    display:block !important;
+    min-height:auto !important;
+  }
+
+  .posting-row-top .posting-row-left,
+  .posting-row-name,
+  .posting-row-amount{
+    width:100% !important;
+    max-width:100% !important;
+  }
+
+  .posting-inline-group,
+  .posting-row-name,
+  .posting-row-amount{
+    gap:8px !important;
+    align-items:center !important;
+  }
+
+  .posting-inline-group .sheet-label,
+  .posting-row-name .sheet-label,
+  .posting-row-amount .sheet-label{
+    flex:0 0 150px !important;
+    margin:0 !important;
+  }
+
+  .posting-inline-account #txAcc{
+    width:104px !important;
+    min-width:104px !important;
+    max-width:104px !important;
+  }
+
+  .posting-inline-account #txSearch{
+    width:150px !important;
+    min-width:150px !important;
+    max-width:150px !important;
+  }
+
+  .posting-inline-account #txJournalAdd{
+    width:188px !important;
+    min-width:188px !important;
+    max-width:188px !important;
+  }
+
+  .posting-row-name .value-wide{
+    flex:1 1 auto !important;
+    width:auto !important;
+    max-width:none !important;
+  }
+
+  .posting-row-amount #txAmount{
+    width:200px !important;
+    min-width:200px !important;
+    max-width:200px !important;
+  }
+
+  .posting-row-amount #txPostSingle{
+    width:146px !important;
+    min-width:146px !important;
+    max-width:146px !important;
+  }
+
+  .posting-row-top .posting-kpis{
+    position:absolute !important;
+    top:58px !important;
+    right:0 !important;
+    width:var(--posting-kpi-strip-width) !important;
+    min-width:var(--posting-kpi-strip-width) !important;
+    max-width:var(--posting-kpi-strip-width) !important;
+    display:flex !important;
+    justify-content:flex-end !important;
+    align-items:stretch !important;
+    gap:10px !important;
+    margin:0 !important;
+  }
+
+  .posting-row-top .posting-kpis .mini-kpi.small{
+    width:99px !important;
+    min-width:99px !important;
+    max-width:99px !important;
+    padding:8px 10px !important;
+  }
+
+  .journal-center-wrap{
+    width:100% !important;
+    display:flex !important;
+    justify-content:center !important;
+    padding:0 !important;
+    margin:0 !important;
+  }
+
+  .journal-wrapper{
+    width:calc(100% - 56px) !important;
+    max-width:calc(100% - 56px) !important;
+    margin:0 auto !important;
+  }
+
+  .standalone-journal-pane{
+    width:100% !important;
+    max-width:none !important;
+    margin-left:auto !important;
+    margin-right:auto !important;
+  }
+}
+
+.polished-statement-grid{
+  grid-template-columns:110px 170px 170px !important;
+  column-gap:18px !important;
+  row-gap:8px !important;
+  align-items:end !important;
+}
+
+.polished-statement-grid .stmt-field{
+  min-width:0 !important;
+}
+
+.polished-statement-grid .stmt-field label{
+  display:block !important;
+  margin-bottom:3px !important;
+  line-height:1.05 !important;
+  white-space:nowrap !important;
+}
+
+.polished-statement-grid .stmt-acc-input{
+  width:110px !important;
+  max-width:110px !important;
+}
+
+.polished-statement-grid .stmt-date-input,
+.account-statement-filter-grid .polished-date-input{
+  width:170px !important;
+  max-width:170px !important;
+  min-width:170px !important;
+}
