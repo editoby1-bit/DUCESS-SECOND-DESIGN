@@ -6137,3 +6137,69 @@ body[data-theme="ducess-sheet"] .journal-sheet .forced-amount-label{
   max-width:170px !important;
   min-width:170px !important;
 }
+
+/* v17 surgical patch: journal start alignment, narrower journal account-name field, tighter action buttons */
+@media (min-width: 981px){
+  .journal-center-wrap{
+    width:100% !important;
+    display:flex !important;
+    justify-content:center !important;
+    padding:0 !important;
+    margin:0 !important;
+  }
+
+  .journal-wrapper{
+    width:min(calc(100% - 56px), 1080px) !important;
+    max-width:min(calc(100% - 56px), 1080px) !important;
+    margin-left:auto !important;
+    margin-right:auto !important;
+  }
+
+  .standalone-journal-pane{
+    width:100% !important;
+    max-width:1080px !important;
+    margin-left:auto !important;
+    margin-right:auto !important;
+  }
+
+  .journal-entry-shell{
+    max-width:100% !important;
+    margin-left:0 !important;
+    margin-right:0 !important;
+  }
+
+  .journal-entry-top.row-one{
+    grid-template-columns:120px minmax(320px, 420px) 160px !important;
+    justify-content:start !important;
+    gap:20px !important;
+  }
+
+  .journal-entry-top.row-two{
+    grid-template-columns:minmax(220px, 260px) minmax(220px, 260px) 190px 190px !important;
+    justify-content:start !important;
+    gap:20px !important;
+    align-items:end !important;
+  }
+
+  .journal-entry-top.row-one .journal-cell.grow,
+  .journal-entry-top.row-two .journal-cell.grow{
+    flex:0 0 auto !important;
+  }
+
+  #journalAddRow{
+    width:180px !important;
+    min-width:180px !important;
+    max-width:180px !important;
+  }
+
+  #journalCollapseBtn{
+    width:180px !important;
+    min-width:180px !important;
+    max-width:180px !important;
+  }
+
+  .journal-cell.action{
+    align-self:end !important;
+    justify-content:flex-start !important;
+  }
+}
