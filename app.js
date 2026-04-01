@@ -1227,11 +1227,6 @@
 
             <div class="sheet-label">Account Name</div>
             <div class="display-field value-wide" id="txName">—</div>
-            <div class="top-kpi-row tellering-inline-kpis">
-              <div class="kpi small"><div class="label">Opening Balance</div><div class="number">${money(opening)}</div></div>
-              <div class="kpi small running-kpi"><div class="label">Remaining Balance</div><div class="number" id="topRunningFloat">${money(Math.max(0, running))}</div></div>
-              <div class="kpi small"><div class="label">Variance</div><div class="number balance-negative" id="topVariance">${money(Math.max(0, -running))}</div></div>
-            </div>
 
             <div class="sheet-label">Available Balance</div>
             <div class="display-field value-short" id="txBalance">—</div>
@@ -1253,27 +1248,27 @@
         <div class="journal-pane form-card spacious-journal-pane standalone-journal-pane ${journalVisible ? '' : 'hidden'}" id="journalPane">
           <div class="journal-pane-head">
             <h3>Journal Generated</h3>
-            <div class="journal-pane-actions"><button id="journalCollapseBtn" class="secondary">${journalCollapsed ? 'Expand Journal' : 'Collapse Journal'}</button></div>
-          </div>
-          <div class="journal-pane-body ${journalCollapsed ? 'hidden' : ''}" id="journalPaneBody">
             <div class="journal-kpis compact-journal-kpis">
               <div class="kpi small"><div class="label">Opening Balance</div><div class="number">${money(opening)}</div></div>
               <div class="kpi small running-kpi"><div class="label">Remaining Balance</div><div class="number" id="journalRunningFloat">${money(Math.max(0, running))}</div></div>
               <div class="kpi small"><div class="label">Variance</div><div class="number balance-negative" id="journalVariance">${money(Math.max(0, -running))}</div></div>
             </div>
-            <div class="journal-entry-shell">
-              <div class="journal-entry-top row-one">
+          </div>
+          <div class="journal-pane-body ${journalCollapsed ? 'hidden' : ''}" id="journalPaneBody">
+            <div class="table-wrap journal-table-wrap"><table class="table journal-table"><thead><tr><th>S/N</th><th>Account Name</th><th>Account Number</th><th>Opening Balance</th><th>Amount</th><th>Remaining Balance</th><th>Variance</th><th>Action</th></tr></thead><tbody id="journalRows"></tbody></table></div>
+            <div class="journal-entry-shell journal-entry-footer">
+              <div class="journal-entry-top row-one footer-row-one">
                 <div class="journal-cell"><input id="journalAcc" class="entry-input" maxlength="4"><div class="journal-cell-label">Account Number</div></div>
                 <div class="journal-cell grow"><div class="display-field" id="journalName">—</div><div class="journal-cell-label">Account Name</div></div>
-                <div class="journal-cell"><input id="journalAmount" class="entry-input" type="number"><div class="journal-cell-label">Amount</div></div>
-              </div>
-              <div class="journal-entry-top row-two">
                 <div class="journal-cell grow"><input id="journalCounterparty" class="entry-input"><div class="journal-cell-label">${kind === 'credit' ? 'Received By' : 'Paid To'}</div></div>
                 <div class="journal-cell grow"><input id="journalDetails" class="entry-input"><div class="journal-cell-label">Details</div></div>
+              </div>
+              <div class="journal-entry-top row-two footer-row-two">
+                <div class="journal-cell"><input id="journalAmount" class="entry-input" type="number"><div class="journal-cell-label">Amount</div></div>
                 <div class="journal-cell action"><button id="journalAddRow" class="sheet-btn">Add to Journal</button></div>
+                <div class="journal-cell action collapse-action"><button id="journalCollapseBtn" class="secondary">${journalCollapsed ? 'Expand Journal' : 'Collapse Journal'}</button></div>
               </div>
             </div>
-            <div class="table-wrap journal-table-wrap"><table class="table journal-table"><thead><tr><th>S/N</th><th>Account Name</th><th>Account Number</th><th>Amount</th><th>Remaining Balance</th><th>Action</th></tr></thead><tbody id="journalRows"></tbody></table></div>
             <div class="action-row journal-submit-row"><button id="journalSubmit">Submit Journal</button><button class="secondary" id="journalClear">Clear Journal</button><label class="sheet-btn secondary file-trigger-btn" for="journalFieldNoteInput">Upload Field Note</label><input id="journalFieldNoteInput" type="file" accept="image/*,.pdf,application/pdf" class="visually-hidden-file-input"><span class="compact-file-name" id="journalFieldNoteName">No file selected</span></div>
           </div>
         </div>
@@ -1800,8 +1795,8 @@
       const totalPending = pendingJournalTotal(staff.id, businessDate());
       const thisJournalTotal = journal.reduce((acc,row)=>acc+Number(row.amount||0),0);
       let running = approvedBase - (totalPending - thisJournalTotal);
-      const withBalances = journal.map((row) => { running -= Number(row.amount||0); return { row, remaining: running }; });
-      const rows = withBalances.map(({ row, remaining }, displayIndex) => `<tr><td>${displayIndex+1}</td><td>${row.customerName}</td><td>${row.accountNumber}</td><td>${money(row.amount)}</td><td class="${remaining<0?'balance-negative':''}">${money(remaining)}</td><td><span class="linklike" data-remove-row="${row.id}">Remove</span></td></tr>`).join('') || '<tr><td colspan="6">No journal entries yet</td></tr>';
+      const withBalances = journal.map((row) => { const before = running; running -= Number(row.amount||0); return { row, before, remaining: running, variance: Math.max(0, -running) }; });
+      const rows = withBalances.map(({ row, before, remaining, variance }, displayIndex) => `<tr><td>${displayIndex+1}</td><td>${row.customerName}</td><td>${row.accountNumber}</td><td>${money(before)}</td><td>${money(row.amount)}</td><td class="${remaining<0?'balance-negative':''}">${money(remaining)}</td><td class="${variance>0?'balance-negative':''}">${money(variance)}</td><td><span class="linklike" data-remove-row="${row.id}">Remove</span></td></tr>`).join('') || '<tr><td colspan="8">No journal entries yet</td></tr>';
       if (byId('journalRows')) byId('journalRows').innerHTML = rows;
       if (byId('journalRunningFloat')) byId('journalRunningFloat').textContent = money(Math.max(0,running));
       if (byId('journalVariance')) byId('journalVariance').textContent = money(Math.max(0,-running));
