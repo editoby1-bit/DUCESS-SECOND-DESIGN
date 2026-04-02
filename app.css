@@ -4439,8 +4439,8 @@ body[data-theme="ducess-sheet"] .journal-sheet .forced-amount-label{
 /* COD UI width refinement: extend central COD modal enough to fully accommodate the Notes column on desktop */
 @media (min-width: 901px){
   #modalBack .modal[data-modal-title="Central Close of Day"]{
-    width:min(1168px, calc(100vw - 48px));
-    max-width:min(1168px, calc(100vw - 48px));
+    width:min(1248px, calc(100vw - 40px));
+    max-width:min(1248px, calc(100vw - 40px));
     overflow-x:hidden;
   }
 
