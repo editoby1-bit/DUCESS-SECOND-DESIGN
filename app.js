@@ -1043,7 +1043,8 @@
       if (nextTool === 'my_balance' && state.ui.tool === 'my_balance') openMyBalanceModal();
       if (nextTool === 'opening_balance' && state.ui.tool === 'opening_balance') openFloatModal();
       if (nextTool === 'my_close_day' && state.ui.tool === 'my_close_day') openMyCODModal();
-      if (['my_balance','opening_balance','my_close_day'].includes(nextTool)) return;
+      if (nextTool === 'central_close_day' && state.ui.tool === 'central_close_day') openCentralCODModal();
+      if (['my_balance','opening_balance','my_close_day','central_close_day'].includes(nextTool)) return;
       if (['approval_customer_service','approval_tellering','approval_others'].includes(nextTool) && state.ui.tool === nextTool) {
         smoothScrollToOpenedSegment('#approvalsSectionTabs');
         return;
@@ -1065,7 +1066,7 @@
       case 'my_balance': return `<div class="tool-empty-state"><div class="tool-empty-title">My Balance</div><div class="tool-empty-note">Balance details open in a modal when this heading is selected.</div></div>`;
       case 'opening_balance': return `<div class="tool-empty-state"><div class="tool-empty-title">Opening Balance</div><div class="tool-empty-note">Opening balance opens in a modal when this heading is selected.</div></div>`;
       case 'my_close_day': return `<div class="tool-empty-state"><div class="tool-empty-title">My Close of Day</div><div class="tool-empty-note">Close-of-day details open in a modal when this heading is selected.</div></div>`;
-      case 'central_close_day': return renderApprovals();
+      case 'central_close_day': return `<div class="tool-empty-state"><div class="tool-empty-title">Central Close of Day</div><div class="tool-empty-note">Central close-of-day opens in a modal when this heading is selected.</div></div>`;
       case 'approval_customer_service':
       case 'approval_tellering':
       case 'approval_others':
