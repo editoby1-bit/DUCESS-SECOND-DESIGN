@@ -1043,7 +1043,7 @@
       if (nextTool === 'my_balance' && state.ui.tool === 'my_balance') openMyBalanceModal();
       if (nextTool === 'opening_balance' && state.ui.tool === 'opening_balance') openFloatModal();
       if (nextTool === 'my_close_day' && state.ui.tool === 'my_close_day') openMyCODModal();
-      if (nextTool === 'central_close_day' && state.ui.tool === 'central_close_day') openCentralCODModal();
+      if (nextTool === 'central_close_day' && state.ui.tool === 'central_close_day') openCODModal();
       if (['my_balance','opening_balance','my_close_day','central_close_day'].includes(nextTool)) return;
       if (['approval_customer_service','approval_tellering','approval_others'].includes(nextTool) && state.ui.tool === nextTool) {
         smoothScrollToOpenedSegment('#approvalsSectionTabs');
@@ -2033,7 +2033,7 @@
     const codDate = byId('codAdminDate');
     if (codDate) codDate.onchange = () => { state.ui.codAdminDate = codDate.value || businessDate(); save(); renderWorkspace(); };
     const approvalsCentralCloseDayBtn = byId('approvalsCentralCloseDayBtn');
-    if (approvalsCentralCloseDayBtn) approvalsCentralCloseDayBtn.onclick = () => openCentralCODModal();
+    if (approvalsCentralCloseDayBtn) approvalsCentralCloseDayBtn.onclick = () => openCODModal();
     qq('[data-approval-section]').forEach(btn => btn.onclick = ()=>{ state.ui.approvalsSection = btn.dataset.approvalSection; save(); renderWorkspace(); smoothScrollToOpenedSegment('#approvalsSectionTabs'); });
     const assignTopup = byId('assignFloatTopupFromApprovals');
     if (assignTopup) assignTopup.onclick = () => openFloatTopUpModal();
