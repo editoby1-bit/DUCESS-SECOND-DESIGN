@@ -4436,10 +4436,11 @@ body[data-theme="ducess-sheet"] .journal-sheet .forced-amount-label{
 }
 
 
-/* COD UI micro-width patch: slightly widen central COD modal and give the Note field a touch more room on desktop only */
+/* COD UI width refinement: extend central COD modal enough to fully accommodate the Notes column on desktop */
 @media (min-width: 901px){
   #modalBack .modal[data-modal-title="Central Close of Day"]{
-    width:min(1048px, 100%);
+    width:min(1168px, calc(100vw - 48px));
+    max-width:min(1168px, calc(100vw - 48px));
     overflow-x:hidden;
   }
 
@@ -4458,15 +4459,20 @@ body[data-theme="ducess-sheet"] .journal-sheet .forced-amount-label{
     min-width:120px;
   }
 
+  #modalBack .modal[data-modal-title="Central Close of Day"] .table th:nth-child(13),
+  #modalBack .modal[data-modal-title="Central Close of Day"] .table td:nth-child(13){
+    min-width:168px;
+  }
+
   #modalBack .modal[data-modal-title="Central Close of Day"] [data-cod-actual]{
     min-width:96px;
     width:96px;
   }
 
   #modalBack .modal[data-modal-title="Central Close of Day"] [data-cod-note]{
-    min-width:120px;
-    width:120px;
-    max-width:120px;
+    min-width:168px;
+    width:168px;
+    max-width:168px;
   }
 }
 
