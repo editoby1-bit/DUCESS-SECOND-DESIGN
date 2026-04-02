@@ -4470,9 +4470,12 @@ body[data-theme="ducess-sheet"] .journal-sheet .forced-amount-label{
   }
 
   #modalBack .modal[data-modal-title="Central Close of Day"] [data-cod-note]{
-    min-width:168px;
-    width:168px;
-    max-width:168px;
+    display:block;
+    min-width:0;
+    width:calc(100% - 12px);
+    max-width:calc(100% - 12px);
+    box-sizing:border-box;
+    margin-right:12px;
   }
 }
 
@@ -4496,10 +4499,11 @@ body[data-theme="ducess-sheet"] .journal-sheet .forced-amount-label{
 
   #modalBack .modal[data-modal-title="Central Close of Day"] [data-cod-note]{
     display:block;
-    width:92px !important;
-    min-width:92px !important;
-    max-width:92px !important;
+    width:calc(100% - 10px) !important;
+    min-width:0 !important;
+    max-width:calc(100% - 10px) !important;
     box-sizing:border-box;
+    margin-right:10px;
   }
 }
 
