@@ -1398,10 +1398,15 @@
       </div>`;
   }
 
+  function approvalSectionLabel(section) {
+    return { close_of_day: 'Close of Day', customer_service: 'Customer Service', tellering: 'Teller', others: 'Others' }[section] || 'Approval Queue';
+  }
+
   function renderApprovals() {
     state.ui.codAdminDate ||= businessDate();
     const categories = { close_of_day: ['close_of_day'], customer_service: ['account_opening','account_maintenance','account_reactivation'], tellering: ['customer_credit','customer_debit','customer_credit_journal','customer_debit_journal','float_declaration'], others: ['float_topup','operational_entry','create_operational_account','temp_grant','wallet_fund','debt_repayment'] };
     const currentSection = state.ui.approvalsSection || 'close_of_day';
+    const sectionLabel = approvalSectionLabel(currentSection);
     const allRows = currentSection === 'close_of_day' ? [] : state.approvals.filter(a => categories[currentSection].includes(a.type));
     const limit = state.ui.approvalsLimit || 20;
     const approvals = allRows.slice(0, limit);
@@ -1410,7 +1415,7 @@
     const selected = state.ui.codAdminDate;
     const codStatusRows = state.staff.filter(s => (DEFAULT_PERMS[s.role]||[]).includes('credit') || (DEFAULT_PERMS[s.role]||[]).includes('debit')).map((s,i)=>{ const rec=(state.cod||[]).find(c=>c.staffId===s.id && c.date===selected); const status=rec?(rec.status==='resolved'?'Resolved':rec.status==='flagged'?'Flagged':'Submitted'):'Missing'; return `<tr><td>${i+1}</td><td>${s.name}</td><td>${ROLE_LABELS[s.role]||s.role}</td><td>${status}</td><td>${rec?money(rec.formAmount ?? rec.openingBalance ?? 0):'—'}</td><td>${rec?money(rec.remainingBalance ?? rec.runningFloat ?? 0):'—'}</td><td>${rec?money(rec.variance||0):'—'}</td></tr>`; }).join('');
     const moreLess = currentSection === 'close_of_day' ? '' : `<div class="action-row">${allRows.length > limit ? `<button id="approvalsMore" class="secondary">Show More</button>`:''}${limit > 20 ? `<button id="approvalsLess" class="secondary">Show Less</button>`:''}</div>`;
-    return `<div class="stack">${codRows?`<div class="table-card"><h3>Close of Day Resolution Queue</h3><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Date</th><th>Staff</th><th>Form</th><th>Total Credits</th><th>Total Debits</th><th>Remaining Balance</th><th>Variance</th><th>Overdraw</th><th>Note</th><th>Action</th></tr></thead><tbody>${codRows}</tbody></table></div></div>`:''}<div class="tool-tabs approvals-sections" id="approvalsSectionTabs">${[['close_of_day','Close of Day'],['customer_service','Customer Service'],['tellering','Teller'],['others','Others']].map(([k,l])=>`<button class="tool-tab ${currentSection===k?'active':''}" data-approval-section="${k}">${l}</button>`).join('')}</div>${currentSection !== 'close_of_day' ? `<div class="table-card" id="approvalsQueueCard"><div class="action-row" style="justify-content:space-between;align-items:center"><h3>Approval Queue</h3></div><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Request</th><th>Submitted By</th><th>Details</th><th>Date</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows || '<tr><td colspan="7" class="muted">No requests yet</td></tr>'}</tbody></table></div>${moreLess}</div>` : ''}${canCloseBusinessDay()?`<div class="table-card"><div class="action-row" style="justify-content:space-between;align-items:center"><h3>Close of Day Daily Submission Status</h3>${currentSection==='close_of_day'?`<button id="openCentralCodFromApprovals" class="secondary">Open Close of Day</button>`:''}</div><div class="action-inline"><div class="inline-field compact"><span>Close of Day Date</span><input type="date" id="codAdminDate" value="${selected}"></div></div><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Staff</th><th>Office</th><th>Status</th><th>Form</th><th>Remaining Balance</th><th>Variance</th></tr></thead><tbody>${codStatusRows}</tbody></table></div></div>`:''}</div>`;
+    return `<div class="stack">${codRows?`<div class="table-card"><h3>Close of Day Resolution Queue</h3><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Date</th><th>Staff</th><th>Form</th><th>Total Credits</th><th>Total Debits</th><th>Remaining Balance</th><th>Variance</th><th>Overdraw</th><th>Note</th><th>Action</th></tr></thead><tbody>${codRows}</tbody></table></div></div>`:''}<div class="tool-tabs approvals-sections" id="approvalsSectionTabs">${[['close_of_day','Close of Day'],['customer_service','Customer Service'],['tellering','Teller'],['others','Others']].map(([k,l])=>`<button class="tool-tab ${currentSection===k?'active':''}" data-approval-section="${k}">${l}</button>`).join('')}</div>${currentSection !== 'close_of_day' ? `<div class="table-card" id="approvalsQueueCard"><div class="action-row" style="justify-content:space-between;align-items:center"><h3>${sectionLabel} Approval Queue</h3></div><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Request</th><th>Submitted By</th><th>Details</th><th>Date</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows || '<tr><td colspan="7" class="muted">No requests yet</td></tr>'}</tbody></table></div>${moreLess}</div>` : ''}${canCloseBusinessDay()?`<div class="table-card"><div class="action-row" style="justify-content:space-between;align-items:center"><h3>Close of Day Daily Submission Status</h3>${currentSection==='close_of_day'?`<button id="openCentralCodFromApprovals" class="secondary">Open Close of Day</button>`:''}</div><div class="action-inline"><div class="inline-field compact"><span>Close of Day Date</span><input type="date" id="codAdminDate" value="${selected}"></div></div><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Staff</th><th>Office</th><th>Status</th><th>Form</th><th>Remaining Balance</th><th>Variance</th></tr></thead><tbody>${codStatusRows}</tbody></table></div></div>`:''}</div>`;
   }
 
   function prettyApprovalType(type) {
@@ -2230,38 +2235,45 @@
 
   function openCODModal() {
     if (!canCloseBusinessDay()) return showToast('Only Approval Officer or Admin can close day');
+    const selectedDate = state.ui.codAdminDate || businessDate();
     const postingStaff = state.staff.filter(st => hasPermission('credit', st) || hasPermission('debit', st));
+    const codByStaff = new Map((state.cod || []).filter(c => c.date === selectedDate).map(c => [c.staffId, c]));
+    const missingStaff = postingStaff.filter(st => !codByStaff.has(st.id));
+    const unresolvedStaff = postingStaff.filter(st => {
+      const rec = codByStaff.get(st.id);
+      return rec && rec.status === 'flagged';
+    });
     const rows = postingStaff.map(st => {
-      const formAmount = openingBalanceOnlyForDate(st.id, businessDate());
-      const totalCreditsCash = approvedCreditCashTotalForDate(st.id, businessDate());
-      const totalCreditsTransfer = approvedCreditTransferTotalForDate(st.id, businessDate());
-      const totalDebitsCash = approvedDebitCashTotalForDate(st.id, businessDate());
-      const totalDebitsTransfer = approvedDebitTransferTotalForDate(st.id, businessDate());
-      const totalCredits = totalCreditsCash + totalCreditsTransfer;
-      const totalDebits = totalDebitsCash + totalDebitsTransfer;
-      const netBook = totalCredits - totalDebits;
-      const remaining = currentFloatAvailable(st.id, businessDate());
-      const variance = Math.min(0, remaining);
-      const overdraw = Math.max(0, -remaining);
-      return `<tr><td>${st.name}</td><td>${money(formAmount)}</td><td>${money(totalCreditsCash)}</td><td>${money(totalCreditsTransfer)}</td><td>${money(totalCredits)}</td><td>${money(totalDebitsCash)}</td><td>${money(totalDebitsTransfer)}</td><td>${money(totalDebits)}</td><td class="${netBook<0?'balance-negative':''}">${money(netBook)}</td><td class="${remaining<0?'balance-negative':''}">${money(remaining)}</td><td class="${variance<0?'balance-negative':''}">${money(variance)}</td><td class="${overdraw>0?'balance-negative':''}">${money(overdraw)}</td><td><input class="entry-input" data-cod-note="${st.id}"></td></tr>`;
+      const rec = codByStaff.get(st.id);
+      if (!rec) return `<tr><td>${st.name}</td><td class="muted">Missing submission</td><td class="muted">—</td><td class="muted">—</td><td class="muted">—</td><td class="muted">—</td><td class="muted">—</td><td class="muted">—</td><td class="muted">—</td><td class="muted">—</td><td class="muted">—</td><td class="muted">—</td><td><input class="entry-input" data-cod-note="${st.id}"></td></tr>`;
+      const formAmount = Number(rec.formAmount ?? rec.openingBalance ?? 0);
+      const totalCreditsCash = Number(rec.totalCreditsCash || 0);
+      const totalCreditsTransfer = Number(rec.totalCreditsTransfer || 0);
+      const totalCredits = Number(rec.totalCredits || (totalCreditsCash + totalCreditsTransfer));
+      const totalDebitsCash = Number(rec.totalDebitsCash || 0);
+      const totalDebitsTransfer = Number(rec.totalDebitsTransfer || 0);
+      const totalDebits = Number(rec.totalDebits || (totalDebitsCash + totalDebitsTransfer));
+      const netBook = Number(rec.netBookBalance || (totalCredits - totalDebits));
+      const remaining = Number(rec.remainingBalance ?? rec.runningFloat ?? 0);
+      const variance = Number(rec.variance || 0);
+      const overdraw = Number(rec.overdraw || 0);
+      return `<tr><td>${st.name}</td><td>${money(formAmount)}</td><td>${money(totalCreditsCash)}</td><td>${money(totalCreditsTransfer)}</td><td>${money(totalCredits)}</td><td>${money(totalDebitsCash)}</td><td>${money(totalDebitsTransfer)}</td><td>${money(totalDebits)}</td><td class="${netBook<0?'balance-negative':''}">${money(netBook)}</td><td class="${remaining<0?'balance-negative':''}">${money(remaining)}</td><td class="${variance<0?'balance-negative':''}">${money(variance)}</td><td class="${overdraw>0?'balance-negative':''}">${money(overdraw)}</td><td><input class="entry-input" data-cod-note="${st.id}" value="${esc(rec.resolutionNote || rec.note || '')}"></td></tr>`;
     }).join('');
-    openModal('Central Close of Day', `<div class="stack"><div class="note">You are closing business date <strong>${businessDate()}</strong>. Closing opens the next business date immediately.</div><div class="note">Form is the approved money available for field postings. Remaining Balance = Form - Total Credits - Total Debits. Variance and Overdraw are driven by how much of the form has been used.</div><div class="table-wrap"><table class="table"><thead><tr><th>Staff</th><th>Form</th><th>Credit Cash</th><th>Credit Transfer</th><th>Total Credits</th><th>Debit Cash</th><th>Debit Transfer</th><th>Total Debits</th><th>Net Book Balance</th><th>Remaining Balance</th><th>Variance</th><th>Overdraw</th><th>Note</th></tr></thead><tbody>${rows}</tbody></table></div></div>`, [{label:'Cancel', className:'secondary', onClick: closeModal}, {label:'Close Business Day', onClick: async ()=> {
+    const guardNote = missingStaff.length
+      ? `<div class="note">Central Close of Day is waiting for all staff submissions for <strong>${selectedDate}</strong>. Missing: <strong>${missingStaff.map(s => s.name).join(', ')}</strong>.</div>`
+      : unresolvedStaff.length
+        ? `<div class="note">Resolve all flagged close-of-day submissions before opening the next business date. Pending: <strong>${unresolvedStaff.map(s => s.name).join(', ')}</strong>.</div>`
+        : `<div class="note">All staff submissions for <strong>${selectedDate}</strong> are available for inspection. You can now close the business day and open the next date.</div>`;
+    openModal('Central Close of Day', `<div class="stack"><div class="note">You are reviewing business date <strong>${selectedDate}</strong>. The next business date should open only after this inspection is complete.</div>${guardNote}<div class="note">Form is the approved money available for field postings. Remaining Balance = Form - Total Credits - Total Debits. Variance and Overdraw are driven by how much of the form has been used.</div><div class="table-wrap"><table class="table"><thead><tr><th>Staff</th><th>Form</th><th>Credit Cash</th><th>Credit Transfer</th><th>Total Credits</th><th>Debit Cash</th><th>Debit Transfer</th><th>Total Debits</th><th>Net Book Balance</th><th>Remaining Balance</th><th>Variance</th><th>Overdraw</th><th>Manager Note</th></tr></thead><tbody>${rows}</tbody></table></div></div>`, [{label:'Cancel', className:'secondary', onClick: closeModal}, {label:'Close Business Day', onClick: async ()=> {
+      if (missingStaff.length) return showToast('Central Close of Day is waiting for all staff submissions');
+      if (unresolvedStaff.length) return showToast('Resolve all flagged close-of-day submissions first');
       postingStaff.forEach(st => {
-        const formAmount=openingBalanceOnlyForDate(st.id,businessDate());
-        const totalCreditsCash=approvedCreditCashTotalForDate(st.id,businessDate());
-        const totalCreditsTransfer=approvedCreditTransferTotalForDate(st.id,businessDate());
-        const totalDebitsCash=approvedDebitCashTotalForDate(st.id,businessDate());
-        const totalDebitsTransfer=approvedDebitTransferTotalForDate(st.id,businessDate());
-        const totalCredits=totalCreditsCash+totalCreditsTransfer;
-        const totalDebits=totalDebitsCash+totalDebitsTransfer;
-        const netBook=totalCredits-totalDebits;
-        const remaining=currentFloatAvailable(st.id,businessDate());
-        const variance=Math.min(0, remaining);
-        const note=q(`[data-cod-note="${st.id}"]`)?.value?.trim()||'';
-        state.cod.unshift({id:uid('cod'), staffId:st.id, staffName:st.name, date:businessDate(), formAmount, openingBalance:formAmount, totalCreditsCash, totalCreditsTransfer, totalCredits, totalDebitsCash, totalDebitsTransfer, totalDebits, netBookBalance:netBook, runningFloat:remaining, remainingBalance:remaining, variance, overdraw:Math.max(0,-remaining), note, fieldPapers:[], status: variance===0 && Math.max(0,-remaining)===0 ? 'balanced':'flagged', approvedAt:new Date().toISOString(), approvedBy:currentStaff()?.name||''});
+        const rec = codByStaff.get(st.id);
+        if (!rec) return;
+        rec.note = q(`[data-cod-note="${st.id}"]`)?.value?.trim() || rec.note || '';
       });
-      state.dayClosures.push({date:businessDate(), closedAt:new Date().toISOString(), closedBy:currentStaff()?.name||''});
-      state.businessDate = nextDate(businessDate());
+      state.dayClosures.push({date:selectedDate, closedAt:new Date().toISOString(), closedBy:currentStaff()?.name||''});
+      if (state.businessDate === selectedDate) state.businessDate = nextDate(selectedDate);
       save(); closeModal(); render(); showToast(`Business day closed. New open date: ${state.businessDate}`);
     }}]);
   }
