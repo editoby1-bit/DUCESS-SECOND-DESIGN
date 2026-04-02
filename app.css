@@ -6093,3 +6093,37 @@ body[data-theme="ducess-sheet"] .journal-sheet .forced-amount-label{
     max-width:170px !important;
   }
 }
+
+
+/* v16.1 surgical follow-up: restore Account Name width and surface Central Close of Day entry in Approvals */
+@media (min-width: 981px){
+  .posting-row-name{
+    width:calc(100% - 340px) !important;
+    max-width:calc(100% - 340px) !important;
+    padding-right:340px !important;
+  }
+
+  .posting-row-name .value-wide,
+  .posting-row-name #txName{
+    flex:1 1 auto !important;
+    width:auto !important;
+    max-width:none !important;
+    min-width:0 !important;
+  }
+
+  .posting-row-name .sheet-label{
+    flex:0 0 168px !important;
+  }
+
+  .approvals-central-cod-row{
+    display:flex !important;
+    justify-content:flex-start !important;
+    align-items:center !important;
+  }
+
+  #approvalsCentralCloseDayBtn{
+    display:inline-flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+  }
+}
