@@ -6125,3 +6125,21 @@ body[data-theme="ducess-sheet"] .journal-sheet .forced-amount-label{
 .vertical-tool-tabs .tool-tab[data-tool="central_close_day"]{
   order:-1;
 }
+
+
+/* Surgical patch: central COD NOTE field should sit fully inside the cell with proper rounding */
+@media (min-width: 901px){
+  #modalBack .modal[data-modal-title="Central Close of Day"] .table td:nth-child(13){
+    padding-right:18px;
+  }
+
+  #modalBack .modal[data-modal-title="Central Close of Day"] [data-cod-note]{
+    display:block;
+    width:156px;
+    min-width:156px;
+    max-width:156px;
+    box-sizing:border-box;
+    border-radius:16px;
+    margin-right:0;
+  }
+}
