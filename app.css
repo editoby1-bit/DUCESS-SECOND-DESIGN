@@ -5993,3 +5993,103 @@ body[data-theme="ducess-sheet"] .journal-sheet .forced-amount-label{
     gap:16px !important;
   }
 }
+
+
+/* v16 surgical UI polish: keep unrelated logic intact */
+@media (min-width: 981px){
+  .polished-posting-modal{
+    position:relative;
+    gap:8px;
+  }
+
+  .posting-row-top{
+    align-items:center;
+    min-height:58px;
+    padding-right:340px;
+    gap:12px;
+  }
+
+  .posting-row-top .posting-kpis{
+    position:absolute;
+    top:56px;
+    right:18px;
+    margin:0 !important;
+    z-index:1;
+  }
+
+  .posting-row-name,
+  .posting-row-amount{
+    padding-right:340px;
+    gap:8px;
+  }
+
+  .posting-inline-group{
+    gap:8px;
+  }
+
+  .posting-inline-group .sheet-label,
+  .posting-row-name .sheet-label,
+  .posting-row-amount .sheet-label{
+    flex:0 0 168px;
+    margin:0;
+  }
+
+  .posting-row-name .value-wide{
+    min-height:46px;
+  }
+}
+
+.approvals-top-controls{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.approvals-central-cod-row{
+  justify-content:flex-start;
+  margin-bottom:0;
+}
+
+#approvalsCentralCloseDayBtn{
+  min-width:220px;
+}
+
+.account-statement-filter-grid{
+  align-items:start !important;
+}
+
+.account-statement-filter-grid .stmt-field{
+  min-width:0;
+}
+
+.account-statement-filter-grid .stmt-field label,
+.tellering-entry-card .field label,
+.form-card .field label{
+  margin-bottom:2px !important;
+}
+
+@media (min-width: 981px){
+  .polished-statement-grid,
+  .account-statement-filter-grid{
+    grid-template-columns:126px 170px 170px !important;
+    column-gap:14px !important;
+  }
+
+  .account-statement-filter-grid .stmt-acc-field,
+  .account-statement-filter-grid .stmt-date-field{
+    max-width:none !important;
+  }
+
+  .account-statement-filter-grid .stmt-acc-input{
+    width:126px !important;
+    max-width:126px !important;
+  }
+
+  .polished-statement-grid .stmt-date-input,
+  .account-statement-filter-grid .stmt-date-input,
+  .account-statement-filter-grid .polished-date-input{
+    width:170px !important;
+    min-width:170px !important;
+    max-width:170px !important;
+  }
+}
