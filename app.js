@@ -1,6 +1,9 @@
 (() => {
   const runtimeConfig = window.__DUCESS_CONFIG__ || {};
   const STORAGE_KEY = runtimeConfig.storageKey || 'duces_enterprise_ledger_v1';
+  const STORAGE_META_KEY = `${STORAGE_KEY}__meta`;
+  const APP_BUILD_ID = 'ducess-multitab-guard-20260402a';
+  const TAB_SESSION_ID = `tab_${Math.random().toString(36).slice(2,9)}${Date.now().toString(36).slice(-4)}`;
   const gateway = window.DucessGateway?.createGateway?.({
     storageKey: STORAGE_KEY,
     useSupabaseBackend: runtimeConfig.useSupabaseBackend === true,
@@ -15,6 +18,7 @@
   const byId = (id) => document.getElementById(id);
   const q = (sel, root=document) => root.querySelector(sel);
   const qq = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+  const cloneJson = (value) => JSON.parse(JSON.stringify(value));
 
   const escapeHtml = (value) => String(value ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   const formatFileSize = (bytes) => { const size = Number(bytes || 0); if (size >= 1024 * 1024) return `${(size / (1024 * 1024)).toFixed(1)} MB`; if (size >= 1024) return `${Math.round(size / 1024)} KB`; return `${size} B`; };
@@ -170,6 +174,9 @@
 
   let realtimeBound = false;
   let realtimeUnsub = null;
+  let multiTabGuardBound = false;
+  let pendingExternalSync = false;
+  let externalSyncToastTimer = null;
   const state = bootstrapState();
   state.ui = state.ui || { module: null, tool: null, selectedCustomerId: null, theme: 'classic', businessFilter: { preset: 'all', from: '', to: '' }, operationalFilter: { preset: 'all', from: '', to: '' }, approvalsLimit: 20, businessEntriesLimit: 20, operationalEntriesLimit: 20, tellerEntriesLimit: 20, approvalsSection:'tellering', generatedJournals:{} };
   state.ui.module = null;
@@ -259,6 +266,104 @@
     recalcAllTellerBalances();
   }
 
+
+  function readStorageMeta() {
+    if (gateway?.appState?.loadState) return null;
+    try {
+      const raw = localStorage.getItem(STORAGE_META_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function writeStorageMeta(reason = 'save') {
+    if (gateway?.appState?.saveState) return;
+    try {
+      localStorage.setItem(STORAGE_META_KEY, JSON.stringify({
+        buildId: APP_BUILD_ID,
+        sessionId: TAB_SESSION_ID,
+        reason,
+        savedAt: new Date().toISOString()
+      }));
+    } catch {}
+  }
+
+  function replaceStateContents(nextState) {
+    Object.keys(state).forEach((key) => { delete state[key]; });
+    Object.assign(state, nextState || {});
+  }
+
+  function syncStateFromStorage(options = {}) {
+    if (gateway?.appState?.loadState) return false;
+    const loaded = load();
+    if (!loaded) return false;
+    const preserveUi = options.preserveUi !== false;
+    const previousUi = preserveUi ? cloneJson(state.ui || {}) : null;
+    replaceStateContents(loaded);
+    ensureState();
+    if (previousUi) {
+      state.ui = Object.assign({}, state.ui || {}, previousUi);
+    }
+    if (options.render !== false) render();
+    return true;
+  }
+
+  function showExternalSyncToast(message) {
+    clearTimeout(externalSyncToastTimer);
+    showToast(message);
+    externalSyncToastTimer = setTimeout(() => { externalSyncToastTimer = null; }, 1500);
+  }
+
+  function handleExternalStateChange(trigger = 'storage') {
+    if (gateway?.appState?.loadState) return;
+    const meta = readStorageMeta();
+    if (meta?.sessionId === TAB_SESSION_ID) return;
+    if (meta?.buildId && meta.buildId !== APP_BUILD_ID) {
+      showExternalSyncToast('A newer DUCESS build was detected. Reloading…');
+      setTimeout(() => window.location.reload(), 180);
+      return;
+    }
+    if (document.hidden) {
+      pendingExternalSync = true;
+      return;
+    }
+    const synced = syncStateFromStorage({ preserveUi: true, render: true });
+    if (synced && trigger !== 'focus') {
+      showExternalSyncToast('DUCESS synced this tab with the latest data.');
+    }
+    pendingExternalSync = false;
+  }
+
+  function bindMultiTabGuard() {
+    if (multiTabGuardBound || gateway?.appState?.loadState) return;
+    multiTabGuardBound = true;
+    window.addEventListener('storage', (event) => {
+      if (![STORAGE_KEY, STORAGE_META_KEY].includes(event.key)) return;
+      handleExternalStateChange('storage');
+    });
+    window.addEventListener('focus', () => {
+      const meta = readStorageMeta();
+      if (pendingExternalSync || (meta && meta.sessionId !== TAB_SESSION_ID)) {
+        handleExternalStateChange('focus');
+      }
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && pendingExternalSync) handleExternalStateChange('visibility');
+    });
+  }
+
+  function initializeBuildGuard() {
+    if (gateway?.appState?.loadState) return;
+    const meta = readStorageMeta();
+    if (meta?.buildId && meta.buildId !== APP_BUILD_ID) {
+      window.location.reload();
+      return;
+    }
+    bindMultiTabGuard();
+    writeStorageMeta('boot');
+  }
+
   function load() {
     if (gateway?.appState?.loadState) return gateway.appState.loadState();
     try {
@@ -275,6 +380,7 @@
       return;
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    writeStorageMeta('save');
   }
 
   function currentStaff() {
@@ -2601,6 +2707,7 @@
   }
 
   function startApp() {
+    initializeBuildGuard();
     applyTheme(state.ui.theme || 'classic', false);
     render();
     if (isSupabaseApprovalMode()) {
