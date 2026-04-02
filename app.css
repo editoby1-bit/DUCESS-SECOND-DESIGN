@@ -6095,35 +6095,27 @@ body[data-theme="ducess-sheet"] .journal-sheet .forced-amount-label{
 }
 
 
-/* v16.1 surgical follow-up: restore Account Name width and surface Central Close of Day entry in Approvals */
+/* v16c follow-up: restore full credit account-name width and ensure approvals COD entry is visible */
 @media (min-width: 981px){
   .posting-row-name{
-    width:calc(100% - 340px) !important;
-    max-width:calc(100% - 340px) !important;
-    padding-right:340px !important;
+    padding-right:0 !important;
+    width:100% !important;
+    max-width:100% !important;
   }
 
-  .posting-row-name .value-wide,
-  .posting-row-name #txName{
+  .posting-row-name #txName,
+  .posting-row-name .value-wide{
     flex:1 1 auto !important;
     width:auto !important;
-    max-width:none !important;
     min-width:0 !important;
+    max-width:none !important;
   }
 
-  .posting-row-name .sheet-label{
-    flex:0 0 168px !important;
+  .posting-row-name #txName{
+    min-height:46px !important;
   }
+}
 
-  .approvals-central-cod-row{
-    display:flex !important;
-    justify-content:flex-start !important;
-    align-items:center !important;
-  }
-
-  #approvalsCentralCloseDayBtn{
-    display:inline-flex !important;
-    align-items:center !important;
-    justify-content:center !important;
-  }
+.vertical-tool-tabs .tool-tab[data-tool="central_close_day"]{
+  order:-1;
 }

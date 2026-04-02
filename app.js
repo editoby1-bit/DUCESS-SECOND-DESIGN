@@ -119,7 +119,7 @@
       title: 'Approval',
       desc: 'Approve or reject submitted requests and review close-of-day activity.',
       icon: '✅',
-      tools: ['approval_queue','approval_customer_service','approval_tellering','approval_others']
+      tools: ['central_close_day','approval_queue','approval_customer_service','approval_tellering','approval_others']
     },
     administration: {
       title: 'Administration',
@@ -146,6 +146,7 @@
     my_balance: 'My Balance',
     opening_balance: 'Opening Balance',
     my_close_day: 'My Close of Day',
+    central_close_day: 'Central Close of Day',
     approval_queue: 'Approval Queue',
     approval_customer_service: 'Customer Service',
     approval_tellering: 'Teller',
@@ -162,8 +163,8 @@
   const DEFAULT_PERMS = {
     customer_service: ['check_balance','account_opening','account_maintenance','account_reactivation','account_statement','operational_accounts'],
     teller: ['check_balance','account_statement','credit','debit','operational_accounts','my_balance','opening_balance','my_close_day'],
-    approving_officer: ['check_balance','account_opening','account_maintenance','account_reactivation','account_statement','credit','debit','approval_queue','approval_customer_service','approval_tellering','approval_others','business_balance','operational_balance','operational_accounts','my_balance','opening_balance','my_close_day'],
-    admin_officer: ['check_balance','account_opening','account_maintenance','account_reactivation','account_statement','credit','debit','approval_queue','approval_customer_service','approval_tellering','approval_others','permissions','operational_accounts','operational_posting','staff_directory','business_balance','operational_balance','teller_balances','my_balance','opening_balance','my_close_day'],
+    approving_officer: ['check_balance','account_opening','account_maintenance','account_reactivation','account_statement','credit','debit','central_close_day','approval_queue','approval_customer_service','approval_tellering','approval_others','business_balance','operational_balance','operational_accounts','my_balance','opening_balance','my_close_day'],
+    admin_officer: ['check_balance','account_opening','account_maintenance','account_reactivation','account_statement','credit','debit','central_close_day','approval_queue','approval_customer_service','approval_tellering','approval_others','permissions','operational_accounts','operational_posting','staff_directory','business_balance','operational_balance','teller_balances','my_balance','opening_balance','my_close_day'],
     report_officer: ['check_balance','account_statement','business_balance','operational_balance','teller_balances','operational_accounts']
   };
 
@@ -1064,6 +1065,7 @@
       case 'my_balance': return `<div class="tool-empty-state"><div class="tool-empty-title">My Balance</div><div class="tool-empty-note">Balance details open in a modal when this heading is selected.</div></div>`;
       case 'opening_balance': return `<div class="tool-empty-state"><div class="tool-empty-title">Opening Balance</div><div class="tool-empty-note">Opening balance opens in a modal when this heading is selected.</div></div>`;
       case 'my_close_day': return `<div class="tool-empty-state"><div class="tool-empty-title">My Close of Day</div><div class="tool-empty-note">Close-of-day details open in a modal when this heading is selected.</div></div>`;
+      case 'central_close_day': return renderApprovals();
       case 'approval_customer_service':
       case 'approval_tellering':
       case 'approval_others':
@@ -1298,7 +1300,7 @@
     const selected = state.ui.codAdminDate;
     const codStatusRows = state.staff.filter(s => (DEFAULT_PERMS[s.role]||[]).includes('credit') || (DEFAULT_PERMS[s.role]||[]).includes('debit')).map((s,i)=>{ const rec=(state.cod||[]).find(c=>c.staffId===s.id && c.date===selected); const status=rec?(rec.status==='resolved'?'Resolved':rec.status==='flagged'?'Flagged':'Submitted'):'Missing'; return `<tr><td>${i+1}</td><td>${s.name}</td><td>${ROLE_LABELS[s.role]||s.role}</td><td>${status}</td><td>${rec?money(rec.expectedCash||0):'—'}</td><td>${rec?money(rec.actualCash||0):'—'}</td></tr>`; }).join('');
     const moreLess = `<div class="action-row">${allRows.length > limit ? `<button id="approvalsMore" class="secondary">Show More</button>`:''}${limit > 20 ? `<button id="approvalsLess" class="secondary">Show Less</button>`:''}</div>`;
-    return `<div class="stack">${codRows?`<div class="table-card"><h3>COD Resolution Queue</h3><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Date</th><th>Staff</th><th>Expected Cash</th><th>Actual Cash</th><th>Remaining Balance</th><th>Variance</th><th>Overdraw</th><th>Note</th><th>Action</th></tr></thead><tbody>${codRows}</tbody></table></div></div>`:''}<div class="approvals-top-controls"><div class="action-row approvals-central-cod-row">${hasPermission('approval_queue')?'<button id="approvalsCentralCloseDayBtn">Central Close of Day</button>':''}</div><div class="tool-tabs approvals-sections" id="approvalsSectionTabs">${[['customer_service','Customer Service'],['tellering','Teller'],['others','Others']].map(([k,l])=>`<button class="tool-tab ${currentSection===k?'active':''}" data-approval-section="${k}">${l}</button>`).join('')}</div></div><div class="table-card" id="approvalsQueueCard"><div class="action-row" style="justify-content:space-between;align-items:center"><h3>Approval Queue</h3></div><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Request</th><th>Submitted By</th><th>Details</th><th>Date</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows || '<tr><td colspan="7" class="muted">No requests yet</td></tr>'}</tbody></table></div>${moreLess}</div>${canCloseBusinessDay()?`<div class="table-card"><h3>COD Daily Submission Status</h3><div class="action-inline"><div class="inline-field compact"><span>COD Date</span><input type="date" id="codAdminDate" value="${selected}"></div></div><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Staff</th><th>Office</th><th>Status</th><th>Expected Cash</th><th>Actual Cash</th></tr></thead><tbody>${codStatusRows}</tbody></table></div></div>`:''}</div>`;
+    return `<div class="stack">${codRows?`<div class="table-card"><h3>COD Resolution Queue</h3><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Date</th><th>Staff</th><th>Expected Cash</th><th>Actual Cash</th><th>Remaining Balance</th><th>Variance</th><th>Overdraw</th><th>Note</th><th>Action</th></tr></thead><tbody>${codRows}</tbody></table></div></div>`:''}<div class="approvals-top-controls"><div class="action-row approvals-central-cod-row">${hasPermission('central_close_day')?'<button id="approvalsCentralCloseDayBtn">Central Close of Day</button>':''}</div><div class="tool-tabs approvals-sections" id="approvalsSectionTabs">${[['customer_service','Customer Service'],['tellering','Teller'],['others','Others']].map(([k,l])=>`<button class="tool-tab ${currentSection===k?'active':''}" data-approval-section="${k}">${l}</button>`).join('')}</div></div><div class="table-card" id="approvalsQueueCard"><div class="action-row" style="justify-content:space-between;align-items:center"><h3>Approval Queue</h3></div><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Request</th><th>Submitted By</th><th>Details</th><th>Date</th><th>Status</th><th>Action</th></tr></thead><tbody>${rows || '<tr><td colspan="7" class="muted">No requests yet</td></tr>'}</tbody></table></div>${moreLess}</div>${canCloseBusinessDay()?`<div class="table-card"><h3>COD Daily Submission Status</h3><div class="action-inline"><div class="inline-field compact"><span>COD Date</span><input type="date" id="codAdminDate" value="${selected}"></div></div><div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Staff</th><th>Office</th><th>Status</th><th>Expected Cash</th><th>Actual Cash</th></tr></thead><tbody>${codStatusRows}</tbody></table></div></div>`:''}</div>`;
   }
 
   function approvalSubmittedBy(a) {
@@ -1543,6 +1545,7 @@
       case 'account_statement': bindStatement(); break;
       case 'credit': bindJournal('credit'); break;
       case 'debit': bindJournal('debit'); break;
+      case 'central_close_day':
       case 'approval_queue':
       case 'approval_customer_service':
       case 'approval_tellering':
