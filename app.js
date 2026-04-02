@@ -123,7 +123,7 @@
       title: 'Approval',
       desc: 'Approve or reject submitted requests and review close-of-day activity.',
       icon: '✅',
-      tools: ['approval_close_day','approval_queue','approval_customer_service','approval_tellering','approval_others']
+      tools: ['approval_central_close_day','approval_queue','approval_customer_service','approval_tellering','approval_others','approval_close_day']
     },
     administration: {
       title: 'Administration',
@@ -150,6 +150,7 @@
     my_balance: 'My Balance',
     opening_balance: 'Form',
     my_close_day: 'My Close of Day',
+    approval_central_close_day: 'Central Close of Day',
     approval_close_day: 'Close of Day',
     approval_queue: 'Approval Queue',
     approval_customer_service: 'Customer Service',
@@ -167,8 +168,8 @@
   const DEFAULT_PERMS = {
     customer_service: ['check_balance','account_opening','account_maintenance','account_reactivation','account_statement','operational_accounts'],
     teller: ['check_balance','account_statement','credit','debit','operational_accounts','my_balance','opening_balance','my_close_day'],
-    approving_officer: ['check_balance','account_opening','account_maintenance','account_reactivation','account_statement','credit','debit','approval_close_day','approval_queue','approval_customer_service','approval_tellering','approval_others','business_balance','operational_balance','operational_accounts','my_balance','opening_balance','my_close_day'],
-    admin_officer: ['check_balance','account_opening','account_maintenance','account_reactivation','account_statement','credit','debit','approval_close_day','approval_queue','approval_customer_service','approval_tellering','approval_others','permissions','operational_accounts','operational_posting','staff_directory','business_balance','operational_balance','teller_balances','my_balance','opening_balance','my_close_day'],
+    approving_officer: ['check_balance','account_opening','account_maintenance','account_reactivation','account_statement','credit','debit','approval_central_close_day','approval_queue','approval_customer_service','approval_tellering','approval_others','approval_close_day','business_balance','operational_balance','operational_accounts','my_balance','opening_balance','my_close_day'],
+    admin_officer: ['check_balance','account_opening','account_maintenance','account_reactivation','account_statement','credit','debit','approval_central_close_day','approval_queue','approval_customer_service','approval_tellering','approval_others','approval_close_day','permissions','operational_accounts','operational_posting','staff_directory','business_balance','operational_balance','teller_balances','my_balance','opening_balance','my_close_day'],
     report_officer: ['check_balance','account_statement','business_balance','operational_balance','teller_balances','operational_accounts']
   };
 
@@ -1139,6 +1140,7 @@
         state.ui.tool = null;
       } else {
         state.ui.tool = nextTool;
+        if (nextTool === 'approval_central_close_day') state.ui.approvalsSection = 'close_of_day';
         if (nextTool === 'approval_close_day') state.ui.approvalsSection = 'close_of_day';
         if (nextTool === 'approval_customer_service') state.ui.approvalsSection = 'customer_service';
         if (nextTool === 'approval_tellering') state.ui.approvalsSection = 'tellering';
@@ -1151,7 +1153,7 @@
       if (nextTool === 'opening_balance' && state.ui.tool === 'opening_balance') openFloatModal();
       if (nextTool === 'my_close_day' && state.ui.tool === 'my_close_day') openMyCODModal();
       if (['my_balance','opening_balance','my_close_day'].includes(nextTool)) return;
-      if (['approval_close_day','approval_customer_service','approval_tellering','approval_others'].includes(nextTool) && state.ui.tool === nextTool) {
+      if (['approval_central_close_day','approval_close_day','approval_customer_service','approval_tellering','approval_others'].includes(nextTool) && state.ui.tool === nextTool) {
         smoothScrollToOpenedSegment('#approvalsSectionTabs');
         return;
       }
@@ -1172,6 +1174,7 @@
       case 'my_balance': return `<div class="tool-empty-state"><div class="tool-empty-title">My Balance</div><div class="tool-empty-note">Balance details open in a modal when this heading is selected.</div></div>`;
       case 'opening_balance': return `<div class="tool-empty-state"><div class="tool-empty-title">Form</div><div class="tool-empty-note">Form opens in a modal when this heading is selected.</div></div>`;
       case 'my_close_day': return `<div class="tool-empty-state"><div class="tool-empty-title">My Close of Day</div><div class="tool-empty-note">Close-of-day details open in a modal when this heading is selected.</div></div>`;
+      case 'approval_central_close_day':
       case 'approval_close_day':
       case 'approval_customer_service':
       case 'approval_tellering':
@@ -1633,6 +1636,8 @@
       case 'account_statement': bindStatement(); break;
       case 'credit': bindJournal('credit'); break;
       case 'debit': bindJournal('debit'); break;
+      case 'approval_central_close_day':
+      case 'approval_close_day':
       case 'approval_queue':
       case 'approval_customer_service':
       case 'approval_tellering':
@@ -2114,6 +2119,11 @@
   }
 
   function bindApprovals() {
+    qq('[data-approval-section]').forEach(btn => btn.onclick = () => {
+      state.ui.approvalsSection = btn.dataset.approvalSection || 'close_of_day';
+      save();
+      renderWorkspace();
+    });
     qq('[data-approve]').forEach(btn => btn.onclick = () => {
       if (!hasPermission('approval_queue')) return showToast('No approval rights');
       confirmAction('Approve this request?', () => { approveRequestRemote(btn.dataset.approve).then((result) => { if (result?.ok === false) showToast(result?.error?.message || 'Unable to approve request'); }); });
