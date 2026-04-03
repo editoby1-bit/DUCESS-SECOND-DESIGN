@@ -1098,8 +1098,8 @@
     return `
       <div class="tellering-sheet check-balance-sheet compact-tool-surface">
         <div class="sheet-title sheet-title-check">*Check Balance</div>
-        <div class="sheet-grid check-grid redesigned-check-grid compact-label-grid serial-check-grid">
-          <div class="check-balance-row">
+        <div class="sheet-grid check-grid redesigned-check-grid compact-label-grid serial-check-grid refined-check-grid">
+          <div class="check-balance-row account-number-row">
             <div class="sheet-label">Account Number</div>
             <div class="check-balance-inline">
               <input id="lookupAcc" class="entry-input sheet-input short-code" />
@@ -1109,17 +1109,17 @@
 
           <div class="check-balance-row">
             <div class="sheet-label">Account Name</div>
-            <div class="display-field value-wide" data-fill="name">—</div>
+            <div class="display-field value-wide refined-value-field" data-fill="name">—</div>
           </div>
 
           <div class="check-balance-row">
             <div class="sheet-label">Phone Number</div>
-            <div class="display-field value-short" data-fill="phone">—</div>
+            <div class="display-field value-wide refined-value-field" data-fill="phone">—</div>
           </div>
 
           <div class="check-balance-row">
             <div class="sheet-label">Available Balance</div>
-            <div class="display-field value-short" data-fill="balance">—</div>
+            <div class="display-field value-wide refined-value-field balance-value-field" data-fill="balance">—</div>
           </div>
 
           <div class="sheet-label hidden" id="checkBalancePhotoLabel">Photo</div>
@@ -1181,6 +1181,7 @@
         <div class="cs-sheet-grid ${isReactivation ? 'reactivation-sheet-grid' : 'maintenance-sheet-grid'}">
           <div class="sheet-label-cell">Account Number</div>
           <div class="sheet-input-cell account ${isReactivation ? 'reactivation-account half-account' : 'account-near-label'}"><input id="${prefix}Acc" class="entry-input cs-sheet-input"></div>
+          ${isReactivation ? '' : `<button id="${prefix}Search" class="sheet-btn cs-inline-btn maintenance-top-search">Search</button>`}
 
           <div class="sheet-label-cell">Account Name</div>
           <div class="sheet-input-cell wide"><input id="${prefix}Name" class="entry-input cs-sheet-input cs-detail-input"></div>
@@ -1200,7 +1201,6 @@
           <div class="cs-sheet-note">${isReactivation ? 'Search account, confirm details, and submit reactivation.' : 'Search first, update details, then save for approval.'}</div>
         </div>
         <div class="action-row cs-bottom-actions ${isReactivation ? 'reactivation-bottom-actions' : 'maintenance-bottom-actions'}">
-          <button id="${prefix}Search" class="sheet-btn cs-inline-btn">Search</button>
           <button id="${prefix}Edit" class="sheet-btn cs-inline-btn secondary">Edit</button>
           <button id="${prefix}Submit" class="sheet-btn cs-inline-btn ${isReactivation ? 'reactivate-btn' : 'secondary'}">${isReactivation ? 'Activate' : 'Save'}</button>
         </div>
