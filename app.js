@@ -1020,19 +1020,9 @@
     byId('workspaceTitle').textContent = state.ui.tool ? (TOOL_LABELS[state.ui.tool] || module.title) : `${module.title} Tools`;
     const renderToolButtons = () => {
       if (state.ui.module === 'tellering') {
-        const toolBtn = (t) => module.tools.includes(t) ? `<button class="tool-tab ${state.ui.tool===t?'active':''}" data-tool="${t}" ${hasPermission(t)?'':'disabled'}>${TOOL_LABELS[t]}</button>` : '<span></span>';
-        return `<div class="tool-columns tellering-mixed-columns">
-          <div class="tool-column-title">Tellering Tools</div>
-          <div class="tool-column-title">Tellering Actions</div>
-          ${toolBtn('check_balance')}
-          ${toolBtn('my_balance')}
-          ${toolBtn('credit')}
-          ${toolBtn('opening_balance')}
-          ${toolBtn('debit')}
-          ${toolBtn('my_close_day')}
-          ${toolBtn('operational_accounts')}
-          <span></span>
-        </div>`;
+        const left = ['check_balance','credit','debit','operational_accounts'];
+        const right = ['my_balance','opening_balance','my_close_day'];
+        return `<div class="tool-columns"><div class="tool-column"><div class="tool-column-title">Tellering Tools</div>${left.filter(t => module.tools.includes(t)).map(t => `<button class="tool-tab ${state.ui.tool===t?'active':''}" data-tool="${t}" ${hasPermission(t)?'':'disabled'}>${TOOL_LABELS[t]}</button>`).join('')}</div><div class="tool-column"><div class="tool-column-title">Tellering Actions</div>${right.filter(t => module.tools.includes(t)).map(t => `<button class="tool-tab ${state.ui.tool===t?'active':''}" data-tool="${t}" ${hasPermission(t)?'':'disabled'}>${TOOL_LABELS[t]}</button>`).join('')}</div></div>`;
       }
       return module.tools.map(t => `<button class="tool-tab ${state.ui.tool===t?'active':''}" data-tool="${t}" ${hasPermission(t)?'':'disabled'}>${TOOL_LABELS[t]}</button>`).join('');
     };
@@ -1236,7 +1226,8 @@
                 <div class="posting-inline-group posting-inline-account">
                   <label class="sheet-label posting-label-account" for="txAcc">Account Number</label>
                   <input id="txAcc" class="entry-input sheet-input short-code" maxlength="4" />
-                  <button id="txSearch" class="sheet-btn tiny-btn ultra-compact-btn">Search</button>
+                  <button id="txSearch" class="sheet-btn">Search</button>
+                  ${journalVisible ? '' : `<button id="txJournalAdd" class="sheet-btn secondary tiny-btn">Generate Journal</button>`}
                 </div>
               </div>
               <div class="posting-kpis compact-posting-kpis">
@@ -1254,8 +1245,7 @@
             <div class="posting-row posting-row-amount">
               <label class="sheet-label amount-primary-label" for="txAmount">Amount</label>
               <input id="txAmount" class="entry-input sheet-input medium-amt" type="number" />
-              <button id="txPostSingle" class="sheet-btn secondary tiny-btn ultra-compact-btn">Post</button>
-              ${journalVisible ? '' : `<button id="txJournalAdd" class="sheet-btn secondary tiny-btn ultra-compact-btn">Generate Journal</button>`}
+              <button id="txPostSingle" class="sheet-btn secondary">Post</button>
             </div>
           </div>
         </div>
