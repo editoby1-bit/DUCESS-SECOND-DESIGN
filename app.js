@@ -2705,13 +2705,26 @@
   function bindCustomerDirectory() {
     const searchInput = byId('customerDirectorySearch');
     if (!searchInput) return;
+
     const applySearch = () => {
-      state.ui.customerDirectorySearch = searchInput.value || '';
-      save();
+      const value = searchInput.value || '';
+      const start = searchInput.selectionStart ?? value.length;
+      const end = searchInput.selectionEnd ?? value.length;
+      state.ui.customerDirectorySearch = value;
       renderWorkspace();
+      const nextInput = byId('customerDirectorySearch');
+      if (nextInput) {
+        nextInput.focus();
+        try { nextInput.setSelectionRange(start, end); } catch (err) {}
+      }
     };
+
+    const persistSearch = () => save();
+
     searchInput.addEventListener('input', applySearch);
     searchInput.addEventListener('search', applySearch);
+    searchInput.addEventListener('change', persistSearch);
+    searchInput.addEventListener('blur', persistSearch);
   }
 
   function startApp() {
