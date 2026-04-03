@@ -172,7 +172,8 @@
   let realtimeBound = false;
   let realtimeUnsub = null;
   const state = bootstrapState();
-  state.ui = state.ui || { module: null, tool: null, selectedCustomerId: null, theme: 'classic', businessFilter: { preset: 'all', from: '', to: '' }, operationalFilter: { preset: 'all', from: '', to: '' }, approvalsLimit: 20, businessEntriesLimit: 20, operationalEntriesLimit: 20, tellerEntriesLimit: 20, approvalsSection:'tellering', generatedJournals:{} };
+  state.ui = state.ui || { module: null, tool: null, selectedCustomerId: null, theme: 'classic', businessFilter: { preset: 'all', from: '', to: '' }, operationalFilter: { preset: 'all', from: '', to: '' }, approvalsLimit: 20, businessEntriesLimit: 20, operationalEntriesLimit: 20, tellerEntriesLimit: 20, approvalsSection:'tellering', generatedJournals:{}, customerDirectorySearch: '' };
+  state.ui.customerDirectorySearch = state.ui.customerDirectorySearch || '';
   state.ui.module = null;
   state.ui.tool = null;
   ensureState();
@@ -1484,8 +1485,14 @@
   }
 
   function renderCustomerDirectory() {
-    const customers = [...(state.customers || [])].sort((a,b)=> String(a.name||'').localeCompare(String(b.name||'')));
-    const totalCustomers = customers.filter(c => String(c.accountType || 'customer') !== 'staff_wallet').length;
+    const search = String(state.ui.customerDirectorySearch || '').trim().toLowerCase();
+    const customers = [...(state.customers || [])]
+      .filter(c => String(c.accountType || 'customer') !== 'staff_wallet')
+      .sort((a,b)=> String(a.name||'').localeCompare(String(b.name||'')));
+    const filteredCustomers = search
+      ? customers.filter(c => [c.name, c.accountNumber, c.phone, c.email].some(value => String(value || '').toLowerCase().includes(search)))
+      : customers;
+    const totalCustomers = customers.length;
     return `
       <div class="stack">
         <div class="kpi-row">
@@ -1493,11 +1500,14 @@
         </div>
         <div class="table-card">
           <div class="action-inline"><h3 style="margin:0">Customer Directory</h3></div>
-          <div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Customer Name</th><th>Started</th><th>Total Credits</th><th>Total Debits</th></tr></thead><tbody>${customers.filter(c => String(c.accountType || 'customer') !== 'staff_wallet').map((c,i)=>{
+          <div class="form-grid one" style="margin-top:12px">
+            <div class="field"><label>Search Customer</label><input id="customerDirectorySearch" class="entry-input" placeholder="Search by name, account number, phone or email" value="${escapeHtml(state.ui.customerDirectorySearch || '')}"></div>
+          </div>
+          <div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Customer Name</th><th>Started</th><th>Total Credits</th><th>Total Debits</th></tr></thead><tbody>${filteredCustomers.map((c,i)=>{
             const credits = (c.transactions || []).filter(tx => tx.type === 'credit').reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
             const debits = (c.transactions || []).filter(tx => tx.type === 'debit').reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
             return `<tr><td>${i+1}</td><td>${c.name}</td><td>${fmtDate(c.createdAt)}</td><td>${money(credits)}</td><td>${money(debits)}</td></tr>`;
-          }).join('') || '<tr><td colspan="5">No customers</td></tr>'}</tbody></table></div>
+          }).join('') || '<tr><td colspan="5">No matching customers</td></tr>'}</tbody></table></div>
         </div>
       </div>`;
   }
@@ -1586,7 +1596,7 @@
       case 'operational_posting': bindOperationalAccounts(); break;
       case 'operational_accounts': bindOperationalAccounts(); break;
       case 'staff_directory': bindStaffDirectory(); break;
-      case 'customer_directory': break;
+      case 'customer_directory': bindCustomerDirectory(); break;
       case 'business_balance': bindBalanceFilters('business'); break;
       case 'operational_balance': bindBalanceFilters('operational'); break;
       case 'teller_balances': bindTellerBalances(); break;
@@ -2690,6 +2700,18 @@
     qq('[data-staff-toggle]').forEach(btn => btn.onclick = ()=> {
       const st = state.staff.find(s=>s.id===btn.dataset.staffToggle); if(!st) return; st.active = st.active === false ? true : false; save(); render(); showToast(`Staff ${st.active===false?'deactivated':'reactivated'}`);
     });
+  }
+
+  function bindCustomerDirectory() {
+    const searchInput = byId('customerDirectorySearch');
+    if (!searchInput) return;
+    const applySearch = () => {
+      state.ui.customerDirectorySearch = searchInput.value || '';
+      save();
+      renderWorkspace();
+    };
+    searchInput.addEventListener('input', applySearch);
+    searchInput.addEventListener('search', applySearch);
   }
 
   function startApp() {
