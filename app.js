@@ -1503,11 +1503,12 @@
           <div class="form-grid one" style="margin-top:12px">
             <div class="field"><label>Search Customer</label><input id="customerDirectorySearch" class="entry-input" placeholder="Search by name, account number, phone or email" value="${escapeHtml(state.ui.customerDirectorySearch || '')}"></div>
           </div>
-          <div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Customer Name</th><th>Started</th><th>Total Credits</th><th>Total Debits</th></tr></thead><tbody>${filteredCustomers.map((c,i)=>{
+          <div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Customer Name</th><th>Account Number</th><th>Started</th><th>Balance</th><th>Total Credits</th><th>Total Debits</th></tr></thead><tbody>${filteredCustomers.map((c,i)=>{
             const credits = (c.transactions || []).filter(tx => tx.type === 'credit').reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
             const debits = (c.transactions || []).filter(tx => tx.type === 'debit').reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
-            return `<tr><td>${i+1}</td><td>${c.name}</td><td>${fmtDate(c.createdAt)}</td><td>${money(credits)}</td><td>${money(debits)}</td></tr>`;
-          }).join('') || '<tr><td colspan="5">No matching customers</td></tr>'}</tbody></table></div>
+            return `<tr><td>${i+1}</td><td>${c.name}</td><td>${c.accountNumber || '—'}</td><td>${fmtDate(c.createdAt)}</td><td>${money(Number(c.balance || 0))}</td><td>${money(credits)}</td><td>${money(debits)}</td></tr>`;
+          }).join('') || '<tr><td colspan="7">No matching customers</td></tr>'}</tbody></table></div>
+          <div class="action-row" style="margin-top:14px"><button id="customerDirectoryCloseBtn" class="secondary">Collapse Directory</button></div>
         </div>
       </div>`;
   }
@@ -2725,6 +2726,15 @@
     searchInput.addEventListener('search', applySearch);
     searchInput.addEventListener('change', persistSearch);
     searchInput.addEventListener('blur', persistSearch);
+
+    const closeBtn = byId('customerDirectoryCloseBtn');
+    if (closeBtn) {
+      closeBtn.onclick = () => {
+        state.ui.tool = null;
+        save();
+        renderWorkspace();
+      };
+    }
   }
 
   function startApp() {
