@@ -983,7 +983,7 @@
 
   function renderModules() {
     const current = state.ui.module;
-    byId('moduleGrid').innerHTML = `<div class="module-hub">DE</div>` + Object.entries(MODULES).map(([key,m]) => {
+    byId('moduleGrid').innerHTML = `<div class="modules-dashboard-title">DASHBOARD</div><div class="module-hub">DE</div>` + Object.entries(MODULES).map(([key,m]) => {
       const allowed = moduleAllowed(key);
       return `<div class="module-card ${current===key?'active':''} ${allowed?'':'disabled'}" data-module="${key}" data-module-key="${key}">
         <div class="module-icon">${m.icon}</div>
@@ -1021,7 +1021,7 @@
     const renderToolButtons = () => {
       if (state.ui.module === 'tellering') {
         const toolBtn = (t) => module.tools.includes(t) ? `<button class="tool-tab ${state.ui.tool===t?'active':''}" data-tool="${t}" ${hasPermission(t)?'':'disabled'}>${TOOL_LABELS[t]}</button>` : '<span></span>';
-        return `<div class="tool-columns tellering-mixed-columns">
+        return `<div class="tool-columns tellering-mixed-columns tellering-interleaved-columns">
           <div class="tool-column-title">Tellering Tools</div>
           <div class="tool-column-title">Tellering Actions</div>
           ${toolBtn('check_balance')}
@@ -1098,10 +1098,9 @@
     return `
       <div class="tellering-sheet check-balance-sheet compact-tool-surface">
         <div class="sheet-title sheet-title-check">*Check Balance</div>
-        <div class="sheet-grid check-grid redesigned-check-grid compact-label-grid">
+        <div class="sheet-grid check-grid redesigned-check-grid serial-check-grid compact-label-grid">
           <div class="sheet-label">Account Number</div>
-          <input id="lookupAcc" class="entry-input sheet-input short-code" />
-          <button id="lookupBtn" class="sheet-btn tiny-btn">Search</button>
+          <div class="check-search-inline"><input id="lookupAcc" class="entry-input sheet-input short-code" /><button id="lookupBtn" class="sheet-btn tiny-btn ultra-compact-btn">Search</button></div>
 
           <div class="sheet-label">Account Name</div>
           <div class="display-field value-wide" data-fill="name">—</div>
@@ -1118,8 +1117,8 @@
           </div>
 
           <div class="check-balance-button-row">
-            <button id="searchPhotoBtn" class="sheet-btn secondary tiny-btn">Photo</button>
-            <button id="openStatementBtn" class="sheet-btn secondary tiny-btn">Statement</button>
+            <button id="searchPhotoBtn" class="sheet-btn secondary tiny-btn ultra-compact-btn">Photo</button>
+            <button id="openStatementBtn" class="sheet-btn secondary tiny-btn ultra-compact-btn">Statement</button>
           </div>
         </div>
       </div>`;
@@ -1143,7 +1142,7 @@
 
           <div class="sheet-label-inline phone-inline-label">Phone Number</div>
           <div class="sheet-input-cell phone"><input id="openPhone" class="entry-input cs-sheet-input digit-11-input" inputmode="numeric" maxlength="11"></div>
-          <div class="sheet-label-inline old-account-label">Old Account Number</div>
+          <div class="sheet-label-inline old-account-label">Old A/N</div>
           <div class="sheet-input-cell account"><input id="openOldAccount" class="entry-input cs-sheet-input"></div>
 
           <div class="sheet-spread-actions opening-actions">
@@ -1171,9 +1170,6 @@
         <div class="cs-sheet-grid ${isReactivation ? 'reactivation-sheet-grid' : 'maintenance-sheet-grid'}">
           <div class="sheet-label-cell">Account Number</div>
           <div class="sheet-input-cell account ${isReactivation ? 'reactivation-account half-account' : 'account-near-label'}"><input id="${prefix}Acc" class="entry-input cs-sheet-input"></div>
-          <button id="${prefix}Search" class="sheet-btn cs-inline-btn">Search</button>
-          <button id="${prefix}Edit" class="sheet-btn cs-inline-btn secondary">Edit</button>
-          <button id="${prefix}Submit" class="sheet-btn cs-inline-btn ${isReactivation ? 'reactivate-btn' : 'secondary'}">${isReactivation ? 'Activate' : 'Save'}</button>
 
           <div class="sheet-label-cell">Account Name</div>
           <div class="sheet-input-cell wide"><input id="${prefix}Name" class="entry-input cs-sheet-input cs-detail-input"></div>
@@ -1182,7 +1178,7 @@
 
           ${isReactivation ? `<div class="sheet-label-cell blank"></div>` : `<div class="sheet-label-cell">NIN</div><div class="sheet-input-cell nin"><input id="${prefix}Nin" class="entry-input cs-sheet-input cs-detail-input digit-11-input" inputmode="numeric" maxlength="11"></div><div class="sheet-label-inline bvn-label">BVN</div><div class="sheet-input-cell bvn"><input id="${prefix}Bvn" class="entry-input cs-sheet-input cs-detail-input digit-11-input" inputmode="numeric" maxlength="11"></div>`}
 
-          ${isReactivation ? '' : `<div class="sheet-label-inline phone-inline-label">Phone Number</div><div class="sheet-input-cell phone"><input id="${prefix}Phone" class="entry-input cs-sheet-input cs-detail-input digit-11-input" inputmode="numeric" maxlength="11"></div><div class="sheet-label-inline old-account-label">Old Account Number</div><div class="sheet-input-cell account"><input id="${prefix}OldAccount" class="entry-input cs-sheet-input cs-detail-input"></div>`}
+          ${isReactivation ? '' : `<div class="sheet-label-inline phone-inline-label">Phone Number</div><div class="sheet-input-cell phone"><input id="${prefix}Phone" class="entry-input cs-sheet-input cs-detail-input digit-11-input" inputmode="numeric" maxlength="11"></div><div class="sheet-label-inline old-account-label">Old A/N</div><div class="sheet-input-cell account"><input id="${prefix}OldAccount" class="entry-input cs-sheet-input cs-detail-input"></div>`}
         </div>
         <div class="cs-sheet-footer">
           <div class="cs-system-summary">
@@ -1192,6 +1188,7 @@
           </div>
           <div class="cs-sheet-note">${isReactivation ? 'Search account, confirm details, and submit reactivation.' : 'Search first, update details, then save for approval.'}</div>
         </div>
+        <div class="action-row cs-bottom-action-row"><button id="${prefix}Search" class="sheet-btn cs-inline-btn ultra-compact-btn">Search</button><button id="${prefix}Edit" class="sheet-btn cs-inline-btn secondary ultra-compact-btn">Edit</button><button id="${prefix}Submit" class="sheet-btn cs-inline-btn ${isReactivation ? 'reactivate-btn' : 'secondary'} ultra-compact-btn">${isReactivation ? 'Activate' : 'Save'}</button></div>
       </div>`;
   }
 
@@ -1285,11 +1282,11 @@
               <div class="journal-entry-top row-two">
                 <div class="journal-cell grow"><input id="journalCounterparty" class="entry-input"><div class="journal-cell-label">${kind === 'credit' ? 'Received By' : 'Paid To'}</div></div>
                 <div class="journal-cell grow"><input id="journalDetails" class="entry-input"><div class="journal-cell-label">Details</div></div>
-                <div class="journal-cell action"><button id="journalAddRow" class="sheet-btn">Add to Journal</button></div>
+                <div class="journal-cell action"><button id="journalAddRow" class="sheet-btn ultra-compact-btn">Add to Journal</button></div>
                 <div class="journal-cell action"><button id="journalCollapseBtn" class="secondary">${journalCollapsed ? 'Expand Journal' : 'Collapse Journal'}</button></div>
               </div>
             </div>
-            <div class="action-row journal-submit-row"><button id="journalSubmit">Submit Journal</button><button class="secondary" id="journalClear">Clear Journal</button><label class="sheet-btn secondary file-trigger-btn" for="journalFieldNoteInput">Upload Field Note</label><input id="journalFieldNoteInput" type="file" accept="image/*,.pdf,application/pdf" class="visually-hidden-file-input"><span class="compact-file-name" id="journalFieldNoteName">No file selected</span></div>
+            <div class="action-row journal-submit-row"><button id="journalSubmit" class="ultra-compact-btn">Submit Journal</button><button class="secondary ultra-compact-btn" id="journalClear">Clear Journal</button><label class="sheet-btn secondary file-trigger-btn ultra-compact-btn" for="journalFieldNoteInput">Upload Field Note</label><input id="journalFieldNoteInput" type="file" accept="image/*,.pdf,application/pdf" class="visually-hidden-file-input"><span class="compact-file-name" id="journalFieldNoteName">No file selected</span></div>
           </div>
         </div>
         </div>
