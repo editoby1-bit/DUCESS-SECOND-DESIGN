@@ -125,7 +125,7 @@
       title: 'Administration',
       desc: 'Manage working tools, operational postings, temporary grants, and staff settings.',
       icon: '🛠️',
-      tools: ['operational_posting','operational_accounts','permissions','staff_directory']
+      tools: ['operational_posting','operational_accounts','permissions','staff_directory','customer_directory']
     },
     balances: {
       title: 'Balances',
@@ -155,6 +155,7 @@
     operational_posting: 'Income & Expense Posting',
     operational_accounts: 'Income & Expense Accounts',
     staff_directory: 'Staff Directory',
+    customer_directory: 'Customer Directory',
     business_balance: 'Business Balance',
     operational_balance: 'Operational Balance',
     teller_balances: 'Teller Balances'
@@ -164,7 +165,7 @@
     customer_service: ['check_balance','account_opening','account_maintenance','account_reactivation','account_statement','operational_accounts'],
     teller: ['check_balance','account_statement','credit','debit','operational_accounts','my_balance','opening_balance','my_close_day'],
     approving_officer: ['check_balance','account_opening','account_maintenance','account_reactivation','account_statement','credit','debit','central_close_day','approval_queue','approval_customer_service','approval_tellering','approval_others','business_balance','operational_balance','operational_accounts','my_balance','opening_balance','my_close_day'],
-    admin_officer: ['check_balance','account_opening','account_maintenance','account_reactivation','account_statement','credit','debit','central_close_day','approval_queue','approval_customer_service','approval_tellering','approval_others','permissions','operational_accounts','operational_posting','staff_directory','business_balance','operational_balance','teller_balances','my_balance','opening_balance','my_close_day'],
+    admin_officer: ['check_balance','account_opening','account_maintenance','account_reactivation','account_statement','credit','debit','central_close_day','approval_queue','approval_customer_service','approval_tellering','approval_others','permissions','operational_accounts','operational_posting','staff_directory','customer_directory','business_balance','operational_balance','teller_balances','my_balance','opening_balance','my_close_day'],
     report_officer: ['check_balance','account_statement','business_balance','operational_balance','teller_balances','operational_accounts']
   };
 
@@ -1075,6 +1076,7 @@
       case 'operational_posting': return renderOperationalPosting();
       case 'operational_accounts': return renderOperationalAccounts();
       case 'staff_directory': return renderStaffDirectory();
+      case 'customer_directory': return renderCustomerDirectory();
       case 'business_balance': return renderBusinessBalance();
       case 'operational_balance': return renderOperationalBalance();
       case 'teller_balances': return renderTellerBalances();
@@ -1481,6 +1483,25 @@
       </div>`;
   }
 
+  function renderCustomerDirectory() {
+    const customers = [...(state.customers || [])].sort((a,b)=> String(a.name||'').localeCompare(String(b.name||'')));
+    const totalCustomers = customers.filter(c => String(c.accountType || 'customer') !== 'staff_wallet').length;
+    return `
+      <div class="stack">
+        <div class="kpi-row">
+          <div class="kpi"><div class="label">Total Customers</div><div class="number">${totalCustomers}</div></div>
+        </div>
+        <div class="table-card">
+          <div class="action-inline"><h3 style="margin:0">Customer Directory</h3></div>
+          <div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Customer Name</th><th>Started</th><th>Total Credits</th><th>Total Debits</th></tr></thead><tbody>${customers.filter(c => String(c.accountType || 'customer') !== 'staff_wallet').map((c,i)=>{
+            const credits = (c.transactions || []).filter(tx => tx.type === 'credit').reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
+            const debits = (c.transactions || []).filter(tx => tx.type === 'debit').reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
+            return `<tr><td>${i+1}</td><td>${c.name}</td><td>${fmtDate(c.createdAt)}</td><td>${money(credits)}</td><td>${money(debits)}</td></tr>`;
+          }).join('') || '<tr><td colspan="5">No customers</td></tr>'}</tbody></table></div>
+        </div>
+      </div>`;
+  }
+
   function renderStaffDirectory() {
     return `
       <div class="table-card">
@@ -1565,6 +1586,7 @@
       case 'operational_posting': bindOperationalAccounts(); break;
       case 'operational_accounts': bindOperationalAccounts(); break;
       case 'staff_directory': bindStaffDirectory(); break;
+      case 'customer_directory': break;
       case 'business_balance': bindBalanceFilters('business'); break;
       case 'operational_balance': bindBalanceFilters('operational'); break;
       case 'teller_balances': bindTellerBalances(); break;
