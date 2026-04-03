@@ -983,12 +983,11 @@
 
   function renderModules() {
     const current = state.ui.module;
-    byId('moduleGrid').innerHTML = Object.entries(MODULES).map(([key,m]) => {
+    byId('moduleGrid').innerHTML = `<div class="module-hub">DE</div>` + Object.entries(MODULES).map(([key,m]) => {
       const allowed = moduleAllowed(key);
-      return `<div class="module-card ${current===key?'active':''} ${allowed?'':'disabled'}" data-module="${key}">
+      return `<div class="module-card ${current===key?'active':''} ${allowed?'':'disabled'}" data-module="${key}" data-module-key="${key}">
         <div class="module-icon">${m.icon}</div>
         <div class="module-title">${m.title}</div>
-        <div class="module-desc">${m.desc}</div>
       </div>`;
     }).join('');
     qq('.module-card').forEach(card => {
@@ -1087,36 +1086,32 @@
 
   function renderCheckBalance() {
     return `
-      <div class="tellering-sheet check-balance-sheet">
+      <div class="tellering-sheet check-balance-sheet compact-tool-surface">
         <div class="sheet-title sheet-title-check">*Check Balance</div>
-        <div class="sheet-grid check-grid redesigned-check-grid">
+        <div class="sheet-grid check-grid redesigned-check-grid compact-label-grid">
           <div class="sheet-label">Account Number</div>
           <input id="lookupAcc" class="entry-input sheet-input short-code" />
-          <button id="lookupBtn" class="sheet-btn">Search</button>
-          <button id="searchPhotoBtn" class="sheet-btn secondary">Photo</button>
-          <button id="openStatementBtn" class="sheet-btn secondary">Statement</button>
+          <button id="lookupBtn" class="sheet-btn tiny-btn">Search</button>
 
           <div class="sheet-label">Account Name</div>
           <div class="display-field value-wide" data-fill="name">—</div>
 
-          <div class="sheet-spacer check-info-indent"></div>
-          <div class="check-balance-stack">
-            <div class="check-balance-meta-row">
-              <div class="sheet-label check-inline-label">Phone Number</div>
-              <div class="display-field value-short" data-fill="phone">—</div>
-            </div>
-            <div class="check-balance-meta-row">
-              <div class="sheet-label check-inline-label">Available Balance</div>
-              <div class="display-field value-short" data-fill="balance">—</div>
-            </div>
-          </div>
+          <div class="sheet-label">Phone Number</div>
+          <div class="display-field value-short" data-fill="phone">—</div>
 
+          <div class="sheet-label">Available Balance</div>
+          <div class="display-field value-short" data-fill="balance">—</div>
+
+          <div class="sheet-label hidden" id="checkBalancePhotoLabel">Photo</div>
           <div class="sheet-photo-row hidden" id="checkBalancePhotoRow">
-            <div class="sheet-label">Photo</div>
             <div class="photo-box inline-photo" data-fill="photo"><span>No Photo</span></div>
           </div>
+
+          <div class="check-balance-button-row">
+            <button id="searchPhotoBtn" class="sheet-btn secondary tiny-btn">Photo</button>
+            <button id="openStatementBtn" class="sheet-btn secondary tiny-btn">Statement</button>
+          </div>
         </div>
-        <div class="action-row"><button class="secondary" id="searchByNameBtn">Search by Name</button></div>
       </div>`;
   }
 
@@ -1200,7 +1195,7 @@
             <div class="field stmt-field stmt-date-field"><label>From Date</label><input id="stmtFrom" class="entry-input stmt-date-input polished-date-input" type="date"></div>
             <div class="field stmt-field stmt-date-field"><label>To Date</label><input id="stmtTo" class="entry-input stmt-date-input polished-date-input" type="date"></div>
           </div>
-          <div class="action-row"><button id="stmtGenerate">Generate Statement</button><button class="secondary" id="stmtPrintBtn">Print Statement</button></div>
+          <div class="action-row compact-action-row"><button id="stmtGenerate" class="tiny-btn">Generate Statement</button><button class="secondary tiny-btn" id="stmtPrintBtn">Print Statement</button></div>
         </div>
         <div id="statementArea"></div>
       </div>`;
@@ -1232,7 +1227,7 @@
                   <label class="sheet-label posting-label-account" for="txAcc">Account Number</label>
                   <input id="txAcc" class="entry-input sheet-input short-code" maxlength="4" />
                   <button id="txSearch" class="sheet-btn">Search</button>
-                  <button id="txJournalAdd" class="sheet-btn secondary">${journalVisible ? 'Journal Ready' : 'Generate Journal'}</button>
+                  ${journalVisible ? '' : `<button id="txJournalAdd" class="sheet-btn secondary tiny-btn">Generate Journal</button>`}
                 </div>
               </div>
               <div class="posting-kpis compact-posting-kpis">
@@ -1443,7 +1438,7 @@
             <div class="field"><label>Note</label><input id="oeNote" class="entry-input"></div>
             <div class="field"><label>Type</label><div class="display-field" id="oeKindDisplay">Auto from account</div></div>
           </div>
-          <div class="action-row"><button id="oeSubmit">Submit for Approval</button></div>
+          <div class="action-row compact-action-row"><button id="oeSubmit" class="tiny-btn">Submit for Approval</button></div>
         </div>
       </div>`;
   }
@@ -1463,7 +1458,7 @@
               <div class="field"><label>Account Name</label><input id="oaName" class="entry-input"></div>
               <div class="field"><label>Account Number</label><div class="display-field" id="oaNumberPreview">INC-2001</div></div>
             </div>
-            <div class="action-row"><button id="oaCreate">Submit for Approval</button></div>
+            <div class="action-row compact-action-row"><button id="oaCreate" class="tiny-btn">Submit for Approval</button></div>
           </div>` : ''}
           <div class="form-card">
             <h3>Post into Account</h3>
@@ -1474,7 +1469,7 @@
               <div class="field"><label>Note</label><input id="oeNote" class="entry-input"></div>
               <div class="field"><label>Type</label><div class="display-field" id="oeKindDisplay">Auto from account</div></div>
             </div>
-            <div class="action-row"><button id="oeSubmit">Submit for Approval</button></div>
+            <div class="action-row compact-action-row"><button id="oeSubmit" class="tiny-btn">Submit for Approval</button></div>
           </div>
         </div>
         <div class="table-card">
@@ -1671,7 +1666,6 @@
       if (!selected) return showToast('Search for customer first');
       if (row) row.classList.toggle('hidden');
     };
-    byId('searchByNameBtn').onclick = () => openCustomerSearchModal(state.customers);
     hidePhoto();
     const selected = state.ui.checkBalanceLoaded ? getSelectedCustomer() : null;
     if (selected && state.ui.selectedCustomerId) lookupFill(byId('workspace'), selected); else lookupFill(byId('workspace'), null);
@@ -1805,9 +1799,8 @@
         return true;
       }).map((tx, i) => `<tr><td>${i+1}</td><td>${fmtDate(tx.date)}</td><td>${tx.details || ''}</td><td>${tx.type==='debit'?money(tx.amount):''}</td><td>${tx.type==='credit'?money(tx.amount):''}</td><td>${money(tx.balanceAfter)}</td><td>${tx.receivedOrPaidBy || '—'}</td><td>${tx.postedBy || tx.postedById || '—'}</td><td>${tx.approvedBy || '—'}</td></tr>`).join('');
       byId('statementArea').innerHTML = `
-        <div class="record-card">
-          <div class="lookup-card">
-            <div class="photo-box">${c.photo ? `<img src="${c.photo}" alt="photo">` : '<span>No Photo</span>'}</div>
+        <div class="record-card statement-record-minimal">
+          <div class="lookup-card statement-lookup-minimal">
             <div class="stack">
               <div class="info-grid">
                 <div class="info-item"><div class="k">A/C Name</div><div class="v">${c.name}</div></div>
@@ -1836,6 +1829,9 @@
 
   function bindJournal(kind) {
     const staff = currentStaff();
+    const journalBtn = byId('txJournalAdd');
+    const postBtn = byId('txPostSingle');
+    if (journalBtn && postBtn && postBtn.parentElement) postBtn.parentElement.appendChild(journalBtn);
     state.ui.staffJournals ||= {};
     state.ui.staffJournalAttachments ||= {};
     state.ui.generatedJournals ||= {};
@@ -2155,9 +2151,9 @@
     if (!requiresFloat) return showToast('Current staff does not need posting float');
     if (hasFloatDeclaredOrPending(st.id, businessDate())) return showToast('Form already declared for today');
     openModal('Form', `
-      <div class="form-grid three">
+      <div class="form-grid three compact-modal-grid">
         <div class="field"><label>Staff</label><div class="display-field">${st.name}</div></div>
-        <div class="field"><label>Date</label><div class="display-field">${businessDate()}</div></div>
+        <div class="field field-date-compact"><label>Date</label><div class="display-field compact-date-display">${businessDate()}</div></div>
         <div class="field"><label>Amount</label><input id="floatAmount" class="entry-input" type="number"></div>
       </div>
       <div class="note">Posting cannot begin until this form is approved.</div>
