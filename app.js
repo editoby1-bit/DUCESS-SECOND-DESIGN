@@ -983,13 +983,23 @@
 
   function renderModules() {
     const current = state.ui.module;
-    byId('moduleGrid').innerHTML = `<div class="module-grid-title">DASHBOARD</div><div class="module-hub">DE</div>` + Object.entries(MODULES).map(([key,m]) => {
-      const allowed = moduleAllowed(key);
-      return `<div class="module-card ${current===key?'active':''} ${allowed?'':'disabled'}" data-module="${key}" data-module-key="${key}">
-        <div class="module-icon">${m.icon}</div>
-        <div class="module-title">${m.title}</div>
+    const orbitOrder = ['administration','customer_service','balances','tellering','approvals'];
+    byId('moduleGrid').innerHTML = `
+      <div class="module-grid-title">DASHBOARD</div>
+      <div class="module-orbit-shell">
+        <div class="module-orbit-ring module-orbit-ring-outer"></div>
+        <div class="module-orbit-ring module-orbit-ring-mid"></div>
+        <div class="module-orbit-ring module-orbit-ring-inner"></div>
+        <div class="module-hub">DE</div>
+        ${orbitOrder.map((key) => {
+          const m = MODULES[key];
+          const allowed = moduleAllowed(key);
+          return `<div class="module-card orbit-module ${current===key?'active':''} ${allowed?'':'disabled'}" data-module="${key}" data-module-key="${key}">
+            <div class="module-icon">${m.icon}</div>
+            <div class="module-title">${m.title}</div>
+          </div>`;
+        }).join('')}
       </div>`;
-    }).join('');
     qq('.module-card').forEach(card => {
       card.onclick = () => {
         const key = card.dataset.module;
