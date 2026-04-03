@@ -6818,3 +6818,136 @@ body[data-theme="ducess-sheet"] .module-hub{
   margin-left:0 !important;
   justify-self:start !important;
 }
+
+/* APR 03 final surgical patch - check balance, old A/N proximity, credit/debit amount spacing */
+@media (min-width: 981px){
+  /* Check Balance: align like other customer-service sheets */
+  .check-balance-sheet.compact-tool-surface{
+    max-width: 980px !important;
+    margin: 0 auto !important;
+    padding: 18px 18px 14px !important;
+  }
+  .check-balance-sheet .sheet-title.sheet-title-check{
+    width: 100% !important;
+    max-width: 520px !important;
+    margin: 0 auto 10px !important;
+    text-align: center !important;
+  }
+  .check-balance-sheet .sheet-grid.refined-check-grid{
+    width: 100% !important;
+    max-width: 520px !important;
+    margin: 0 auto !important;
+    display: grid !important;
+    gap: 10px !important;
+  }
+  .check-balance-sheet .refined-check-grid .check-balance-row{
+    display: grid !important;
+    grid-template-columns: 180px minmax(0, 1fr) !important;
+    align-items: center !important;
+    column-gap: 10px !important;
+    margin: 0 !important;
+  }
+  .check-balance-sheet .refined-check-grid .sheet-label{
+    justify-self: start !important;
+    align-self: center !important;
+    margin: 0 !important;
+  }
+  .check-balance-sheet .refined-check-grid .check-balance-inline{
+    display: grid !important;
+    grid-template-columns: 180px auto !important;
+    align-items: center !important;
+    column-gap: 8px !important;
+    width: max-content !important;
+  }
+  .check-balance-sheet .refined-check-grid #lookupAcc{
+    width: 180px !important;
+    min-width: 180px !important;
+    max-width: 180px !important;
+  }
+  .check-balance-sheet .refined-check-grid .refined-value-field,
+  .check-balance-sheet .refined-check-grid .balance-value-field{
+    width: 180px !important;
+    min-width: 180px !important;
+    max-width: 180px !important;
+    min-height: 40px !important;
+    margin: 0 !important;
+  }
+  .check-balance-sheet .refined-check-grid .check-balance-button-row,
+  .check-balance-sheet .refined-check-grid .sheet-photo-row{
+    padding-left: 190px !important;
+    margin-top: 0 !important;
+  }
+
+  /* Account Opening + Maintenance: pull Old A/N input closer to label */
+  .opening-card .opening-sheet-grid,
+  .maintenance-card .maintenance-sheet-grid{
+    grid-template-columns: 170px 150px 82px 150px 96px !important;
+    column-gap: 6px !important;
+  }
+  .opening-card .sheet-label-inline.old-account-label,
+  .maintenance-card .sheet-label-inline.old-account-label{
+    justify-content: flex-start !important;
+    text-align: left !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-right: -2px !important;
+  }
+  .opening-card .sheet-input-cell.account,
+  .maintenance-card .sheet-input-cell.account:not(.account-near-label),
+  .opening-card .old-an-input,
+  .maintenance-card .old-an-input{
+    width: 96px !important;
+    min-width: 96px !important;
+    max-width: 96px !important;
+    justify-self: start !important;
+    margin-left: -2px !important;
+  }
+
+  /* Credit / Debit: tighten account number and account name rows, reduce amount box, prevent Post clash */
+  .journal-sheet .posting-row-top,
+  .journal-sheet .posting-row-name,
+  .journal-sheet .posting-row-amount{
+    grid-template-columns: 1fr auto !important;
+    column-gap: 14px !important;
+    align-items: center !important;
+  }
+  .journal-sheet .posting-row-left{
+    min-width: 0 !important;
+  }
+  .journal-sheet .posting-inline-group.posting-inline-account{
+    display: grid !important;
+    grid-template-columns: 118px 150px auto !important;
+    column-gap: 8px !important;
+    align-items: center !important;
+    width: max-content !important;
+  }
+  .journal-sheet .posting-row-name{
+    display: grid !important;
+    grid-template-columns: 118px minmax(260px, 520px) auto !important;
+  }
+  .journal-sheet .posting-row-name #txName{
+    width: 100% !important;
+    min-height: 40px !important;
+  }
+  .journal-sheet .posting-row-amount{
+    display: grid !important;
+    grid-template-columns: 118px 146px auto auto !important;
+    column-gap: 8px !important;
+    width: max-content !important;
+    max-width: 100% !important;
+  }
+  .journal-sheet .posting-row-amount #txAmount{
+    width: 146px !important;
+    min-width: 146px !important;
+    max-width: 146px !important;
+    margin: 0 !important;
+  }
+  .journal-sheet .posting-row-amount #txPostSingle,
+  .journal-sheet .posting-row-amount #txJournalAdd,
+  .journal-sheet .posting-inline-account #txSearch{
+    width: auto !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    justify-self: start !important;
+  }
+}
