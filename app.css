@@ -7207,3 +7207,211 @@ body[data-theme="ducess-sheet"] .module-hub{
   #moduleGrid .module-card[data-module-key="tellering"]{bottom:64px !important;}
   #moduleGrid .module-card[data-module-key="approvals"]{left:10px !important;bottom:112px !important;}
 }
+
+/* ===== APR 03 REPAIR PATCH 2 ===== */
+
+/* Dashboard: own cleaner orbit layout inspired by reference, not copied */
+#moduleGrid.module-grid{
+  min-height:520px !important;
+  margin-top:0 !important;
+}
+#moduleGrid .module-orbit-shell{
+  width:min(760px, 100%) !important;
+  height:500px !important;
+}
+#moduleGrid .module-orbit-ring-outer{
+  width:470px !important;
+  height:470px !important;
+  background:rgba(181, 121, 144, 0.08) !important;
+}
+#moduleGrid .module-orbit-ring-mid{
+  width:360px !important;
+  height:360px !important;
+  background:rgba(181, 121, 144, 0.06) !important;
+}
+#moduleGrid .module-orbit-ring-inner{
+  width:260px !important;
+  height:260px !important;
+  background:rgba(181, 121, 144, 0.045) !important;
+}
+#moduleGrid .module-hub{
+  width:170px !important;
+  height:170px !important;
+  font-size:78px !important;
+  color:rgba(95, 78, 88, 0.12) !important;
+}
+#moduleGrid .module-grid-title{
+  top:8px !important;
+  font-size:15px !important;
+  letter-spacing:.22em !important;
+}
+#moduleGrid .module-card.orbit-module{
+  gap:10px !important;
+}
+#moduleGrid .module-card.orbit-module .module-icon{
+  width:30px !important;
+  height:30px !important;
+  font-size:24px !important;
+}
+#moduleGrid .module-card.orbit-module .module-title{
+  font-size:20px !important;
+  font-weight:800 !important;
+  white-space:nowrap !important;
+}
+#moduleGrid .module-card[data-module-key="administration"]{
+  left:92px !important;
+  top:118px !important;
+}
+#moduleGrid .module-card[data-module-key="customer_service"]{
+  right:82px !important;
+  top:118px !important;
+}
+#moduleGrid .module-card[data-module-key="tellering"]{
+  right:128px !important;
+  top:236px !important;
+  left:auto !important;
+  bottom:auto !important;
+  transform:none !important;
+}
+#moduleGrid .module-card[data-module-key="approvals"]{
+  left:112px !important;
+  bottom:132px !important;
+}
+#moduleGrid .module-card[data-module-key="balances"]{
+  right:78px !important;
+  bottom:120px !important;
+}
+#moduleGrid .module-card[data-module-key="tellering"]:hover,
+#moduleGrid .module-card[data-module-key="tellering"].active{
+  transform:none !important;
+}
+
+/* Check Balance: clean two-column serial layout */
+.check-balance-sheet{
+  max-width:860px !important;
+  margin:0 auto !important;
+}
+.check-balance-sheet .sheet-title.sheet-title-check{
+  font-size:26px !important;
+  text-align:center !important;
+  margin-bottom:12px !important;
+}
+.check-balance-sheet .sheet-grid.refined-check-grid,
+.check-balance-sheet .sheet-grid.serial-check-grid{
+  width:100% !important;
+  max-width:540px !important;
+  margin:0 auto !important;
+  display:grid !important;
+  gap:12px !important;
+}
+.check-balance-sheet .refined-check-grid .check-balance-row,
+.check-balance-sheet .serial-check-grid .check-balance-row{
+  display:grid !important;
+  grid-template-columns:170px minmax(0, 1fr) !important;
+  align-items:center !important;
+  gap:10px !important;
+  margin:0 !important;
+}
+.check-balance-sheet .refined-check-grid .sheet-label,
+.check-balance-sheet .serial-check-grid .sheet-label{
+  justify-self:start !important;
+  text-align:left !important;
+  white-space:nowrap !important;
+  margin:0 !important;
+}
+.check-balance-sheet .refined-check-grid .check-balance-inline,
+.check-balance-sheet .serial-check-grid .check-balance-inline{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-start !important;
+  gap:8px !important;
+  width:100% !important;
+}
+.check-balance-sheet .refined-check-grid #lookupAcc,
+.check-balance-sheet .serial-check-grid #lookupAcc{
+  width:180px !important;
+  min-width:180px !important;
+  max-width:180px !important;
+}
+.check-balance-sheet .refined-check-grid .refined-value-field,
+.check-balance-sheet .refined-check-grid .balance-value-field,
+.check-balance-sheet .serial-check-grid .refined-value-field,
+.check-balance-sheet .serial-check-grid .balance-value-field,
+.check-balance-sheet .serial-check-grid .display-field{
+  width:180px !important;
+  min-width:180px !important;
+  max-width:180px !important;
+  min-height:40px !important;
+  padding:0 12px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-start !important;
+}
+.check-balance-sheet .refined-check-grid .check-balance-button-row,
+.check-balance-sheet .serial-check-grid .check-balance-button-row,
+.check-balance-sheet .refined-check-grid .sheet-photo-row,
+.check-balance-sheet .serial-check-grid .sheet-photo-row{
+  padding-left:180px !important;
+  display:flex !important;
+  gap:8px !important;
+  justify-content:flex-start !important;
+  margin:0 !important;
+}
+
+/* Account Reactivation: same neat serial rhythm as the other sheets */
+.reactivation-card{
+  max-width:860px !important;
+}
+.reactivation-card .reactivation-sheet-grid{
+  grid-template-columns:170px 220px !important;
+  row-gap:10px !important;
+  column-gap:10px !important;
+  max-width:430px !important;
+  margin:0 auto !important;
+}
+.reactivation-card .sheet-label-cell{
+  justify-self:start !important;
+  text-align:left !important;
+  white-space:nowrap !important;
+}
+.reactivation-card .sheet-input-cell.account.reactivation-account.half-account,
+.reactivation-card .sheet-input-cell.wide{
+  grid-column:auto !important;
+  max-width:220px !important;
+  width:220px !important;
+}
+.reactivation-card .cs-sheet-input{
+  width:100% !important;
+}
+.reactivation-card .cs-sheet-footer{
+  max-width:760px !important;
+  margin:8px auto 0 !important;
+  flex-wrap:wrap !important;
+  justify-content:flex-start !important;
+  gap:12px !important;
+}
+.reactivation-card .cs-system-summary{
+  display:flex !important;
+  flex-wrap:wrap !important;
+  gap:12px 18px !important;
+}
+.reactivation-card .reactivation-bottom-actions{
+  max-width:760px !important;
+  margin:0 auto !important;
+  justify-content:flex-start !important;
+  gap:8px !important;
+}
+
+@media (max-width: 1100px){
+  #moduleGrid.module-grid{min-height:480px !important;}
+  #moduleGrid .module-orbit-shell{width:min(680px,100%) !important;height:460px !important;}
+  #moduleGrid .module-orbit-ring-outer{width:420px !important;height:420px !important;}
+  #moduleGrid .module-orbit-ring-mid{width:320px !important;height:320px !important;}
+  #moduleGrid .module-orbit-ring-inner{width:230px !important;height:230px !important;}
+  #moduleGrid .module-card.orbit-module .module-title{font-size:18px !important;}
+  #moduleGrid .module-card[data-module-key="administration"]{left:54px !important;top:118px !important;}
+  #moduleGrid .module-card[data-module-key="customer_service"]{right:46px !important;top:118px !important;}
+  #moduleGrid .module-card[data-module-key="tellering"]{right:90px !important;top:224px !important;}
+  #moduleGrid .module-card[data-module-key="approvals"]{left:72px !important;bottom:116px !important;}
+  #moduleGrid .module-card[data-module-key="balances"]{right:44px !important;bottom:106px !important;}
+}
