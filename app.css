@@ -7387,3 +7387,241 @@ body[data-theme="ducess-sheet"] .module-hub{
     min-height:auto !important;
   }
 }
+
+
+
+/* ===== 2026-04-04 SURGICAL PATCH v5 ===== */
+@media (min-width: 981px){
+
+  /* MAIN DASHBOARD: bring all labels to a cleaner circle around the hub */
+  .module-grid{
+    min-height:600px !important;
+    height:600px !important;
+  }
+
+  .module-grid-title{
+    top:24px !important;
+    left:50% !important;
+    transform:translateX(-50%) !important;
+  }
+
+  .module-hub{
+    top:50% !important;
+    left:50% !important;
+    width:210px !important;
+    height:210px !important;
+    transform:translate(-50%,-50%) !important;
+  }
+
+  .module-card[data-module-key="customer_service"]{
+    left:31% !important;
+    top:39% !important;
+    transform:translate(-50%,-50%) !important;
+  }
+  .module-card[data-module-key="tellering"]{
+    left:69% !important;
+    top:39% !important;
+    transform:translate(-50%,-50%) !important;
+  }
+  .module-card[data-module-key="approvals"]{
+    left:35% !important;
+    top:66% !important;
+    transform:translate(-50%,-50%) !important;
+  }
+  .module-card[data-module-key="administration"]{
+    left:65% !important;
+    top:66% !important;
+    transform:translate(-50%,-50%) !important;
+  }
+  .module-card[data-module-key="balances"]{
+    left:50% !important;
+    top:92% !important;
+    transform:translate(-50%,-50%) !important;
+  }
+
+  /* CHECK BALANCE: labels close to fields, subrows start from the same left margin */
+  .check-balance-classic-grid{
+    grid-template-columns: 190px minmax(0, 810px) !important;
+    column-gap:8px !important;
+    row-gap:10px !important;
+    max-width:1000px !important;
+    align-items:center !important;
+  }
+
+  .check-balance-classic-row > .sheet-label{
+    justify-self:start !important;
+    text-align:left !important;
+    margin:0 !important;
+    padding:0 !important;
+  }
+
+  .check-balance-classic-field{
+    gap:8px !important;
+  }
+
+  .check-balance-acc-input{
+    width:6.5ch !important;
+    max-width:6.5ch !important;
+    min-width:6.5ch !important;
+  }
+
+  .check-balance-name-field{
+    max-width:100% !important;
+    width:100% !important;
+  }
+
+  .check-balance-classic-subrows{
+    grid-column:1 / 3 !important;
+    display:grid !important;
+    grid-template-columns: 190px 190px !important;
+    column-gap:8px !important;
+    row-gap:8px !important;
+    margin-top:0 !important;
+    justify-content:start !important;
+    width:max-content !important;
+  }
+
+  .check-balance-classic-subrows .sheet-label{
+    justify-self:start !important;
+    text-align:left !important;
+    margin:0 !important;
+    padding:0 !important;
+  }
+
+  .check-balance-mini-field{
+    width:190px !important;
+    max-width:190px !important;
+    min-height:52px !important;
+    justify-self:start !important;
+  }
+
+  .classic-bottom-buttons{
+    grid-column:1 / 3 !important;
+    gap:16px !important;
+    margin-top:8px !important;
+  }
+
+  /* ACCOUNT OPENING: tighten all label-to-input spacing */
+  .opening-card .opening-sheet-grid{
+    grid-template-columns: 145px 165px 65px 165px auto !important;
+    column-gap:8px !important;
+    row-gap:8px !important;
+    align-items:center !important;
+  }
+
+  .opening-card .opening-sheet-grid > .sheet-label-cell,
+  .opening-card .opening-sheet-grid > .sheet-label-inline{
+    justify-self:start !important;
+    text-align:left !important;
+    margin:0 !important;
+    padding:0 !important;
+  }
+
+  .opening-card .opening-sheet-grid > .sheet-input-cell.wide{
+    grid-column:2 / 6 !important;
+    max-width:675px !important;
+    width:100% !important;
+  }
+
+  .opening-card .opening-sheet-grid > .sheet-input-cell.nin,
+  .opening-card .opening-sheet-grid > .sheet-input-cell.phone,
+  .opening-card .opening-sheet-grid > .sheet-input-cell.bvn,
+  .opening-card .opening-sheet-grid > .sheet-input-cell.account{
+    max-width:165px !important;
+    width:165px !important;
+  }
+
+  .opening-card .opening-sheet-grid > .sheet-label-inline.bvn-label,
+  .opening-card .opening-sheet-grid > .sheet-label-inline.old-account-label{
+    width:65px !important;
+    padding:0 !important;
+  }
+
+  /* ACCOUNT MAINTENANCE: match opening spacing exactly, including Old A/N */
+  .maintenance-card .maintenance-sheet-grid{
+    grid-template-columns: 145px 165px 65px 165px auto !important;
+    column-gap:8px !important;
+    row-gap:8px !important;
+    align-items:center !important;
+  }
+
+  .maintenance-card .maintenance-sheet-grid > .sheet-label-cell,
+  .maintenance-card .maintenance-sheet-grid > .sheet-label-inline{
+    justify-self:start !important;
+    text-align:left !important;
+    margin:0 !important;
+    padding:0 !important;
+  }
+
+  .maintenance-card .maintenance-sheet-grid > :nth-child(2),
+  .maintenance-card .maintenance-sheet-grid > :nth-child(9),
+  .maintenance-card .maintenance-sheet-grid > :nth-child(11),
+  .maintenance-card .maintenance-sheet-grid > :nth-child(13),
+  .maintenance-card .maintenance-sheet-grid > :nth-child(15){
+    max-width:165px !important;
+    width:165px !important;
+  }
+
+  .maintenance-card .maintenance-sheet-grid > :nth-child(5),
+  .maintenance-card .maintenance-sheet-grid > :nth-child(7){
+    max-width:675px !important;
+    width:100% !important;
+  }
+
+  .maintenance-card .maintenance-sheet-grid > .sheet-label-inline.bvn-label,
+  .maintenance-card .maintenance-sheet-grid > .sheet-label-inline.old-account-label{
+    width:65px !important;
+    padding:0 !important;
+    justify-self:start !important;
+    text-align:left !important;
+  }
+
+  .maintenance-card .maintenance-sheet-grid > :nth-child(10),
+  .maintenance-card .maintenance-sheet-grid > :nth-child(14){
+    width:65px !important;
+    padding:0 !important;
+    margin:0 !important;
+  }
+
+  /* ACCOUNT REACTIVATION: tighter spacing and normal search button */
+  .reactivation-card .reactivation-sheet-grid{
+    grid-template-columns: 145px 95px 110px 165px !important;
+    column-gap:8px !important;
+    row-gap:8px !important;
+    align-items:center !important;
+  }
+
+  .reactivation-card .reactivation-sheet-grid > .sheet-label-cell,
+  .reactivation-card .reactivation-sheet-grid > .sheet-label-inline{
+    justify-self:start !important;
+    text-align:left !important;
+    margin:0 !important;
+    padding:0 !important;
+  }
+
+  .reactivation-card .reactivation-sheet-grid > :nth-child(2){
+    max-width:95px !important;
+    width:95px !important;
+  }
+
+  .reactivation-card .reactivation-sheet-grid > :nth-child(3){
+    width:110px !important;
+    max-width:110px !important;
+    padding:0 !important;
+    margin:0 !important;
+    justify-self:start !important;
+  }
+
+  .reactivation-card .reactivation-sheet-grid > :nth-child(5){
+    max-width:560px !important;
+    width:100% !important;
+  }
+
+  .reactivation-card .reactivation-sheet-grid button,
+  .reactivation-card .reactivation-sheet-grid .sheet-btn{
+    border-radius:12px !important;
+    box-shadow:none !important;
+    outline:none !important;
+    border:0 !important;
+  }
+}
