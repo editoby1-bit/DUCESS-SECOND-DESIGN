@@ -1096,38 +1096,30 @@
 
   function renderCheckBalance() {
     return `
-      <div class="tellering-sheet check-balance-sheet compact-tool-surface">
-        <div class="sheet-title sheet-title-check">*Check Balance</div>
-        <div class="check-balance-classic-grid">
-          <div class="check-balance-classic-row check-balance-row-accno">
-            <div class="sheet-label">Account Number</div>
-            <div class="check-balance-classic-field check-balance-inline">
-              <input id="lookupAcc" class="entry-input sheet-input short-code check-balance-acc-input" maxlength="4" inputmode="numeric" />
-              <button id="lookupBtn" class="sheet-btn tiny-btn">Search</button>
-            </div>
+      <div class="form-card cs2-card check-balance-card">
+        <div class="cs2-title">Check Balance</div>
+        <div class="cs2-stack">
+          <div class="cs2-row">
+            <div class="cs2-label">Account Number</div>
+            <div class="cs2-input-wrap cs2-short"><input id="lookupAcc" class="entry-input cs2-input" maxlength="4" inputmode="numeric"></div>
+            <button id="lookupBtn" class="sheet-btn cs2-btn cs2-btn-solid">Search</button>
           </div>
-
-          <div class="check-balance-classic-row">
-            <div class="sheet-label">Account Name</div>
-            <div class="display-field value-wide refined-value-field check-balance-name-field" data-fill="name">—</div>
+          <div class="cs2-row">
+            <div class="cs2-label">Account Name</div>
+            <div class="display-field cs2-input cs2-display cs2-wide" data-fill="name">—</div>
           </div>
-
-          <div class="check-balance-classic-subrows">
-            <div class="check-balance-classic-row compact-subrow">
-              <div class="sheet-label">Phone Number</div>
-              <div class="display-field refined-value-field check-balance-mini-field" data-fill="phone">—</div>
-            </div>
-            <div class="check-balance-classic-row compact-subrow">
-              <div class="sheet-label">Available Balance</div>
-              <div class="display-field refined-value-field check-balance-mini-field balance-value-field" data-fill="balance">—</div>
-            </div>
+          <div class="cs2-row">
+            <div class="cs2-label">Phone Number</div>
+            <div class="display-field cs2-input cs2-display cs2-medium" data-fill="phone">—</div>
           </div>
-
-          <div class="check-balance-button-row classic-bottom-buttons">
-            <button id="searchPhotoBtn" class="sheet-btn secondary tiny-btn">Photo</button>
-            <button id="openStatementBtn" class="sheet-btn secondary tiny-btn">Statement</button>
+          <div class="cs2-row">
+            <div class="cs2-label">Available Balance</div>
+            <div class="display-field cs2-input cs2-display cs2-medium" data-fill="balance">—</div>
           </div>
-
+          <div class="cs2-button-row">
+            <button id="searchPhotoBtn" class="sheet-btn cs2-btn cs2-btn-ghost">Photo</button>
+            <button id="openStatementBtn" class="sheet-btn cs2-btn cs2-btn-ghost">Statement</button>
+          </div>
           <div class="sheet-photo-row hidden" id="checkBalancePhotoRow">
             <div class="photo-box inline-photo" data-fill="photo"><span>No Photo</span></div>
           </div>
@@ -1137,77 +1129,80 @@
 
   function renderAccountOpening() {
     return `
-      <div class="form-card cs-sheet-card opening-card">
-        <div class="cs-sheet-title">Account Opening</div>
-        <div class="cs-sheet-grid opening-sheet-grid">
-          <div class="sheet-label-cell">Account Name</div>
-          <div class="sheet-input-cell wide"><input id="openName" class="entry-input cs-sheet-input"></div>
-
-          <div class="sheet-label-cell">Address</div>
-          <div class="sheet-input-cell wide"><input id="openAddress" class="entry-input cs-sheet-input"></div>
-
-          <div class="sheet-label-cell">NIN</div>
-          <div class="sheet-input-cell nin"><input id="openNin" class="entry-input cs-sheet-input digit-11-input" inputmode="numeric" maxlength="11"></div>
-          <div class="sheet-label-inline bvn-label">BVN</div>
-          <div class="sheet-input-cell bvn"><input id="openBvn" class="entry-input cs-sheet-input digit-11-input" inputmode="numeric" maxlength="11"></div>
-
-          <div class="sheet-label-inline phone-inline-label">Phone Number</div>
-          <div class="sheet-input-cell phone"><input id="openPhone" class="entry-input cs-sheet-input digit-11-input" inputmode="numeric" maxlength="11"></div>
-          <div class="sheet-label-inline old-account-label">Old A/N</div>
-          <div class="sheet-input-cell account"><input id="openOldAccount" class="entry-input cs-sheet-input"></div>
-
-          <div class="sheet-spread-actions opening-actions">
-            <button id="openPhotoBtn" type="button" class="sheet-btn cs-inline-btn secondary cs-photo-btn">Photo Upload</button>
+      <div class="form-card cs2-card opening-card">
+        <div class="cs2-title">Account Opening</div>
+        <div class="cs2-stack">
+          <div class="cs2-row">
+            <div class="cs2-label">Account Name</div>
+            <div class="cs2-input-wrap cs2-wide"><input id="openName" class="entry-input cs2-input"></div>
+          </div>
+          <div class="cs2-row">
+            <div class="cs2-label">Address</div>
+            <div class="cs2-input-wrap cs2-wide"><input id="openAddress" class="entry-input cs2-input"></div>
+          </div>
+          <div class="cs2-row cs2-pair-row">
+            <div class="cs2-label">NIN</div>
+            <div class="cs2-input-wrap cs2-medium"><input id="openNin" class="entry-input cs2-input digit-11-input" inputmode="numeric" maxlength="11"></div>
+            <div class="cs2-inline-label">BVN</div>
+            <div class="cs2-input-wrap cs2-medium"><input id="openBvn" class="entry-input cs2-input digit-11-input" inputmode="numeric" maxlength="11"></div>
+          </div>
+          <div class="cs2-row cs2-pair-row">
+            <div class="cs2-label">Phone Number</div>
+            <div class="cs2-input-wrap cs2-medium"><input id="openPhone" class="entry-input cs2-input digit-11-input" inputmode="numeric" maxlength="11"></div>
+            <div class="cs2-inline-label">Old A/N</div>
+            <div class="cs2-input-wrap cs2-short"><input id="openOldAccount" class="entry-input cs2-input" maxlength="4" inputmode="numeric"></div>
+          </div>
+          <div class="cs2-upload-row">
+            <button id="openPhotoBtn" type="button" class="sheet-btn cs2-btn cs2-btn-ghost">Photo Upload</button>
             <input id="openPhoto" class="entry-input cs-sheet-input hidden-photo-input" type="file" accept="image/*">
-            <div id="openPhotoStatus" class="cs-inline-note photo-status">No photo selected</div>
-            <div class="cs-inline-note cs-generate-note">Account number generated on approval</div>
+            <div id="openPhotoStatus" class="cs2-note-box">No photo selected</div>
+            <div class="cs2-note-box cs2-note-grow">Account number generated on approval</div>
+          </div>
+          <div class="cs2-button-row">
+            <button id="submitOpening" class="sheet-btn cs2-btn cs2-btn-solid">Submit for Approval</button>
           </div>
         </div>
-        <div class="action-row"><button id="submitOpening">Submit for Approval</button></div>
       </div>`;
   }
 
   function renderAccountMaintenance() {
-    return maintenanceCommon('maintenance', 'Submit Maintenance');
+    return maintenanceCommon('maintenance', 'Save');
   }
   function renderAccountReactivation() {
-    return maintenanceCommon('reactivation', 'Submit Reactivation');
+    return maintenanceCommon('reactivation', 'Activate');
   }
   function maintenanceCommon(prefix, btnLabel) {
     const isReactivation = prefix === 'reactivation';
     return `
-      <div class="form-card cs-sheet-card ${isReactivation ? 'reactivation-card' : 'maintenance-card'}">
-        <div class="cs-sheet-title">${isReactivation ? 'Account Reactivation' : 'Account Maintenance'}</div>
-        <div class="cs-sheet-grid ${isReactivation ? 'reactivation-sheet-grid' : 'maintenance-sheet-grid'}">
-          <div class="sheet-label-cell">Account Number</div>
-          <div class="sheet-input-cell account ${isReactivation ? 'reactivation-account half-account' : 'account-near-label'}"><input id="${prefix}Acc" class="entry-input cs-sheet-input" maxlength="4" inputmode="numeric"></div>
-          <button id="${prefix}Search" class="sheet-btn cs-inline-btn maintenance-top-search">Search</button>
-
-          <div class="sheet-label-cell">Account Name</div>
-          <div class="sheet-input-cell wide"><input id="${prefix}Name" class="entry-input cs-sheet-input cs-detail-input"></div>
-
-          ${isReactivation ? '' : `<div class="sheet-label-cell">Address</div><div class="sheet-input-cell wide"><input id="${prefix}Address" class="entry-input cs-sheet-input cs-detail-input"></div>`}
-
-          ${isReactivation ? '' : `<div class="sheet-label-cell">NIN</div><div class="sheet-input-cell nin"><input id="${prefix}Nin" class="entry-input cs-sheet-input cs-detail-input digit-11-input" inputmode="numeric" maxlength="11"></div><div class="sheet-label-inline bvn-label">BVN</div><div class="sheet-input-cell bvn"><input id="${prefix}Bvn" class="entry-input cs-sheet-input cs-detail-input digit-11-input" inputmode="numeric" maxlength="11"></div>`}
-
-          ${isReactivation ? '' : `<div class="sheet-label-inline phone-inline-label">Phone Number</div><div class="sheet-input-cell phone"><input id="${prefix}Phone" class="entry-input cs-sheet-input cs-detail-input digit-11-input" inputmode="numeric" maxlength="11"></div><div class="sheet-label-inline old-account-label">Old A/N</div><div class="sheet-input-cell account old-an-input"><input id="${prefix}OldAccount" class="entry-input cs-sheet-input cs-detail-input"></div>`}
-        </div>
-        <div class="cs-sheet-footer">
-          <div class="cs-system-summary">
-            <span>Account Name: <strong id="${prefix}DisplayName">—</strong></span>
-            <span>Phone Number: <strong id="${prefix}DisplayPhone">—</strong></span>
-            <span>Current Status: <strong id="${prefix}DisplayStatus">—</strong></span>
+      <div class="form-card cs2-card ${isReactivation ? 'reactivation-card' : 'maintenance-card'}">
+        <div class="cs2-title">${isReactivation ? 'Account Reactivation' : 'Account Maintenance'}</div>
+        <div class="cs2-stack">
+          <div class="cs2-row">
+            <div class="cs2-label">Account Number</div>
+            <div class="cs2-input-wrap cs2-short"><input id="${prefix}Acc" class="entry-input cs2-input" maxlength="4" inputmode="numeric"></div>
+            <button id="${prefix}Search" class="sheet-btn cs2-btn cs2-btn-solid">Search</button>
           </div>
-          <div class="cs-sheet-note">${isReactivation ? 'Search account, confirm details, and submit reactivation.' : 'Search first, update details, then save for approval.'}</div>
-        </div>
-        <div class="action-row cs-bottom-actions ${isReactivation ? 'reactivation-bottom-actions' : 'maintenance-bottom-actions'}">
-          <button id="${prefix}Edit" class="sheet-btn cs-inline-btn secondary">Edit</button>
-          <button id="${prefix}Submit" class="sheet-btn cs-inline-btn ${isReactivation ? 'reactivate-btn' : 'secondary'}">${isReactivation ? 'Activate' : 'Save'}</button>
+          <div class="cs2-row">
+            <div class="cs2-label">Account Name</div>
+            <div class="cs2-input-wrap ${isReactivation ? 'cs2-wide' : 'cs2-name-narrow'}"><input id="${prefix}Name" class="entry-input cs2-input cs-detail-input"></div>
+          </div>
+          ${isReactivation ? '' : `<div class="cs2-row"><div class="cs2-label">Address</div><div class="cs2-input-wrap cs2-name-narrow"><input id="${prefix}Address" class="entry-input cs2-input cs-detail-input"></div></div>`}
+          ${isReactivation ? '' : `<div class="cs2-row cs2-pair-row"><div class="cs2-label">NIN</div><div class="cs2-input-wrap cs2-medium"><input id="${prefix}Nin" class="entry-input cs2-input cs-detail-input digit-11-input" inputmode="numeric" maxlength="11"></div><div class="cs2-inline-label">BVN</div><div class="cs2-input-wrap cs2-medium"><input id="${prefix}Bvn" class="entry-input cs2-input cs-detail-input digit-11-input" inputmode="numeric" maxlength="11"></div></div>`}
+          ${isReactivation ? '' : `<div class="cs2-row cs2-pair-row"><div class="cs2-label">Phone Number</div><div class="cs2-input-wrap cs2-medium"><input id="${prefix}Phone" class="entry-input cs2-input cs-detail-input digit-11-input" inputmode="numeric" maxlength="11"></div><div class="cs2-inline-label">Old A/N</div><div class="cs2-input-wrap cs2-short"><input id="${prefix}OldAccount" class="entry-input cs2-input cs-detail-input" maxlength="4" inputmode="numeric"></div></div>`}
+          <div class="cs2-footer">
+            <div class="cs2-status">Account Name: <strong id="${prefix}DisplayName">—</strong> &nbsp;&nbsp; Phone Number: <strong id="${prefix}DisplayPhone">—</strong> &nbsp;&nbsp; Current Status: <strong id="${prefix}DisplayStatus">—</strong></div>
+            <div class="cs2-hint">${isReactivation ? 'Search account, confirm details, and submit reactivation.' : 'Search first, update details, then save for approval.'}</div>
+          </div>
+          <div class="cs2-button-row">
+            <button id="${prefix}Edit" class="sheet-btn cs2-btn cs2-btn-ghost">Edit</button>
+            <button id="${prefix}Submit" class="sheet-btn cs2-btn ${isReactivation ? 'cs2-btn-solid' : 'cs2-btn-ghost'}">${btnLabel}</button>
+          </div>
         </div>
       </div>`;
   }
 
   function renderAccountStatement() {
+
     return `
       <div class="stack">
         <div class="form-card">
