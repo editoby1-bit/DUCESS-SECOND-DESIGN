@@ -7625,3 +7625,366 @@ body[data-theme="ducess-sheet"] .module-hub{
     border:0 !important;
   }
 }
+
+
+
+/* ===== 2026-04-04 SURGICAL PATCH v6 ===== */
+@media (min-width: 981px){
+
+  /* HOME SCREEN — exact circular dashboard direction */
+  .module-grid{
+    position:relative !important;
+    display:block !important;
+    min-height:760px !important;
+    height:760px !important;
+    margin-top:10px !important;
+    padding:0 !important;
+    overflow:visible !important;
+  }
+
+  .module-grid::before{
+    content:"" !important;
+    position:absolute !important;
+    left:50% !important;
+    top:54% !important;
+    width:660px !important;
+    height:660px !important;
+    transform:translate(-50%,-50%) !important;
+    border-radius:50% !important;
+    background:
+      radial-gradient(circle at center, rgba(255,255,255,.82) 0 38%, rgba(225,242,249,.55) 52%, rgba(214,236,244,.18) 66%, rgba(214,236,244,0) 82%) !important;
+    z-index:0 !important;
+    pointer-events:none !important;
+    filter:blur(0.2px) !important;
+  }
+
+  .module-grid::after{
+    content:"" !important;
+    position:absolute !important;
+    left:50% !important;
+    top:54% !important;
+    width:480px !important;
+    height:480px !important;
+    transform:translate(-50%,-50%) !important;
+    border-radius:50% !important;
+    border:14px solid rgba(242,248,252,.92) !important;
+    box-shadow:
+      0 0 0 3px rgba(212,231,238,.92),
+      0 0 0 16px rgba(241,247,251,.66),
+      inset 0 0 0 8px rgba(255,255,255,.88) !important;
+    z-index:0 !important;
+    pointer-events:none !important;
+  }
+
+  .module-grid-title{
+    position:absolute !important;
+    left:50% !important;
+    top:34px !important;
+    transform:translateX(-50%) !important;
+    margin:0 !important;
+    font-size:34px !important;
+    line-height:1 !important;
+    letter-spacing:.18em !important;
+    font-weight:900 !important;
+    text-align:center !important;
+    z-index:3 !important;
+  }
+
+  .module-hub{
+    position:absolute !important;
+    left:50% !important;
+    top:54% !important;
+    transform:translate(-50%,-50%) !important;
+    width:250px !important;
+    height:250px !important;
+    border-radius:50% !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    overflow:hidden !important;
+    background:linear-gradient(180deg,#f8fbfd,#edf5f9) !important;
+    border:10px solid rgba(244,249,252,.98) !important;
+    box-shadow:
+      0 0 0 2px rgba(181,210,225,.92),
+      0 12px 32px rgba(51,84,108,.10) !important;
+    z-index:2 !important;
+  }
+
+  .module-hub-logo{
+    width:92% !important;
+    height:92% !important;
+    object-fit:cover !important;
+    border-radius:50% !important;
+    display:block !important;
+  }
+
+  .module-grid > .module-card{
+    position:absolute !important;
+    width:210px !important;
+    min-width:210px !important;
+    max-width:210px !important;
+    min-height:130px !important;
+    padding:0 !important;
+    background:transparent !important;
+    border:none !important;
+    box-shadow:none !important;
+    border-radius:0 !important;
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:center !important;
+    justify-content:flex-start !important;
+    gap:0 !important;
+    z-index:3 !important;
+  }
+
+  .module-card .module-icon{
+    width:88px !important;
+    height:88px !important;
+    border-radius:999px !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    background:linear-gradient(180deg,#f8fbfd,#edf4f9) !important;
+    color:var(--brand) !important;
+    font-size:38px !important;
+    box-shadow:
+      0 0 0 6px rgba(245,249,252,.95),
+      0 8px 16px rgba(58,83,104,.10) !important;
+    margin:0 auto -18px auto !important;
+    position:relative !important;
+    z-index:2 !important;
+  }
+
+  .module-card .module-title{
+    margin:0 !important;
+    padding:22px 18px 12px 18px !important;
+    font-size:26px !important;
+    line-height:1.05 !important;
+    white-space:nowrap !important;
+    text-align:center !important;
+    font-weight:900 !important;
+    background:linear-gradient(180deg,#f8fbfd,#ecf3f8) !important;
+    border-radius:18px !important;
+    box-shadow:0 8px 18px rgba(58,83,104,.12) !important;
+  }
+
+  .module-card .module-desc{display:none !important;}
+
+  /* exact orientation from the reference */
+  .module-card[data-module-key="administration"]{
+    left:50% !important; top:182px !important; transform:translate(-50%,-50%) !important;
+  }
+  .module-card[data-module-key="approvals"]{
+    left:27% !important; top:330px !important; transform:translate(-50%,-50%) !important;
+  }
+  .module-card[data-module-key="balances"]{
+    left:73% !important; top:330px !important; transform:translate(-50%,-50%) !important;
+  }
+  .module-card[data-module-key="tellering"]{
+    left:33% !important; top:585px !important; transform:translate(-50%,-50%) !important;
+  }
+  .module-card[data-module-key="customer_service"]{
+    left:67% !important; top:585px !important; transform:translate(-50%,-50%) !important;
+  }
+
+  /* CHECK BALANCE — much tighter label/input gap */
+  .check-balance-classic-grid{
+    display:grid !important;
+    grid-template-columns:max-content 1fr !important;
+    column-gap:6px !important;
+    row-gap:8px !important;
+    width:100% !important;
+    max-width:980px !important;
+    align-items:center !important;
+  }
+
+  .check-balance-classic-row{
+    display:grid !important;
+    grid-template-columns:max-content 1fr !important;
+    column-gap:6px !important;
+    align-items:center !important;
+    grid-column:1 / 3 !important;
+  }
+
+  .check-balance-classic-row > .sheet-label{
+    margin:0 !important;
+    padding:0 6px 0 0 !important;
+    justify-self:start !important;
+    text-align:left !important;
+    min-width:auto !important;
+  }
+
+  .check-balance-classic-field{
+    display:flex !important;
+    align-items:center !important;
+    gap:8px !important;
+    justify-self:start !important;
+  }
+
+  .check-balance-acc-input{
+    width:6.5ch !important;
+    max-width:6.5ch !important;
+    min-width:6.5ch !important;
+  }
+
+  .check-balance-name-field{
+    width:100% !important;
+    min-height:52px !important;
+  }
+
+  .check-balance-classic-subrows{
+    grid-column:1 / 3 !important;
+    display:grid !important;
+    grid-template-columns:max-content 180px !important;
+    column-gap:6px !important;
+    row-gap:8px !important;
+    width:max-content !important;
+    margin:0 !important;
+    justify-content:start !important;
+  }
+
+  .check-balance-classic-subrows .compact-subrow{
+    display:grid !important;
+    grid-template-columns:max-content 180px !important;
+    column-gap:6px !important;
+    align-items:center !important;
+    grid-column:1 / 3 !important;
+  }
+
+  .check-balance-classic-subrows .sheet-label{
+    margin:0 !important;
+    padding:0 6px 0 0 !important;
+    justify-self:start !important;
+    text-align:left !important;
+  }
+
+  .check-balance-mini-field{
+    width:180px !important;
+    max-width:180px !important;
+    min-height:52px !important;
+    justify-self:start !important;
+  }
+
+  .classic-bottom-buttons{
+    grid-column:1 / 3 !important;
+    display:flex !important;
+    gap:16px !important;
+    margin-top:6px !important;
+    justify-content:flex-start !important;
+  }
+
+  /* ACCOUNT OPENING — use BVN gap across the modal */
+  .opening-card .opening-sheet-grid{
+    display:grid !important;
+    grid-template-columns:max-content 170px max-content 170px auto !important;
+    column-gap:6px !important;
+    row-gap:8px !important;
+    align-items:center !important;
+  }
+
+  .opening-card .opening-sheet-grid > .sheet-label-cell,
+  .opening-card .opening-sheet-grid > .sheet-label-inline{
+    justify-self:start !important;
+    text-align:left !important;
+    padding:0 6px 0 0 !important;
+    margin:0 !important;
+    min-width:auto !important;
+  }
+
+  .opening-card .opening-sheet-grid > .sheet-input-cell.wide{
+    grid-column:2 / 6 !important;
+    width:100% !important;
+    max-width:860px !important;
+  }
+
+  .opening-card .opening-sheet-grid > .sheet-input-cell.nin,
+  .opening-card .opening-sheet-grid > .sheet-input-cell.phone,
+  .opening-card .opening-sheet-grid > .sheet-input-cell.bvn,
+  .opening-card .opening-sheet-grid > .sheet-input-cell.account{
+    width:170px !important;
+    max-width:170px !important;
+  }
+
+  /* ACCOUNT MAINTENANCE — same tight gap and Old A/N close like opening */
+  .maintenance-card .maintenance-sheet-grid{
+    display:grid !important;
+    grid-template-columns:max-content 170px max-content 170px auto !important;
+    column-gap:6px !important;
+    row-gap:8px !important;
+    align-items:center !important;
+  }
+
+  .maintenance-card .maintenance-sheet-grid > .sheet-label-cell,
+  .maintenance-card .maintenance-sheet-grid > .sheet-label-inline{
+    justify-self:start !important;
+    text-align:left !important;
+    padding:0 6px 0 0 !important;
+    margin:0 !important;
+    min-width:auto !important;
+  }
+
+  .maintenance-card .maintenance-sheet-grid > .sheet-input-cell.wide{
+    grid-column:2 / 6 !important;
+    width:100% !important;
+    max-width:860px !important;
+  }
+
+  .maintenance-card .maintenance-sheet-grid > .sheet-input-cell.account,
+  .maintenance-card .maintenance-sheet-grid > .sheet-input-cell.bvn,
+  .maintenance-card .maintenance-sheet-grid > .sheet-input-cell.phone,
+  .maintenance-card .maintenance-sheet-grid > .sheet-input-cell.nin{
+    width:170px !important;
+    max-width:170px !important;
+  }
+
+  .maintenance-card .old-an-input{
+    grid-column:4 !important;
+    width:170px !important;
+    max-width:170px !important;
+    justify-self:start !important;
+  }
+
+  /* ACCOUNT REACTIVATION — tidy label/input alignment and search button */
+  .reactivation-card .reactivation-sheet-grid{
+    display:grid !important;
+    grid-template-columns:max-content 95px 108px auto !important;
+    column-gap:6px !important;
+    row-gap:8px !important;
+    align-items:center !important;
+  }
+
+  .reactivation-card .reactivation-sheet-grid > .sheet-label-cell,
+  .reactivation-card .reactivation-sheet-grid > .sheet-label-inline{
+    justify-self:start !important;
+    text-align:left !important;
+    padding:0 6px 0 0 !important;
+    margin:0 !important;
+    min-width:auto !important;
+  }
+
+  .reactivation-card .reactivation-sheet-grid > .sheet-input-cell.account{
+    width:95px !important;
+    max-width:95px !important;
+    justify-self:start !important;
+  }
+
+  .reactivation-card .reactivation-sheet-grid > .sheet-input-cell.wide{
+    grid-column:2 / 5 !important;
+    width:100% !important;
+    max-width:560px !important;
+  }
+
+  .reactivation-card .maintenance-top-search{
+    width:108px !important;
+    min-width:108px !important;
+    max-width:108px !important;
+    border-radius:999px !important;
+    border:0 !important;
+    box-shadow:none !important;
+    outline:none !important;
+    padding:0 !important;
+    margin:0 !important;
+    background:linear-gradient(135deg,var(--brand),var(--brand-2)) !important;
+    color:#fff !important;
+  }
+}
