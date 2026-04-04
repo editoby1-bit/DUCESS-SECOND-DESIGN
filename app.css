@@ -8079,3 +8079,77 @@ body[data-theme="ducess-sheet"] .module-hub{
     -webkit-appearance:none !important;
   }
 }
+
+/* ===== 2026-04-04 SURGICAL PATCH v8 ===== */
+@media (min-width: 981px){
+  /* Account Opening: bring BVN and Old A/N inputs right next to their labels */
+  .opening-card .opening-sheet-grid{
+    grid-template-columns:180px 170px max-content 170px auto !important;
+    column-gap:6px !important;
+  }
+  .opening-card .opening-sheet-grid > .sheet-label-inline.bvn-label,
+  .opening-card .opening-sheet-grid > .sheet-label-inline.old-account-label{
+    grid-column:3 / 4 !important;
+    justify-self:start !important;
+    justify-content:flex-start !important;
+    padding:0 6px 0 0 !important;
+    margin:0 !important;
+    min-width:auto !important;
+    white-space:nowrap !important;
+  }
+  .opening-card .opening-sheet-grid > .sheet-input-cell.bvn,
+  .opening-card .opening-sheet-grid > .sheet-input-cell.account{
+    grid-column:4 / 5 !important;
+    justify-self:start !important;
+    margin-left:0 !important;
+  }
+
+  /* Account Maintenance: place Old A/N directly under BVN, close to its label */
+  .maintenance-card .maintenance-sheet-grid{
+    grid-template-columns:180px 170px max-content 170px auto !important;
+    column-gap:6px !important;
+  }
+  .maintenance-card .maintenance-sheet-grid > .sheet-label-inline.bvn-label,
+  .maintenance-card .maintenance-sheet-grid > .sheet-label-inline.old-account-label{
+    grid-column:3 / 4 !important;
+    justify-self:start !important;
+    justify-content:flex-start !important;
+    padding:0 6px 0 0 !important;
+    margin:0 !important;
+    min-width:auto !important;
+    white-space:nowrap !important;
+  }
+  .maintenance-card .maintenance-sheet-grid > .sheet-input-cell.bvn,
+  .maintenance-card .maintenance-sheet-grid > .sheet-input-cell.account:not(.account-near-label){
+    grid-column:4 / 5 !important;
+    width:170px !important;
+    max-width:170px !important;
+    justify-self:start !important;
+    margin-left:0 !important;
+  }
+
+  /* Account Reactivation: make Search exactly like the maintenance search button */
+  .reactivation-card #reactivationSearch.sheet-btn.cs-inline-btn.maintenance-top-search{
+    grid-column:3 / 4 !important;
+    justify-self:start !important;
+    align-self:center !important;
+    width:78px !important;
+    min-width:78px !important;
+    max-width:78px !important;
+    height:52px !important;
+    min-height:52px !important;
+    padding:0 18px !important;
+    border-radius:999px !important;
+    border:0 !important;
+    box-shadow:none !important;
+    outline:none !important;
+    display:inline-flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    line-height:1 !important;
+    font-size:16px !important;
+    font-weight:800 !important;
+    appearance:none !important;
+    -webkit-appearance:none !important;
+  }
+}
