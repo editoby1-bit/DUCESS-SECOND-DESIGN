@@ -7988,3 +7988,94 @@ body[data-theme="ducess-sheet"] .module-hub{
     color:#fff !important;
   }
 }
+
+
+
+/* ===== 2026-04-04 SURGICAL PATCH v7 ===== */
+@media (min-width: 981px){
+
+  /* Account Opening: pull BVN and Old A/N fields closer; Old A/N to 4-digit width */
+  .opening-card .opening-sheet-grid{
+    grid-template-columns:max-content 170px max-content 170px auto !important;
+  }
+  .opening-card .opening-sheet-grid > .sheet-label-inline.bvn-label,
+  .opening-card .opening-sheet-grid > .sheet-label-inline.old-account-label{
+    padding:0 4px 0 0 !important;
+    margin:0 !important;
+    justify-self:start !important;
+    text-align:left !important;
+    min-width:auto !important;
+  }
+  .opening-card .opening-sheet-grid > .sheet-input-cell.bvn{
+    width:170px !important;
+    max-width:170px !important;
+    justify-self:start !important;
+    margin-left:0 !important;
+  }
+  .opening-card .opening-sheet-grid > .sheet-input-cell.account{
+    width:6.5ch !important;
+    max-width:6.5ch !important;
+    min-width:6.5ch !important;
+    justify-self:start !important;
+    margin-left:0 !important;
+  }
+
+  /* Account Maintenance: bring account number input closer to its label */
+  .maintenance-card .maintenance-top-row{
+    display:grid !important;
+    grid-template-columns:max-content 170px 108px auto !important;
+    column-gap:6px !important;
+    align-items:center !important;
+  }
+  .maintenance-card .maintenance-top-row .sheet-label{
+    padding:0 6px 0 0 !important;
+    margin:0 !important;
+    min-width:auto !important;
+    justify-self:start !important;
+    text-align:left !important;
+  }
+  .maintenance-card .maintenance-top-row .sheet-input,
+  .maintenance-card .maintenance-top-row .sheet-input-cell,
+  .maintenance-card .maintenance-top-row input{
+    width:170px !important;
+    max-width:170px !important;
+    justify-self:start !important;
+    margin-left:0 !important;
+  }
+
+  /* Account Reactivation: make search button exactly like other search buttons and font size match */
+  .reactivation-card .reactivation-sheet-grid{
+    grid-template-columns:max-content 95px 108px auto !important;
+    column-gap:6px !important;
+  }
+  .reactivation-card .reactivation-sheet-grid > .sheet-label-cell,
+  .reactivation-card .reactivation-sheet-grid > .sheet-label-inline{
+    font-size:inherit !important;
+    font-weight:inherit !important;
+    line-height:inherit !important;
+    padding:0 6px 0 0 !important;
+    margin:0 !important;
+    min-width:auto !important;
+  }
+  .reactivation-card .maintenance-top-search,
+  .reactivation-card .reactivation-sheet-grid .maintenance-top-search,
+  .reactivation-card .reactivation-sheet-grid button{
+    width:108px !important;
+    min-width:108px !important;
+    max-width:108px !important;
+    height:52px !important;
+    border-radius:999px !important;
+    border:0 !important;
+    box-shadow:none !important;
+    outline:none !important;
+    padding:0 !important;
+    margin:0 !important;
+    background:linear-gradient(135deg,var(--brand),var(--brand-2)) !important;
+    color:#fff !important;
+    font-size:16px !important;
+    font-weight:800 !important;
+    line-height:52px !important;
+    appearance:none !important;
+    -webkit-appearance:none !important;
+  }
+}
