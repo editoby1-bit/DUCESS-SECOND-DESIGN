@@ -8153,3 +8153,42 @@ body[data-theme="ducess-sheet"] .module-hub{
     -webkit-appearance:none !important;
   }
 }
+
+/* surgical patch v8.1: customer service alignment fixes */
+.opening-sheet-grid .bvn-label,
+.opening-sheet-grid .old-account-label,
+.maintenance-sheet-grid .bvn-label,
+.maintenance-sheet-grid .old-account-label{
+  grid-column: 3 / 4;
+  justify-content: flex-start;
+  min-width: 0;
+  padding-left: 12px !important;
+  padding-right: 12px !important;
+}
+
+.opening-sheet-grid .sheet-input-cell.bvn,
+.maintenance-sheet-grid .sheet-input-cell.bvn{
+  grid-column: 4 / 5 !important;
+  max-width: 145px !important;
+  justify-self: start;
+}
+
+.opening-sheet-grid .old-an-input,
+.maintenance-sheet-grid .old-an-input{
+  grid-column: 4 / 5 !important;
+  max-width: 145px !important;
+  justify-self: start;
+}
+
+.maintenance-sheet-grid .maintenance-top-search,
+.reactivation-sheet-grid .maintenance-top-search{
+  grid-column: 3 / 4 !important;
+  width: 110px;
+  max-width: 110px;
+  justify-self: start;
+}
+
+.reactivation-sheet-grid > .sheet-input-cell.account.reactivation-account{
+  grid-column: 2 / 3 !important;
+  max-width: 110px !important;
+}
