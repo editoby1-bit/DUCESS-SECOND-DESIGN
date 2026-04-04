@@ -8268,3 +8268,137 @@ body[data-theme="ducess-sheet"] .module-hub{
   .cs2-wide,.cs2-name-narrow,.cs2-medium,.cs2-short,.cs2-note-grow{width:100%;flex:1 1 100%;}
   .cs2-hint{white-space:normal;text-align:left;}
 }
+
+/* vNext surgical polish: customer service theme visibility fixes */
+.cs2-card{
+  border:0.5px solid #c5d4d0 !important;
+  background:#fff !important;
+}
+.cs2-title{color:#0f3330 !important;}
+.cs2-row{gap:8px !important;}
+.cs2-label{
+  width:112px !important;
+  flex:0 0 112px !important;
+  font-size:12px !important;
+  font-weight:500 !important;
+}
+.cs2-inline-label{
+  font-size:12px !important;
+  font-weight:500 !important;
+}
+.opening-card .cs2-row,
+.opening-card .cs2-upload-row{gap:8px !important;}
+.opening-card .cs2-input,
+.opening-card .cs2-display,
+.opening-card .cs2-input-wrap{margin-left:0 !important;padding-left:0 !important;}
+.cs2-input,
+.cs2-display,
+.cs2-note-box{
+  font-size:12px !important;
+}
+.cs2-btn{
+  height:24px !important;
+  padding:0 13px !important;
+  border-radius:12px !important;
+  font-size:11px !important;
+  font-weight:700 !important;
+}
+.cs2-footer{
+  border-top:.5px solid #d8e4e0 !important;
+}
+.cs2-status{color:#2a5552 !important;}
+.cs2-hint{color:#6a9a94 !important;}
+
+/* Ocean */
+body[data-theme="ocean"] .cs2-card{
+  border-color:#c5d4d0 !important;
+  background:#ffffff !important;
+  color:#0f3330 !important;
+}
+body[data-theme="ocean"] .cs2-title{color:#0f3330 !important;}
+body[data-theme="ocean"] .cs2-label,
+body[data-theme="ocean"] .cs2-inline-label{color:#1a4a48 !important;}
+body[data-theme="ocean"] .cs2-input{
+  background:#b8cdd8 !important;
+  color:#0f2a28 !important;
+  border:.5px solid transparent !important;
+}
+body[data-theme="ocean"] .cs2-display,
+body[data-theme="ocean"] .cs-readonly,
+body[data-theme="ocean"] .cs2-note-box{
+  background:#e8f0f2 !important;
+  border:.5px solid #b8cdd8 !important;
+  color:#2a5552 !important;
+}
+body[data-theme="ocean"] .cs2-btn-solid{background:#1a6e8a !important;color:#fff !important;}
+body[data-theme="ocean"] .cs2-btn-ghost{border:.5px solid #a0c0c8 !important;color:#1a4a48 !important;background:transparent !important;}
+body[data-theme="ocean"] .cs2-footer{border-top:.5px solid #d0e0dc !important;}
+body[data-theme="ocean"] .cs2-status{color:#2a5552 !important;}
+body[data-theme="ocean"] .cs2-status strong{color:#2a5552 !important;}
+body[data-theme="ocean"] .cs2-hint{color:#6a9a94 !important;}
+
+/* Dark Slate visibility */
+body[data-theme="dark-slate"] .cs2-card{
+  background:#0f1a28 !important;
+  border-color:#3a4a5a !important;
+  color:#d0eaff !important;
+}
+body[data-theme="dark-slate"] .cs2-title{color:#d0eaff !important;}
+body[data-theme="dark-slate"] .cs2-label,
+body[data-theme="dark-slate"] .cs2-inline-label{color:#c0ddf0 !important;}
+body[data-theme="dark-slate"] .cs2-input{
+  background:#2a3d52 !important;
+  color:#e8f4ff !important;
+  border:.5px solid #3a5570 !important;
+}
+body[data-theme="dark-slate"] .cs2-display,
+body[data-theme="dark-slate"] .cs-readonly{
+  background:#1e2f42 !important;
+  border:.5px solid #3a5570 !important;
+  color:#90bcd8 !important;
+}
+body[data-theme="dark-slate"] .cs2-note-box{
+  background:#1e2f42 !important;
+  border:.5px solid #3a5570 !important;
+  color:#507090 !important;
+}
+body[data-theme="dark-slate"] .opening-card .cs2-note-grow{color:#3a5570 !important;}
+body[data-theme="dark-slate"] .cs2-btn-solid{background:#1a7a9a !important;color:#fff !important;border:none !important;}
+body[data-theme="dark-slate"] .cs2-btn-ghost{background:transparent !important;border:.5px solid #4a7090 !important;color:#a0c8e8 !important;}
+body[data-theme="dark-slate"] .cs2-footer{border-top:.5px solid #2e3d50 !important;}
+body[data-theme="dark-slate"] .cs2-status,
+body[data-theme="dark-slate"] .cs2-status strong{color:#90bcd8 !important;}
+body[data-theme="dark-slate"] .cs2-hint{color:#507090 !important;}
+
+/* Ducess Sheet visibility */
+body[data-theme="ducess-sheet"] .cs2-card{
+  background:#120b05 !important;
+  border-color:#5a3a2a !important;
+  color:#f0d0a0 !important;
+}
+body[data-theme="ducess-sheet"] .cs2-title{color:#f0d0a0 !important;}
+body[data-theme="ducess-sheet"] .cs2-label,
+body[data-theme="ducess-sheet"] .cs2-inline-label{color:#e0b888 !important;}
+body[data-theme="ducess-sheet"] .cs2-input{
+  background:#2e1e12 !important;
+  color:#f0d0a0 !important;
+  border:.5px solid #5a3a22 !important;
+}
+body[data-theme="ducess-sheet"] .cs2-display,
+body[data-theme="ducess-sheet"] .cs-readonly{
+  background:#1e1208 !important;
+  border:.5px solid #4a2e18 !important;
+  color:#c0906a !important;
+}
+body[data-theme="ducess-sheet"] .cs2-note-box{
+  background:#1e1208 !important;
+  border:.5px solid #4a2e18 !important;
+  color:#7a5030 !important;
+}
+body[data-theme="ducess-sheet"] .opening-card .cs2-note-grow{color:#5a3820 !important;}
+body[data-theme="ducess-sheet"] .cs2-btn-solid{background:#c86030 !important;color:#fff !important;border:none !important;}
+body[data-theme="ducess-sheet"] .cs2-btn-ghost{background:transparent !important;border:.5px solid #7a4a2a !important;color:#d0a070 !important;}
+body[data-theme="ducess-sheet"] .cs2-footer{border-top:.5px solid #3a2015 !important;}
+body[data-theme="ducess-sheet"] .cs2-status,
+body[data-theme="ducess-sheet"] .cs2-status strong{color:#c09060 !important;}
+body[data-theme="ducess-sheet"] .cs2-hint{color:#7a5030 !important;}
