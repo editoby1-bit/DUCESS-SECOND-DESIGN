@@ -983,7 +983,7 @@
 
   function renderModules() {
     const current = state.ui.module;
-    byId('moduleGrid').innerHTML = `<div class="module-grid-title">DASHBOARD</div><div class="module-hub">DE</div>` + Object.entries(MODULES).map(([key,m]) => {
+    byId('moduleGrid').innerHTML = `<div class="module-grid-title">DASHBOARD</div><div class="module-hub"><img src="logo.png" alt="Ducess Enterprises" class="module-hub-logo"></div>` + Object.entries(MODULES).map(([key,m]) => {
       const allowed = moduleAllowed(key);
       return `<div class="module-card ${current===key?'active':''} ${allowed?'':'disabled'}" data-module="${key}" data-module-key="${key}">
         <div class="module-icon">${m.icon}</div>
@@ -1098,38 +1098,38 @@
     return `
       <div class="tellering-sheet check-balance-sheet compact-tool-surface">
         <div class="sheet-title sheet-title-check">*Check Balance</div>
-        <div class="sheet-grid check-grid redesigned-check-grid compact-label-grid serial-check-grid refined-check-grid">
-          <div class="check-balance-row account-number-row">
+        <div class="check-balance-classic-grid">
+          <div class="check-balance-classic-row check-balance-row-accno">
             <div class="sheet-label">Account Number</div>
-            <div class="check-balance-inline">
-              <input id="lookupAcc" class="entry-input sheet-input short-code" />
+            <div class="check-balance-classic-field check-balance-inline">
+              <input id="lookupAcc" class="entry-input sheet-input short-code check-balance-acc-input" maxlength="4" inputmode="numeric" />
               <button id="lookupBtn" class="sheet-btn tiny-btn">Search</button>
             </div>
           </div>
 
-          <div class="check-balance-row">
+          <div class="check-balance-classic-row">
             <div class="sheet-label">Account Name</div>
-            <div class="display-field value-wide refined-value-field" data-fill="name">—</div>
+            <div class="display-field value-wide refined-value-field check-balance-name-field" data-fill="name">—</div>
           </div>
 
-          <div class="check-balance-row">
-            <div class="sheet-label">Phone Number</div>
-            <div class="display-field value-wide refined-value-field" data-fill="phone">—</div>
+          <div class="check-balance-classic-subrows">
+            <div class="check-balance-classic-row compact-subrow">
+              <div class="sheet-label">Phone Number</div>
+              <div class="display-field refined-value-field check-balance-mini-field" data-fill="phone">—</div>
+            </div>
+            <div class="check-balance-classic-row compact-subrow">
+              <div class="sheet-label">Available Balance</div>
+              <div class="display-field refined-value-field check-balance-mini-field balance-value-field" data-fill="balance">—</div>
+            </div>
           </div>
 
-          <div class="check-balance-row">
-            <div class="sheet-label">Available Balance</div>
-            <div class="display-field value-wide refined-value-field balance-value-field" data-fill="balance">—</div>
-          </div>
-
-          <div class="sheet-label hidden" id="checkBalancePhotoLabel">Photo</div>
-          <div class="sheet-photo-row hidden" id="checkBalancePhotoRow">
-            <div class="photo-box inline-photo" data-fill="photo"><span>No Photo</span></div>
-          </div>
-
-          <div class="check-balance-button-row">
+          <div class="check-balance-button-row classic-bottom-buttons">
             <button id="searchPhotoBtn" class="sheet-btn secondary tiny-btn">Photo</button>
             <button id="openStatementBtn" class="sheet-btn secondary tiny-btn">Statement</button>
+          </div>
+
+          <div class="sheet-photo-row hidden" id="checkBalancePhotoRow">
+            <div class="photo-box inline-photo" data-fill="photo"><span>No Photo</span></div>
           </div>
         </div>
       </div>`;
@@ -1180,15 +1180,15 @@
         <div class="cs-sheet-title">${isReactivation ? 'Account Reactivation' : 'Account Maintenance'}</div>
         <div class="cs-sheet-grid ${isReactivation ? 'reactivation-sheet-grid' : 'maintenance-sheet-grid'}">
           <div class="sheet-label-cell">Account Number</div>
-          <div class="sheet-input-cell account ${isReactivation ? 'reactivation-account half-account' : 'account-near-label'}"><input id="${prefix}Acc" class="entry-input cs-sheet-input"></div>
-          ${isReactivation ? '' : `<button id="${prefix}Search" class="sheet-btn cs-inline-btn maintenance-top-search">Search</button>`}
+          <div class="sheet-input-cell account ${isReactivation ? 'reactivation-account half-account' : 'account-near-label'}"><input id="${prefix}Acc" class="entry-input cs-sheet-input" maxlength="4" inputmode="numeric"></div>
+          <button id="${prefix}Search" class="sheet-btn cs-inline-btn maintenance-top-search">Search</button>
 
           <div class="sheet-label-cell">Account Name</div>
           <div class="sheet-input-cell wide"><input id="${prefix}Name" class="entry-input cs-sheet-input cs-detail-input"></div>
 
           ${isReactivation ? '' : `<div class="sheet-label-cell">Address</div><div class="sheet-input-cell wide"><input id="${prefix}Address" class="entry-input cs-sheet-input cs-detail-input"></div>`}
 
-          ${isReactivation ? `<div class="sheet-label-cell blank"></div>` : `<div class="sheet-label-cell">NIN</div><div class="sheet-input-cell nin"><input id="${prefix}Nin" class="entry-input cs-sheet-input cs-detail-input digit-11-input" inputmode="numeric" maxlength="11"></div><div class="sheet-label-inline bvn-label">BVN</div><div class="sheet-input-cell bvn"><input id="${prefix}Bvn" class="entry-input cs-sheet-input cs-detail-input digit-11-input" inputmode="numeric" maxlength="11"></div>`}
+          ${isReactivation ? '' : `<div class="sheet-label-cell">NIN</div><div class="sheet-input-cell nin"><input id="${prefix}Nin" class="entry-input cs-sheet-input cs-detail-input digit-11-input" inputmode="numeric" maxlength="11"></div><div class="sheet-label-inline bvn-label">BVN</div><div class="sheet-input-cell bvn"><input id="${prefix}Bvn" class="entry-input cs-sheet-input cs-detail-input digit-11-input" inputmode="numeric" maxlength="11"></div>`}
 
           ${isReactivation ? '' : `<div class="sheet-label-inline phone-inline-label">Phone Number</div><div class="sheet-input-cell phone"><input id="${prefix}Phone" class="entry-input cs-sheet-input cs-detail-input digit-11-input" inputmode="numeric" maxlength="11"></div><div class="sheet-label-inline old-account-label">Old A/N</div><div class="sheet-input-cell account old-an-input"><input id="${prefix}OldAccount" class="entry-input cs-sheet-input cs-detail-input"></div>`}
         </div>
