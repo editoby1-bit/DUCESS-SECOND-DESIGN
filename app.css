@@ -8516,3 +8516,20 @@ body[data-theme="ducess-sheet"] .cs2-hint{color:#7a5030 !important;}
   min-width:160px !important;
   max-width:160px !important;
 }
+
+/* STEP 3 SURGICAL PATCH - credit/debit search closer + journal account field holds 4 digits comfortably */
+.journal-sheet .posting-inline-account{
+  gap:4px !important;
+}
+.journal-sheet .posting-inline-account #txSearch{
+  margin-left:-2px !important;
+}
+
+#journalAcc{
+  width:64px !important;
+  min-width:64px !important;
+  max-width:64px !important;
+}
+.journal-entry-top.row-one{
+  grid-template-columns:64px 194px 160px !important;
+}
