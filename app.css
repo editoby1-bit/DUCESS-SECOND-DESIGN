@@ -2289,7 +2289,7 @@ body[data-theme="ducess-sheet"] .workspace-card .tool-tabs:not(.approvals-sectio
     width:100% !important;
     max-width:100% !important;
     max-height:calc(100vh - 20px) !important;
-    border-radius:18px !important;
+    border-radius:16px !important;
   }
 
   .modal-head,
@@ -5410,7 +5410,7 @@ body[data-theme="ducess-sheet"] .journal-sheet .forced-amount-label{
   .polished-credit-grid #txJournalAdd{
     grid-column:4 !important;
     grid-row:1 !important;
-    width:250px !important;
+    width:220px !important;
   }
   .polished-credit-grid .posting-kpis{
     grid-column:5 !important;
@@ -5515,7 +5515,7 @@ body[data-theme="ducess-sheet"] .journal-sheet .forced-amount-label{
   .polished-credit-grid #txJournalAdd{
     grid-column:4 !important;
     grid-row:1 !important;
-    width:250px !important;
+    width:220px !important;
     margin:0 !important;
   }
   .polished-credit-grid .posting-kpis{
@@ -5836,9 +5836,9 @@ body[data-theme="ducess-sheet"] .journal-sheet .forced-amount-label{
   }
 
   .posting-inline-account #txJournalAdd{
-    width:210px !important;
-    min-width:210px !important;
-    max-width:210px !important;
+    width:190px !important;
+    min-width:190px !important;
+    max-width:190px !important;
   }
 
   .posting-row-name,
@@ -7086,7 +7086,7 @@ body[data-theme="ducess-sheet"] .module-hub{
   }
   .module-grid-title{
     grid-area:dash !important;
-    font-size:26px !important;
+    font-size:19px !important;
     letter-spacing:.16em !important;
     margin: 0 0 -6px !important;
     line-height:1 !important;
@@ -7233,7 +7233,7 @@ body[data-theme="ducess-sheet"] .module-hub{
     left:50% !important;
     top:50% !important;
     transform:translate(-50%,-50%) !important;
-    width:210px !important;
+    width:190px !important;
     height:210px !important;
     border-radius:50% !important;
     display:flex !important;
@@ -7408,7 +7408,7 @@ body[data-theme="ducess-sheet"] .module-hub{
   .module-hub{
     top:50% !important;
     left:50% !important;
-    width:210px !important;
+    width:190px !important;
     height:210px !important;
     transform:translate(-50%,-50%) !important;
   }
@@ -7635,8 +7635,8 @@ body[data-theme="ducess-sheet"] .module-hub{
   .module-grid{
     position:relative !important;
     display:block !important;
-    min-height:760px !important;
-    height:760px !important;
+    min-height:660px !important;
+    height:560px !important;
     margin-top:10px !important;
     padding:0 !important;
     overflow:visible !important;
@@ -7647,8 +7647,8 @@ body[data-theme="ducess-sheet"] .module-hub{
     position:absolute !important;
     left:50% !important;
     top:54% !important;
-    width:660px !important;
-    height:660px !important;
+    width:560px !important;
+    height:560px !important;
     transform:translate(-50%,-50%) !important;
     border-radius:50% !important;
     background:
@@ -7663,8 +7663,8 @@ body[data-theme="ducess-sheet"] .module-hub{
     position:absolute !important;
     left:50% !important;
     top:54% !important;
-    width:480px !important;
-    height:480px !important;
+    width:410px !important;
+    height:410px !important;
     transform:translate(-50%,-50%) !important;
     border-radius:50% !important;
     border:14px solid rgba(242,248,252,.92) !important;
@@ -7679,10 +7679,10 @@ body[data-theme="ducess-sheet"] .module-hub{
   .module-grid-title{
     position:absolute !important;
     left:50% !important;
-    top:34px !important;
+    top:22px !important;
     transform:translateX(-50%) !important;
     margin:0 !important;
-    font-size:34px !important;
+    font-size:28px !important;
     line-height:1 !important;
     letter-spacing:.18em !important;
     font-weight:900 !important;
@@ -7695,8 +7695,8 @@ body[data-theme="ducess-sheet"] .module-hub{
     left:50% !important;
     top:54% !important;
     transform:translate(-50%,-50%) !important;
-    width:250px !important;
-    height:250px !important;
+    width:220px !important;
+    height:220px !important;
     border-radius:50% !important;
     display:flex !important;
     align-items:center !important;
@@ -7720,10 +7720,10 @@ body[data-theme="ducess-sheet"] .module-hub{
 
   .module-grid > .module-card{
     position:absolute !important;
-    width:210px !important;
-    min-width:210px !important;
-    max-width:210px !important;
-    min-height:130px !important;
+    width:190px !important;
+    min-width:190px !important;
+    max-width:190px !important;
+    min-height:112px !important;
     padding:0 !important;
     background:transparent !important;
     border:none !important;
@@ -7750,21 +7750,21 @@ body[data-theme="ducess-sheet"] .module-hub{
     box-shadow:
       0 0 0 6px rgba(245,249,252,.95),
       0 8px 16px rgba(58,83,104,.10) !important;
-    margin:0 auto -18px auto !important;
+    margin:0 auto -14px auto !important;
     position:relative !important;
     z-index:2 !important;
   }
 
   .module-card .module-title{
     margin:0 !important;
-    padding:22px 18px 12px 18px !important;
-    font-size:26px !important;
+    padding:18px 14px 10px 14px !important;
+    font-size:19px !important;
     line-height:1.05 !important;
     white-space:nowrap !important;
     text-align:center !important;
     font-weight:900 !important;
     background:linear-gradient(180deg,#f8fbfd,#ecf3f8) !important;
-    border-radius:18px !important;
+    border-radius:16px !important;
     box-shadow:0 8px 18px rgba(58,83,104,.12) !important;
   }
 
@@ -7772,19 +7772,19 @@ body[data-theme="ducess-sheet"] .module-hub{
 
   /* exact orientation from the reference */
   .module-card[data-module-key="administration"]{
-    left:50% !important; top:182px !important; transform:translate(-50%,-50%) !important;
+    left:50% !important; top:150px !important; transform:translate(-50%,-50%) !important;
   }
   .module-card[data-module-key="approvals"]{
-    left:27% !important; top:330px !important; transform:translate(-50%,-50%) !important;
+    left:29% !important; top:275px !important; transform:translate(-50%,-50%) !important;
   }
   .module-card[data-module-key="balances"]{
-    left:73% !important; top:330px !important; transform:translate(-50%,-50%) !important;
+    left:71% !important; top:275px !important; transform:translate(-50%,-50%) !important;
   }
   .module-card[data-module-key="tellering"]{
-    left:33% !important; top:585px !important; transform:translate(-50%,-50%) !important;
+    left:35% !important; top:470px !important; transform:translate(-50%,-50%) !important;
   }
   .module-card[data-module-key="customer_service"]{
-    left:67% !important; top:585px !important; transform:translate(-50%,-50%) !important;
+    left:65% !important; top:470px !important; transform:translate(-50%,-50%) !important;
   }
 
   /* CHECK BALANCE — much tighter label/input gap */
