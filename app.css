@@ -8583,3 +8583,19 @@ body[data-theme="ducess-sheet"] .cs2-hint{color:#7a5030 !important;}
 .tellering-tools-only .tellering-tools-only-title{
   grid-column:auto !important;
 }
+
+/* Step 5: My Balance modal only */
+#modalBack .modal[data-modal-title="My Balance"] #walletFundAmt,
+#modalBack .modal[data-modal-title="My Balance"] #walletRepayAmt{
+  width:170px !important;
+  max-width:170px !important;
+}
+#modalBack .modal[data-modal-title="My Balance"] .modal-actions button{
+  height:24px !important;
+  min-height:24px !important;
+  padding:0 13px !important;
+  border-radius:12px !important;
+  font-size:11px !important;
+  font-weight:600 !important;
+  min-width:auto !important;
+}
