@@ -8402,3 +8402,53 @@ body[data-theme="ducess-sheet"] .cs2-footer{border-top:.5px solid #3a2015 !impor
 body[data-theme="ducess-sheet"] .cs2-status,
 body[data-theme="ducess-sheet"] .cs2-status strong{color:#c09060 !important;}
 body[data-theme="ducess-sheet"] .cs2-hint{color:#7a5030 !important;}
+
+/* STEP 2 SURGICAL PATCH - Credit search spacing + blue tellering inputs + compact journal fields */
+.posting-inline-account{
+  gap:8px !important;
+}
+
+.posting-inline-account #txSearch{
+  width:auto !important;
+  min-width:0 !important;
+  max-width:none !important;
+  margin-left:0 !important;
+  justify-self:start !important;
+}
+
+/* Make the editable tellering inputs use the same bluish fill as Received By / Details */
+.journal-sheet #txAcc,
+.journal-sheet #txAmount,
+#journalAcc,
+#journalCounterparty,
+#journalDetails,
+#journalAmount{
+  background:var(--entry) !important;
+  border-color:var(--line) !important;
+  color:var(--text) !important;
+}
+
+/* Journal entry footer compact widths */
+.journal-entry-top.row-one{
+  grid-template-columns:54px 194px 150px !important;
+  justify-content:start !important;
+}
+
+#journalAcc{
+  width:54px !important;
+  min-width:54px !important;
+  max-width:54px !important;
+  text-align:center !important;
+}
+
+#journalName{
+  width:194px !important;
+  min-width:194px !important;
+  max-width:194px !important;
+}
+
+#journalAmount{
+  width:150px !important;
+  min-width:150px !important;
+  max-width:150px !important;
+}
