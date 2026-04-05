@@ -8452,3 +8452,67 @@ body[data-theme="ducess-sheet"] .cs2-hint{color:#7a5030 !important;}
   min-width:150px !important;
   max-width:150px !important;
 }
+
+/* STEP 2 ACTUAL FIX - direct visible tellering/journal patch */
+.journal-sheet .posting-row-top{
+  justify-content:space-between !important;
+  align-items:flex-start !important;
+}
+.journal-sheet .posting-row-left{
+  flex:0 0 auto !important;
+}
+.journal-sheet .posting-inline-account{
+  display:inline-flex !important;
+  align-items:center !important;
+  gap:6px !important;
+  width:auto !important;
+  min-width:0 !important;
+}
+.journal-sheet .posting-inline-account #txAcc{
+  width:80px !important;
+  min-width:80px !important;
+  max-width:80px !important;
+}
+.journal-sheet .posting-inline-account #txSearch{
+  width:auto !important;
+  min-width:0 !important;
+  max-width:none !important;
+  margin-left:0 !important;
+  padding-left:12px !important;
+  padding-right:12px !important;
+}
+
+/* exact bluish tellering editable fill matching meta card inputs */
+.journal-sheet #txAcc,
+.journal-sheet #txAmount,
+#journalAcc,
+#journalCounterparty,
+#journalDetails,
+#journalAmount{
+  background:color-mix(in srgb, var(--panel) 74%, var(--brand) 26%) !important;
+  border:1px solid var(--line) !important;
+  color:var(--text) !important;
+}
+
+/* journal footer compact sizing */
+.journal-entry-top.row-one{
+  grid-template-columns:54px 194px 160px !important;
+  justify-content:start !important;
+  gap:12px !important;
+}
+#journalAcc{
+  width:54px !important;
+  min-width:54px !important;
+  max-width:54px !important;
+  text-align:center !important;
+}
+#journalName{
+  width:194px !important;
+  min-width:194px !important;
+  max-width:194px !important;
+}
+#journalAmount{
+  width:160px !important;
+  min-width:160px !important;
+  max-width:160px !important;
+}
