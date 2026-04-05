@@ -8599,3 +8599,26 @@ body[data-theme="ducess-sheet"] .cs2-hint{color:#7a5030 !important;}
   font-weight:600 !important;
   min-width:auto !important;
 }
+
+
+/* Step 5C: My Balance modal polish */
+.my-balance-modal .kpi .label{
+  font-size:10px !important;
+  line-height:1.15 !important;
+  letter-spacing:.03em;
+}
+.my-balance-modal .my-balance-input{
+  background: color-mix(in srgb, var(--panel) 74%, var(--brand) 26%) !important;
+  color: var(--text) !important;
+  border-color: color-mix(in srgb, var(--line) 60%, var(--brand) 40%) !important;
+}
+body[data-theme="dark-slate"] .my-balance-modal .my-balance-input{
+  background:#1b2734 !important;
+  color:#eef5ff !important;
+  border-color:#36506a !important;
+}
+body[data-theme="ducess-sheet"] .my-balance-modal .my-balance-input{
+  background:#ecd4ca !important;
+  color:#2d120e !important;
+  border-color:#b97861 !important;
+}

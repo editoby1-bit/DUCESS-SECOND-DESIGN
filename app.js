@@ -2396,17 +2396,17 @@
     const st = currentStaff();
     const acc = ensureStaffAccount(st.id);
     openModal('My Balance', `
-      <div class="stack">
+      <div class="stack my-balance-modal">
         <div class="kpi-row">
           <div class="kpi"><div class="label">Wallet Balance</div><div class="number">${money(acc.walletBalance||0)}</div></div>
           <div class="kpi"><div class="label">Debt Balance</div><div class="number ${Number(acc.debtBalance||0)>0 ? 'balance-negative' : ''}">-${money(acc.debtBalance||0)}</div></div>
           <div class="kpi"><div class="label">Form</div><div class="number">${money(getOpeningBalanceForDate(st.id, businessDate()))}</div></div>
-          <div class="kpi"><div class="label">Remaining Float Today</div><div class="number">${money(currentFloatAvailable(st.id, businessDate()))}</div></div>
+          <div class="kpi"><div class="label">Remaining Balance Today</div><div class="number">${money(currentFloatAvailable(st.id, businessDate()))}</div></div>
         </div>
         <div class="form-grid three">
-          <div class="field"><label>Wallet Funding Amount</label><input id="walletFundAmt" class="entry-input" type="number"></div>
-          <div class="field"><label>Debt Repayment Amount</label><input id="walletRepayAmt" class="entry-input" type="number"></div>
-          <div class="field"><label>Note</label><input id="walletNote" class="entry-input"></div>
+          <div class="field"><label>Wallet Funding Amount</label><input id="walletFundAmt" class="entry-input my-balance-input" type="number"></div>
+          <div class="field"><label>Debt Repayment Amount</label><input id="walletRepayAmt" class="entry-input my-balance-input" type="number"></div>
+          <div class="field"><label>Note</label><input id="walletNote" class="entry-input my-balance-input"></div>
         </div>
       </div>
     `,[
