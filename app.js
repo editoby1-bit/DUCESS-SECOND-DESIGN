@@ -1140,16 +1140,20 @@
             <div class="cs2-label">Address</div>
             <div class="cs2-input-wrap cs2-wide"><input id="openAddress" class="entry-input cs2-input"></div>
           </div>
-          <div class="cs2-row cs2-pair-row">
+          <div class="cs2-row">
             <div class="cs2-label">NIN</div>
             <div class="cs2-input-wrap cs2-medium"><input id="openNin" class="entry-input cs2-input digit-11-input" inputmode="numeric" maxlength="11"></div>
-            <div class="cs2-inline-label">BVN</div>
-            <div class="cs2-input-wrap cs2-medium"><input id="openBvn" class="entry-input cs2-input digit-11-input" inputmode="numeric" maxlength="11"></div>
           </div>
-          <div class="cs2-row cs2-pair-row">
+          <div class="cs2-row">
             <div class="cs2-label">Phone Number</div>
             <div class="cs2-input-wrap cs2-medium"><input id="openPhone" class="entry-input cs2-input digit-11-input" inputmode="numeric" maxlength="11"></div>
-            <div class="cs2-inline-label">Old A/N</div>
+          </div>
+          <div class="cs2-row">
+            <div class="cs2-label">BVN</div>
+            <div class="cs2-input-wrap cs2-medium"><input id="openBvn" class="entry-input cs2-input digit-11-input" inputmode="numeric" maxlength="11"></div>
+          </div>
+          <div class="cs2-row">
+            <div class="cs2-label">Old A/N</div>
             <div class="cs2-input-wrap cs2-short"><input id="openOldAccount" class="entry-input cs2-input" maxlength="4" inputmode="numeric"></div>
           </div>
           <div class="cs2-upload-row">
@@ -1187,8 +1191,10 @@
             <div class="cs2-input-wrap ${isReactivation ? 'cs2-wide' : 'cs2-name-narrow'}"><input id="${prefix}Name" class="entry-input cs2-input cs-detail-input"></div>
           </div>
           ${isReactivation ? '' : `<div class="cs2-row"><div class="cs2-label">Address</div><div class="cs2-input-wrap cs2-name-narrow"><input id="${prefix}Address" class="entry-input cs2-input cs-detail-input"></div></div>`}
-          ${isReactivation ? '' : `<div class="cs2-row cs2-pair-row"><div class="cs2-label">NIN</div><div class="cs2-input-wrap cs2-medium"><input id="${prefix}Nin" class="entry-input cs2-input cs-detail-input digit-11-input" inputmode="numeric" maxlength="11"></div><div class="cs2-inline-label">BVN</div><div class="cs2-input-wrap cs2-medium"><input id="${prefix}Bvn" class="entry-input cs2-input cs-detail-input digit-11-input" inputmode="numeric" maxlength="11"></div></div>`}
-          ${isReactivation ? '' : `<div class="cs2-row cs2-pair-row"><div class="cs2-label">Phone Number</div><div class="cs2-input-wrap cs2-medium"><input id="${prefix}Phone" class="entry-input cs2-input cs-detail-input digit-11-input" inputmode="numeric" maxlength="11"></div><div class="cs2-inline-label">Old A/N</div><div class="cs2-input-wrap cs2-short"><input id="${prefix}OldAccount" class="entry-input cs2-input cs-detail-input" maxlength="4" inputmode="numeric"></div></div>`}
+          ${isReactivation ? '' : `<div class="cs2-row"><div class="cs2-label">NIN</div><div class="cs2-input-wrap cs2-medium"><input id="${prefix}Nin" class="entry-input cs2-input cs-detail-input digit-11-input" inputmode="numeric" maxlength="11"></div></div>`}
+          ${isReactivation ? '' : `<div class="cs2-row"><div class="cs2-label">Phone Number</div><div class="cs2-input-wrap cs2-medium"><input id="${prefix}Phone" class="entry-input cs2-input cs-detail-input digit-11-input" inputmode="numeric" maxlength="11"></div></div>`}
+          ${isReactivation ? '' : `<div class="cs2-row"><div class="cs2-label">BVN</div><div class="cs2-input-wrap cs2-medium"><input id="${prefix}Bvn" class="entry-input cs2-input cs-detail-input digit-11-input" inputmode="numeric" maxlength="11"></div></div>`}
+          ${isReactivation ? '' : `<div class="cs2-row"><div class="cs2-label">Old A/N</div><div class="cs2-input-wrap cs2-short"><input id="${prefix}OldAccount" class="entry-input cs2-input cs-detail-input" maxlength="4" inputmode="numeric"></div></div>`}
           <div class="cs2-footer">
             <div class="cs2-status">Account Name: <strong id="${prefix}DisplayName">—</strong> &nbsp;&nbsp; Phone Number: <strong id="${prefix}DisplayPhone">—</strong> &nbsp;&nbsp; Current Status: <strong id="${prefix}DisplayStatus">—</strong></div>
             <div class="cs2-hint">${isReactivation ? 'Search account, confirm details, and submit reactivation.' : 'Search first, update details, then save for approval.'}</div>
