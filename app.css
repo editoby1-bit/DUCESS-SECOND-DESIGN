@@ -8566,3 +8566,20 @@ body[data-theme="ducess-sheet"] .cs2-hint{color:#7a5030 !important;}
 .tellering-tools-only .tellering-tools-only-title{
   grid-column:1 / -1 !important;
 }
+
+/* STEP 4B SURGICAL PATCH - slight separation for search button and single-line tellering tools list */
+.journal-sheet .posting-inline-group.posting-inline-account{
+  gap:8px !important;
+}
+.journal-sheet .posting-inline-group.posting-inline-account #txSearch{
+  transform:none !important;
+  margin-left:2px !important;
+}
+.tellering-tools-only{
+  display:flex !important;
+  flex-direction:column !important;
+  gap:10px !important;
+}
+.tellering-tools-only .tellering-tools-only-title{
+  grid-column:auto !important;
+}
