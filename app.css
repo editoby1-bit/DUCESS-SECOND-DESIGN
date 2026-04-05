@@ -8637,3 +8637,35 @@ body[data-theme="ducess-sheet"] .my-balance-modal .my-balance-input{
     line-height:1.02 !important;
   }
 }
+
+/* ===== 2026-04-05 SURGICAL PATCH v6.2 ===== */
+/* Home screen only: reduce dashboard title again, reduce tile labels again,
+   and make Role / Staff very small. Nothing else touched. */
+@media (min-width: 981px){
+  .module-grid-title{
+    font-size:18px !important;
+    letter-spacing:.14em !important;
+    top:16px !important;
+  }
+
+  .module-card .module-title{
+    font-size:14px !important;
+    line-height:1 !important;
+    padding:17px 12px 8px 12px !important;
+  }
+
+  .inline-field.compact span{
+    font-size:8px !important;
+    line-height:1 !important;
+    letter-spacing:.04em !important;
+  }
+
+  #staffSelect{
+    min-width:220px !important;
+    max-width:220px !important;
+    height:28px !important;
+    padding:3px 8px !important;
+    font-size:9px !important;
+    border-radius:8px !important;
+  }
+}
