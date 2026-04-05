@@ -8533,3 +8533,36 @@ body[data-theme="ducess-sheet"] .cs2-hint{color:#7a5030 !important;}
 .journal-entry-top.row-one{
   grid-template-columns:64px 194px 160px !important;
 }
+
+
+/* STEP 4 SURGICAL PATCH - tighten tellering search and merge tellering actions into tools */
+.journal-sheet .posting-inline-group.posting-inline-account{
+  display:inline-flex !important;
+  align-items:center !important;
+  gap:4px !important;
+}
+.journal-sheet .posting-inline-group.posting-inline-account #txAcc{
+  width:80px !important;
+  min-width:80px !important;
+  max-width:80px !important;
+  flex:0 0 80px !important;
+  margin-right:0 !important;
+}
+.journal-sheet .posting-inline-group.posting-inline-account #txSearch{
+  width:auto !important;
+  min-width:auto !important;
+  max-width:max-content !important;
+  flex:0 0 auto !important;
+  margin:0 !important;
+  transform:translateX(-18px) !important;
+}
+.tellering-tools-only{
+  display:grid !important;
+  grid-template-columns:repeat(2, minmax(0, 1fr)) !important;
+  column-gap:22px !important;
+  row-gap:12px !important;
+  align-items:start !important;
+}
+.tellering-tools-only .tellering-tools-only-title{
+  grid-column:1 / -1 !important;
+}

@@ -1020,18 +1020,16 @@
     byId('workspaceTitle').textContent = state.ui.tool ? (TOOL_LABELS[state.ui.tool] || module.title) : `${module.title} Tools`;
     const renderToolButtons = () => {
       if (state.ui.module === 'tellering') {
-        const toolBtn = (t) => module.tools.includes(t) ? `<button class="tool-tab ${state.ui.tool===t?'active':''}" data-tool="${t}" ${hasPermission(t)?'':'disabled'}>${TOOL_LABELS[t]}</button>` : '<span></span>';
-        return `<div class="tool-columns tellering-mixed-columns">
-          <div class="tool-column-title">Tellering Tools</div>
-          <div class="tool-column-title">Tellering Actions</div>
+        const toolBtn = (t) => module.tools.includes(t) ? `<button class="tool-tab ${state.ui.tool===t?'active':''}" data-tool="${t}" ${hasPermission(t)?'':'disabled'}>${TOOL_LABELS[t]}</button>` : '';
+        return `<div class="tool-columns tellering-mixed-columns tellering-tools-only">
+          <div class="tool-column-title tellering-tools-only-title">Tellering Tools</div>
           ${toolBtn('check_balance')}
-          ${toolBtn('my_balance')}
           ${toolBtn('credit')}
-          ${toolBtn('opening_balance')}
           ${toolBtn('debit')}
+          ${toolBtn('my_balance')}
+          ${toolBtn('opening_balance')}
           ${toolBtn('my_close_day')}
           ${toolBtn('operational_accounts')}
-          <span></span>
         </div>`;
       }
       return module.tools.map(t => `<button class="tool-tab ${state.ui.tool===t?'active':''}" data-tool="${t}" ${hasPermission(t)?'':'disabled'}>${TOOL_LABELS[t]}</button>`).join('');
