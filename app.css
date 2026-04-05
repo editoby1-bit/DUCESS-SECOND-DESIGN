@@ -8669,3 +8669,16 @@ body[data-theme="ducess-sheet"] .my-balance-modal .my-balance-input{
     border-radius:8px !important;
   }
 }
+
+/* ===== 2026-04-05 SURGICAL PATCH v6.3 ===== */
+/* Home screen only: prevent icon from capping tile labels. Nothing else touched. */
+@media (min-width: 981px){
+  .module-card .module-icon{
+    margin:0 auto -8px auto !important;
+  }
+
+  .module-card .module-title{
+    padding:22px 14px 10px 14px !important;
+    line-height:1.08 !important;
+  }
+}
