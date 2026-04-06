@@ -8682,3 +8682,34 @@ body[data-theme="ducess-sheet"] .my-balance-modal .my-balance-input{
     line-height:1.08 !important;
   }
 }
+
+/* ===== 2026-04-06 SURGICAL PATCH v7.0 ===== */
+/* Balances only: reduce filter buttons + KPI label text to match other modals */
+
+@media (min-width: 981px){
+
+  /* FILTER BUTTONS (Daily, Weekly, etc.) */
+  .balances-panel .filter-group button,
+  .balances-panel .filter-group .btn{
+    font-size:12px !important;
+    padding:8px 14px !important;
+    border-radius:10px !important;
+  }
+
+  /* EXPORT / PRINT */
+  .balances-panel .actions button{
+    font-size:12px !important;
+    padding:8px 14px !important;
+  }
+
+  /* KPI LABELS (TOTAL CREDIT, etc.) */
+  .balances-panel .kpi-label{
+    font-size:11px !important;
+    letter-spacing:.06em !important;
+  }
+
+  /* KPI VALUES slightly tighter */
+  .balances-panel .kpi-value{
+    font-size:20px !important;
+  }
+}
