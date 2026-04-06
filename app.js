@@ -283,7 +283,7 @@
     return state.staff.find(s => s.id === state.activeStaffId) || state.staff[0] || null;
   }
   function businessDate() { return state.businessDate || today(); }
-  function nextDate(iso) { const d=new Date(`${iso}T12:00:00Z</div>`); d.setUTCDate(d.getUTCDate()+1); return d.toISOString().slice(0,10); }
+  function nextDate(iso) { const d=new Date(`${iso}T12:00:00Z`); d.setUTCDate(d.getUTCDate()+1); return d.toISOString().slice(0,10); }
   function staffById(id){ return state.staff.find(s=>s.id===id) || null; }
   function customerName(id){ return state.customers.find(c=>c.id===id)?.name || ''; }
   function getStaffWalletCustomer(staffId){ const acc=ensureStaffAccount(staffId); return state.customers.find(c=>c.id===acc.linkedCustomerId) || null; }
@@ -681,7 +681,7 @@
     }
     if (!result?.ok) return result;
     await syncApprovalsFromGateway();
-    pushAudit('request_created', `${type} by ${staff?.name || 'System'}</div>`);
+    pushAudit('request_created', `${type} by ${staff?.name || 'System'}`);
     return result;
   }
 
@@ -692,7 +692,7 @@
     if (result?.ok) {
       await syncApprovalsFromGateway();
       await syncApprovalEffectsFromGateway(result.data);
-      pushAudit('request_approved', `${result.data?.type || 'request'} approved</div>`);
+      pushAudit('request_approved', `${result.data?.type || 'request'} approved`);
       render();
     }
     return result;
@@ -702,7 +702,7 @@
     if (!isSupabaseApprovalMode()) { rejectRequest(id); return defaultResultOk(true); }
     const staff = currentStaff();
     const result = await gateway.approvals.rejectRequest({ requestId: id, rejectedByStaffId: staff?.id || '', rejectedByName: staff?.name || 'System' });
-    if (result?.ok) { await syncApprovalsFromGateway(); pushAudit('request_rejected', `${result.data?.type || 'request'} rejected</div>`); render(); }
+    if (result?.ok) { await syncApprovalsFromGateway(); pushAudit('request_rejected', `${result.data?.type || 'request'} rejected`); render(); }
     return result;
   }
 
@@ -721,7 +721,7 @@
       ...meta
     };
     state.approvals.unshift(req);
-    pushAudit('request_created', `${type} by ${req.requestedByName}</div>`);
+    pushAudit('request_created', `${type} by ${req.requestedByName}`);
     save();
     return req;
   }
@@ -733,7 +733,7 @@
     req.approvedAt = new Date().toISOString();
     req.approvedBy = currentStaff()?.name || 'System';
     applyRequest(req);
-    pushAudit('request_approved', `${req.type} approved</div>`);
+    pushAudit('request_approved', `${req.type} approved`);
     save();
     render();
   }
@@ -744,7 +744,7 @@
     req.status = 'rejected';
     req.approvedAt = new Date().toISOString();
     req.approvedBy = currentStaff()?.name || 'System';
-    pushAudit('request_rejected', `${req.type} rejected</div>`);
+    pushAudit('request_rejected', `${req.type} rejected`);
     save();
     render();
   }
@@ -953,7 +953,7 @@
         const idx = THEMES.indexOf(curr);
         const next = THEMES[(idx + 1) % THEMES.length];
         applyTheme(next, true);
-        showToast(`Theme: ${THEME_LABELS[next]}</div>`);
+        showToast(`Theme: ${THEME_LABELS[next]}`);
       };
     }
     byId('globalNameSearch').oninput = (e) => {
@@ -1896,7 +1896,7 @@ function renderTellerBalances() {
         <div class="field"><label>Note</label><input id="floatTopupNote" class="entry-input" placeholder="Reason for top-up"></div>
       </div>
       <div class="note">This request goes to Approvals → Others. Once approved, it increases the available form immediately for the selected staff on the current business date.</div>
-    </div>`, [
+    `, [
       { label: 'Cancel', className: 'secondary', onClick: closeModal },
       { label: 'Submit', onClick: () => {
           const selectedStaff = state.staff.find(x => x.id === byId('floatTopupStaff').value);
@@ -2016,7 +2016,7 @@ function renderTellerBalances() {
       setDetailsEditable(false);
     };
     byId(`${prefix}Search`).onclick = search;
-    const accInput = byId(`${prefix}Acc</div>`);
+    const accInput = byId(`${prefix}Acc`);
     if (accInput) {
       accInput.oninput = () => {
         const v = (accInput.value || '').trim();
@@ -2024,7 +2024,7 @@ function renderTellerBalances() {
       };
       accInput.onkeyup = (e) => { if (e.key === 'Enter') search(); };
     }
-    const editBtn = byId(`${prefix}Edit</div>`);
+    const editBtn = byId(`${prefix}Edit`);
     if (editBtn) editBtn.onclick = () => {
       const c = getSelectedCustomer() || getCustomerByAccountNo(byId(`${prefix}Acc`).value);
       if (!c) return showToast('Search for an account first');
@@ -2087,7 +2087,7 @@ function renderTellerBalances() {
     byId('stmtPrintBtn').onclick = () => {
       const area = byId('statementArea').innerHTML;
       if (!area.trim()) return showToast('Generate statement first');
-      printHtml(`<h2>Customer Statement</h2>${area}</div>`);
+      printHtml(`<h2>Customer Statement</h2>${area}`);
     };
   }
 
@@ -2290,7 +2290,7 @@ function renderTellerBalances() {
         }).then((result) => {
           if (!result?.ok) return showToast(result?.error?.message || 'Unable to submit request');
           resetFields();
-          showToast(`${kind === 'credit' ? 'Credit' : 'Debit'} request sent for approval</div>`);
+          showToast(`${kind === 'credit' ? 'Credit' : 'Debit'} request sent for approval`);
           render();
         });
       });
@@ -2326,7 +2326,7 @@ function renderTellerBalances() {
           const input = byId('journalFieldNoteInput');
           if (input) input.value = '';
           save();
-          showToast(`${kind === 'credit' ? 'Credit' : 'Debit'} journal sent for approval</div>`);
+          showToast(`${kind === 'credit' ? 'Credit' : 'Debit'} journal sent for approval`);
           renderWorkspace();
         });
       });
@@ -2427,7 +2427,7 @@ function renderTellerBalances() {
         <div class="field"><label>Amount</label><input id="floatAmount" class="entry-input" type="number"></div>
       </div>
       <div class="note">Posting cannot begin until this form is approved.</div>
-    </div>`, [
+    `, [
       { label: 'Cancel', className: 'secondary', onClick: closeModal },
       { label: 'Submit', onClick: () => {
           const amount = Number(byId('floatAmount').value || 0);
@@ -2458,7 +2458,7 @@ function renderTellerBalances() {
       const overdraw = Math.max(0, -running);
       return `<tr><td>${st.name}</td><td>${money(formAmount)}</td><td>${money(creditCash)}</td><td>${money(creditTransfer)}</td><td>${money(credits)}</td><td>${money(debitCash)}</td><td>${money(debitTransfer)}</td><td>${money(debits)}</td><td class="${netBook<0?'balance-negative':''}">${money(netBook)}</td><td class="${running<0?'balance-negative':''}">${money(running)}</td><td class="${variance>0?'balance-negative':''}">${money(variance)}</td><td class="${overdraw>0?'balance-negative':''}">${money(overdraw)}</td><td><input class="entry-input" data-cod-note="${st.id}"></td></tr>`;
     }).join('');
-    openModal('Central Close of Day', `<div class="stack"><div class="note">You are closing business date <strong>${businessDate()}</strong>. Closing opens the next business date immediately.</div><div class="note">Form is the approved opening money collected from the field. Remaining Balance reduces as staff use the form. Net Balance is Total Credits minus Total Debits. Variance and Overdraw are derived from how the form is used.</div><div class="table-wrap"><table class="table"><thead><tr><th>Staff</th><th>Form</th><th>Credit Cash</th><th>Credit Transfer</th><th>Total Credits</th><th>Debit Cash</th><th>Debit Transfer</th><th>Total Debits</th><th>Net Balance</th><th>Remaining Balance</th><th>Variance</th><th>Overdraw</th><th>Note</th></tr></thead><tbody>${rows}</tbody></table></div></div></div>`, [{label:'Cancel', className:'secondary', onClick: closeModal}, {label:'Close Business Day', onClick: async ()=> {
+    openModal('Central Close of Day', `<div class="stack"><div class="note">You are closing business date <strong>${businessDate()}</strong>. Closing opens the next business date immediately.</div><div class="note">Form is the approved opening money collected from the field. Remaining Balance reduces as staff use the form. Net Balance is Total Credits minus Total Debits. Variance and Overdraw are derived from how the form is used.</div><div class="table-wrap"><table class="table"><thead><tr><th>Staff</th><th>Form</th><th>Credit Cash</th><th>Credit Transfer</th><th>Total Credits</th><th>Debit Cash</th><th>Debit Transfer</th><th>Total Debits</th><th>Net Balance</th><th>Remaining Balance</th><th>Variance</th><th>Overdraw</th><th>Note</th></tr></thead><tbody>${rows}</tbody></table></div></div>`, [{label:'Cancel', className:'secondary', onClick: closeModal}, {label:'Close Business Day', onClick: async ()=> {
       if (isSupabaseApprovalMode() && gateway.cod?.submitCod) {
         for (const st of postingStaff) {
           const formAmount = getOpeningBalanceForDate(st.id,businessDate());
@@ -2497,13 +2497,13 @@ function renderTellerBalances() {
           state.cod.unshift({id:uid('cod'), staffId:st.id, staffName:st.name, date:businessDate(), formAmount, openingBalance:formAmount, totalCreditCash:creditCash, totalCreditTransfer:creditTransfer, totalDebitCash:debitCash, totalDebitTransfer:debitTransfer, totalCredits:credits, totalDebits:debits, netBookBalance:netBook, actualCash:running, expectedCash:running, runningFloat:running, remainingBalance:running, variance, overdraw, note, fieldPapers:[], status: variance===0 && overdraw===0 ? 'balanced':'flagged', approvedAt:new Date().toISOString(), approvedBy:currentStaff()?.name||''});
         });
       }
-      state.dayClosures.push({date:businessDate(), closedAt:new Date().toISOString(), closedBy:currentStaff()?.name||''}); state.businessDate = nextDate(businessDate()); save(); closeModal(); render(); showToast(`Business day closed. New open date: ${state.businessDate}</div>`); }}]);
+      state.dayClosures.push({date:businessDate(), closedAt:new Date().toISOString(), closedBy:currentStaff()?.name||''}); state.businessDate = nextDate(businessDate()); save(); closeModal(); render(); showToast(`Business day closed. New open date: ${state.businessDate}`); }}]);
   }
 
   function openAuditModal() {
     const st = currentStaff();
     const rows = state.audit.filter(a => st?.role === 'admin_officer' || a.actorId === st?.id || a.actor === st?.name).map(a=>`<tr><td>${fmtDate(a.at)}</td><td>${a.actor}</td><td>${a.action}</td><td>${a.details}</td></tr>`).join('');
-    openModal('Audit Trail', `<div class="table-wrap"><table class="table"><thead><tr><th>Date</th><th>Actor</th><th>Action</th><th>Details</th></tr></thead><tbody>${rows || '<tr><td colspan="4">No audit records</td></tr>'}</tbody></table></div></div>`, [{label:'Close', onClick: closeModal}]);
+    openModal('Audit Trail', `<div class="table-wrap"><table class="table"><thead><tr><th>Date</th><th>Actor</th><th>Action</th><th>Details</th></tr></thead><tbody>${rows || '<tr><td colspan="4">No audit records</td></tr>'}</tbody></table></div>`, [{label:'Close', onClick: closeModal}]);
   }
 
   function staffName(id) { return state.staff.find(s=>s.id===id)?.name || id; }
@@ -2516,7 +2516,7 @@ function renderTellerBalances() {
 
   function openCustomerSearchModal(list) {
     const renderRows = arr => arr.map(c=>`<tr><td>${c.accountNumber}</td><td>${c.name}</td><td>${c.phone}</td><td><span class="linklike" data-pick="${c.id}">Select</span></td></tr>`).join('');
-    openModal('Customer Search', `<div class="stack"><input id="modalCustomerSearch" class="entry-input" placeholder="Search customer by name or account number"><div class="table-wrap"><table class="table"><thead><tr><th>Account Number</th><th>Name</th><th>Phone</th><th></th></tr></thead><tbody id="modalCustomerRows">${renderRows(list)}</tbody></table></div></div></div>`, [{label:'Close', className:'secondary', onClick: closeModal}]);
+    openModal('Customer Search', `<div class="stack"><input id="modalCustomerSearch" class="entry-input" placeholder="Search customer by name or account number"><div class="table-wrap"><table class="table"><thead><tr><th>Account Number</th><th>Name</th><th>Phone</th><th></th></tr></thead><tbody id="modalCustomerRows">${renderRows(list)}</tbody></table></div></div>`, [{label:'Close', className:'secondary', onClick: closeModal}]);
     const bindPicks = () => qq('[data-pick]').forEach(el => el.onclick = () => { state.ui.selectedCustomerId = el.dataset.pick; save(); closeModal(); applySelectedCustomerToActiveTool(); });
     bindPicks();
     const search = byId('modalCustomerSearch');
@@ -2644,7 +2644,7 @@ function renderTellerBalances() {
   function openMyBalanceModal() {
     const st = currentStaff();
     const acc = ensureStaffAccount(st.id);
-    openModal('My Balance', `<div class="modal-sheet my-balance-sheet"><div class="modal-sheet my-balance-sheet">
+    openModal('My Balance', `
       <div class="stack my-balance-modal">
         <div class="kpi-row">
           <div class="kpi"><div class="label">Wallet Balance</div><div class="number">${money(acc.walletBalance||0)}</div></div>
@@ -2703,7 +2703,7 @@ function renderTellerBalances() {
       </div>
       <div class="note">Form is the approved opening money collected from the field. Net Balance is Total Credits minus Total Debits. Remaining Balance, Variance, and Overdraw reflect how the form was used.</div>
       <div class="note"><strong>Status:</strong> ${c.status || 'balanced'} • <strong>Manager Note:</strong> ${c.resolutionNote || c.note || '—'}</div>` : `<div class="note">No close-of-day record for selected date.</div>`;
-    openModal('My Close of Day', `<div class="modal-sheet my-close-day-sheet"><div class="stack"><div class="action-inline"><div class="inline-field compact"><span>COD Date</span><input type="date" id="myCodDate" value="${state.ui.myCodDate}"></div></div>${summary}</div></div>`, [{label:'Close', className:'secondary', onClick: closeModal}]);
+    openModal('My Close of Day', `<div class="stack"><div class="action-inline"><div class="inline-field compact"><span>COD Date</span><input type="date" id="myCodDate" value="${state.ui.myCodDate}"></div></div>${summary}</div>`, [{label:'Close', className:'secondary', onClick: closeModal}]);
     const picker = byId('myCodDate');
     if (picker) picker.onchange = () => { state.ui.myCodDate = picker.value || businessDate(); save(); openMyCODModal(state.ui.myCodDate); };
   }
@@ -2888,12 +2888,12 @@ function renderTellerBalances() {
     });
     byId(`${kind}CustomApply`).onclick = () => { state.ui[`${kind}Filter`] = { preset:'custom', from:byId(`${kind}From`).value, to:byId(`${kind}To`).value }; save(); renderWorkspace(); };
     qq(`[data-type-kind="${kind}"]`).forEach(btn => btn.onclick = () => { state.ui[`${kind}Type`] = btn.dataset.typeFilter; save(); renderWorkspace(); });
-    const moreBtn = byId(`${kind}More</div>`);
+    const moreBtn = byId(`${kind}More`);
     if (moreBtn) moreBtn.onclick = () => {
       const key = kind === 'business' ? 'businessEntriesLimit' : 'operationalEntriesLimit';
       state.ui[key] = (state.ui[key] || 20) + 20; save(); renderWorkspace();
     };
-    const lessBtn = byId(`${kind}Less</div>`);
+    const lessBtn = byId(`${kind}Less`);
     if (lessBtn) lessBtn.onclick = () => {
       const key = kind === 'business' ? 'businessEntriesLimit' : 'operationalEntriesLimit';
       state.ui[key] = Math.max(20, (state.ui[key] || 20) - 20); save(); renderWorkspace();
@@ -2912,7 +2912,7 @@ function renderTellerBalances() {
         return;
       }
       const rows = filterByDate(flattenBusinessEntries(), state.ui.businessFilter || { preset: 'all', from: '', to: '' });
-      exportCsv(rows, `${kind}_balance.csv</div>`);
+      exportCsv(rows, `${kind}_balance.csv`);
     };
     byId(`${kind}PrintSummary`).onclick = () => {
       if (kind === 'operational') {
@@ -2992,14 +2992,14 @@ function renderTellerBalances() {
         .statement-table th { background: #f3f3f3; font-weight: 700; }
         .statement-total { margin-top: 8px; font-size: 11px; }
       </style>`;
-    w.document.write(`<html><head><title>Print</title><link rel="stylesheet" href="app.css">${statementStyles}</head><body><div class="shell"><div class="workspace">${html}</div></div></body></html></div>`);
+    w.document.write(`<html><head><title>Print</title><link rel="stylesheet" href="app.css">${statementStyles}</head><body><div class="shell"><div class="workspace">${html}</div></div></body></html>`);
     w.document.close();
     w.focus();
     if (autoPrint) w.print();
   }
 
   function confirmAction(message, onYes) {
-    openModal('Confirm Action', `<div class="note">${message}</div></div>`, [{label:'Cancel', className:'secondary', onClick: closeModal},{label:'Confirm', onClick:()=>{closeModal(); onYes();}}]);
+    openModal('Confirm Action', `<div class="note">${message}</div>`, [{label:'Cancel', className:'secondary', onClick: closeModal},{label:'Confirm', onClick:()=>{closeModal(); onYes();}}]);
   }
 
   function applySelectedCustomerToActiveTool() {
@@ -3036,7 +3036,7 @@ function renderTellerBalances() {
       </div>
     `,[{label:'Cancel', className:'secondary', onClick: closeModal},{label:'Add Staff', onClick:()=>{ const name=byId('newStaffName').value.trim(); const role=byId('newStaffRole').value; if(!name) return showToast('Enter staff name'); state.staff.push({id:uid('st'), name, role, active:true}); ensureStaffAccount(state.staff[state.staff.length-1].id); save(); closeModal(); render(); showToast('Staff added'); }}]);
     qq('[data-staff-toggle]').forEach(btn => btn.onclick = ()=> {
-      const st = state.staff.find(s=>s.id===btn.dataset.staffToggle); if(!st) return; st.active = st.active === false ? true : false; save(); render(); showToast(`Staff ${st.active===false?'deactivated':'reactivated'}</div>`);
+      const st = state.staff.find(s=>s.id===btn.dataset.staffToggle); if(!st) return; st.active = st.active === false ? true : false; save(); render(); showToast(`Staff ${st.active===false?'deactivated':'reactivated'}`);
     });
   }
 
