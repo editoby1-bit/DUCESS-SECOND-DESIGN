@@ -1560,9 +1560,7 @@
   }
 
   function renderOperationalBalance() {
-    const rawOperational = filterByDate(state.operations.entries || [], state.ui.operationalFilter || { preset: 'all', from: '', to: '' });
-    const kindFilter = state.ui.operationalType || 'all';
-    const filtered = rawOperational.filter(e => kindFilter==='all' ? true : e.kind===kindFilter);
+    const filtered = getOperationalFilteredRows();
     const income = filtered.filter(e=>e.kind==='income');
     const expense = filtered.filter(e=>e.kind==='expense');
     return `
@@ -1578,7 +1576,108 @@
       </div>`;
   }
 
-  function renderTellerBalances() {
+  
+  function getOperationalFilteredRows() {
+    const rawOperational = filterByDate(state.operations.entries || [], state.ui.operationalFilter || { preset: 'all', from: '', to: '' });
+    const kindFilter = state.ui.operationalType || 'all';
+    return rawOperational.filter(e => kindFilter==='all' ? true : e.kind===kindFilter);
+  }
+
+  function buildOperationalStatementRows() {
+    const filtered = [...getOperationalFilteredRows()].sort((a,b)=>new Date(a.date)-new Date(b.date));
+    let runningBalance = 0;
+    return filtered.map((e, idx) => {
+      const amount = Number(e.amount || 0);
+      runningBalance += e.kind === 'income' ? amount : -amount;
+      return {
+        sn: idx + 1,
+        date: fmtDate(e.date),
+        type: e.kind || '',
+        accountName: e.accountName || '—',
+        amount,
+        note: e.note || '—',
+        details: e.details || e.accountName || '—',
+        balanceAfter: runningBalance,
+        receivedOrPaidBy: e.receivedOrPaidBy || e.postedBy || '—',
+        postedBy: e.postedBy || '—'
+      };
+    });
+  }
+
+  function getOperationalStatementSummary(rows) {
+    const totalIncome = rows.filter(r=>r.type==='income').reduce((s,r)=>s+Number(r.amount||0),0);
+    const totalExpense = rows.filter(r=>r.type==='expense').reduce((s,r)=>s+Number(r.amount||0),0);
+    return {
+      totalIncome,
+      totalExpense,
+      netOperationalBalance: totalIncome - totalExpense,
+      totalAmount: rows.reduce((s,r)=>s+Number(r.amount||0),0)
+    };
+  }
+
+  function exportOperationalStatementCsv() {
+    const rows = buildOperationalStatementRows();
+    const summary = getOperationalStatementSummary(rows);
+    const csvRows = [
+      ['OPERATIONAL BALANCE STATEMENT'],
+      ['TOTAL INCOME', money(summary.totalIncome), 'TOTAL EXPENSE', money(summary.totalExpense), 'NET OPERATIONAL BALANCE', money(summary.netOperationalBalance)],
+      [],
+      ['S/N','DATE','TYPE','ACCOUNT NAME','AMOUNT','NOTE','DETAILS','BALANCE AFTER','RECEIVED OR PAID BY','POSTED BY'],
+      ...rows.map(r => [r.sn, r.date, r.type, r.accountName, r.amount, r.note, r.details, r.balanceAfter, r.receivedOrPaidBy, r.postedBy]),
+      [],
+      ['TOTAL AMOUNT', summary.totalAmount]
+    ];
+    exportCsv(csvRows, 'operational_balance.csv', true);
+
+    const previewRows = rows.map(r => `<tr><td>${r.sn}</td><td>${r.date}</td><td>${r.type}</td><td>${r.accountName}</td><td>${money(r.amount)}</td><td>${r.note}</td><td>${r.details}</td><td>${money(r.balanceAfter)}</td><td>${r.receivedOrPaidBy}</td><td>${r.postedBy}</td></tr>`).join('');
+    const html = `
+      <div class="print-sheet">
+        <h2>Operational Balance Statement</h2>
+        <div class="kpi-row" style="margin-bottom:12px">
+          <div class="kpi"><div class="label">Total Income</div><div class="number">${money(summary.totalIncome)}</div></div>
+          <div class="kpi"><div class="label">Total Expense</div><div class="number">${money(summary.totalExpense)}</div></div>
+          <div class="kpi"><div class="label">Net Operational Balance</div><div class="number">${money(summary.netOperationalBalance)}</div></div>
+        </div>
+        <div class="table-card">
+          <div class="table-wrap">
+            <table class="table">
+              <thead><tr><th>S/N</th><th>Date</th><th>Type</th><th>Account Name</th><th>Amount</th><th>Note</th><th>Details</th><th>Balance After</th><th>Received or Paid By</th><th>Posted By</th></tr></thead>
+              <tbody>${previewRows || '<tr><td colspan="10">No entries</td></tr>'}</tbody>
+            </table>
+          </div>
+          <div class="action-row"><strong>Total Amount: ${money(summary.totalAmount)}</strong></div>
+        </div>
+      </div>`;
+    printHtml(html, false);
+  }
+
+  function printOperationalStatement() {
+    const rows = buildOperationalStatementRows();
+    const summary = getOperationalStatementSummary(rows);
+    const bodyRows = rows.map(r => `<tr><td>${r.sn}</td><td>${r.date}</td><td>${r.type}</td><td>${r.accountName}</td><td>${money(r.amount)}</td><td>${r.note}</td><td>${r.details}</td><td>${money(r.balanceAfter)}</td><td>${r.receivedOrPaidBy}</td><td>${r.postedBy}</td></tr>`).join('');
+    const html = `
+      <div class="print-sheet">
+        <h2>Operational Balance Statement</h2>
+        <div class="kpi-row" style="margin-bottom:12px">
+          <div class="kpi"><div class="label">Total Income</div><div class="number">${money(summary.totalIncome)}</div></div>
+          <div class="kpi"><div class="label">Total Expense</div><div class="number">${money(summary.totalExpense)}</div></div>
+          <div class="kpi"><div class="label">Net Operational Balance</div><div class="number">${money(summary.netOperationalBalance)}</div></div>
+        </div>
+        <div class="table-card">
+          <div class="table-wrap">
+            <table class="table">
+              <thead><tr><th>S/N</th><th>Date</th><th>Type</th><th>Account Name</th><th>Amount</th><th>Note</th><th>Details</th><th>Balance After</th><th>Received or Paid By</th><th>Posted By</th></tr></thead>
+              <tbody>${bodyRows || '<tr><td colspan="10">No entries</td></tr>'}</tbody>
+            </table>
+          </div>
+          <div class="action-row"><strong>Total Amount: ${money(summary.totalAmount)}</strong></div>
+        </div>
+      </div>`;
+    printHtml(html, true);
+  }
+
+
+function renderTellerBalances() {
     const rows = state.staff.slice(0, state.ui.tellerEntriesLimit || 20).map(s=>{
       const acc = ensureStaffAccount(s.id);
       const floatToday = acc.entries.filter(e=>['approved_float','approved_float_topup'].includes(e.type) && e.floatDate===businessDate()).reduce((sum,e)=>sum+Number(e.amount||0),0);
@@ -2637,10 +2736,20 @@
     const tellerLess = byId('tellerLess');
     if (tellerLess) tellerLess.onclick = () => { state.ui.tellerEntriesLimit = Math.max(20, (state.ui.tellerEntriesLimit || 20) - 20); save(); renderWorkspace(); };
     byId(`${kind}ExportCsv`).onclick = () => {
-      const rows = kind === 'business' ? filterByDate(flattenBusinessEntries(), state.ui.businessFilter || { preset: 'all', from: '', to: '' }) : filterByDate(state.operations.entries || [], state.ui.operationalFilter || { preset: 'all', from: '', to: '' });
+      if (kind === 'operational') {
+        exportOperationalStatementCsv();
+        return;
+      }
+      const rows = filterByDate(flattenBusinessEntries(), state.ui.businessFilter || { preset: 'all', from: '', to: '' });
       exportCsv(rows, `${kind}_balance.csv`);
     };
-    byId(`${kind}PrintSummary`).onclick = () => printHtml(byId('workspace').innerHTML);
+    byId(`${kind}PrintSummary`).onclick = () => {
+      if (kind === 'operational') {
+        printOperationalStatement();
+        return;
+      }
+      printHtml(byId('workspace').innerHTML, true);
+    };
   }
 
   function filterByDate(rows, filter) {
@@ -2670,12 +2779,12 @@
     a.download = filename; a.click();
   }
 
-  function printHtml(html) {
+  function printHtml(html, autoPrint=true) {
     const w = window.open('', '_blank');
-    w.document.write(`<html><head><title>Print</title><link rel="stylesheet" href="app.css"></head><body><div class="shell">${html}</div></body></html>`);
+    w.document.write(`<html><head><title>Print</title><link rel="stylesheet" href="app.css"></head><body><div class="shell"><div class="workspace">${html}</div></div></body></html>`);
     w.document.close();
     w.focus();
-    w.print();
+    if (autoPrint) w.print();
   }
 
   function confirmAction(message, onYes) {
