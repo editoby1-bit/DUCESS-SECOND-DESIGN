@@ -383,6 +383,15 @@
     byId('modalBack').classList.add('hidden');
     const modalEl = document.querySelector('#modalBack .modal');
     if (modalEl) modalEl.removeAttribute('data-modal-title');
+    const toggleTool = state.ui?.modalToggleTool;
+    if (toggleTool && state.ui.tool === toggleTool) {
+      state.ui.tool = null;
+      state.ui.modalToggleTool = null;
+      save();
+      renderWorkspace();
+      return;
+    }
+    state.ui.modalToggleTool = null;
   }
 
   function fmtDate(iso) {
@@ -1047,6 +1056,7 @@
         if (nextTool === 'approval_others') state.ui.approvalsSection = 'others';
       }
       if (state.ui.tool === 'check_balance') state.ui.checkBalanceLoaded = false;
+      state.ui.modalToggleTool = state.ui.tool && ['my_balance','opening_balance','my_close_day','central_close_day'].includes(state.ui.tool) ? state.ui.tool : null;
       save();
       renderWorkspace();
       if (nextTool === 'my_balance' && state.ui.tool === 'my_balance') openMyBalanceModal();
@@ -1847,11 +1857,6 @@ function renderTellerBalances() {
   
   function isTelleringDirectModalTool(tool) {
     return ['my_balance', 'form', 'my_close_day'].includes(tool);
-  }
-
-
-  function normalizeTelleringTool(tool) {
-    return ['my_balance','form','my_close_day'].includes(tool) ? tool : 'tellering';
   }
 
 function bindToolHandlers() {

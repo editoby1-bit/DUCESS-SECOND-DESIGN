@@ -9184,78 +9184,72 @@ body[data-theme="ducess-sheet"] .my-balance-modal .my-balance-input{
 }
 
 
-
-/* ===== FINAL SWEEP: My Balance / Form / My Close of Day compact sizing ===== */
+/* ===== 2026-04-07 SURGICAL PATCH: tellering modal polish + true toggle ===== */
 @media (min-width: 901px){
-
-  /* MY BALANCE: halve compact amount fields again */
-  #walletFundAmt,
-  #walletRepayAmt{
-    width: 130px !important;
-    max-width: 130px !important;
-    min-width: 130px !important;
-    flex: 0 0 130px !important;
+  /* My Balance: cut the two amount inputs roughly in half while leaving Note wide */
+  #modalBack .modal[data-modal-title="My Balance"] .form-grid.three{
+    grid-template-columns: 170px 170px minmax(0, 1fr) !important;
+    align-items:end !important;
+    gap:12px !important;
+  }
+  #modalBack .modal[data-modal-title="My Balance"] #walletFundAmt,
+  #modalBack .modal[data-modal-title="My Balance"] #walletRepayAmt{
+    width:170px !important;
+    max-width:170px !important;
+    min-width:170px !important;
+    flex:0 0 170px !important;
+  }
+  #modalBack .modal[data-modal-title="My Balance"] #walletNote{
+    width:100% !important;
+    min-width:0 !important;
+    max-width:none !important;
   }
 
-  /* MY BALANCE: make KPI cards only as large as needed */
-  #modalBack .modal[data-modal-title="My Balance"] .kpi{
-    padding: 6px 10px !important;
-    border-radius: 10px !important;
-    min-height: 0 !important;
+  /* Tighten KPI wrappers so they hug the figures instead of looking boxy */
+  #modalBack .modal[data-modal-title="My Balance"] .kpi-row,
+  #modalBack .modal[data-modal-title="My Close of Day"] .kpi-row{
+    gap:8px !important;
   }
-  #modalBack .modal[data-modal-title="My Balance"] .kpi .label{
-    font-size: 9px !important;
-    line-height: 1.0 !important;
-    letter-spacing: .02em !important;
+  #modalBack .modal[data-modal-title="My Balance"] .kpi,
+  #modalBack .modal[data-modal-title="My Close of Day"] .kpi{
+    padding:8px 10px !important;
+    border-radius:10px !important;
   }
-  #modalBack .modal[data-modal-title="My Balance"] .kpi .number{
-    font-size: 12px !important;
-    line-height: 1 !important;
-    margin-top: 3px !important;
+  #modalBack .modal[data-modal-title="My Balance"] .kpi .label,
+  #modalBack .modal[data-modal-title="My Close of Day"] .kpi .label{
+    font-size:10px !important;
+    line-height:1.02 !important;
+    letter-spacing:.02em !important;
   }
-  #modalBack .modal[data-modal-title="My Balance"] .kpi-row{
-    gap: 8px !important;
-  }
-
-  /* FORM: amount input half width */
-  #modalBack .modal[data-modal-title="Form"] #formAmt,
-  #modalBack .modal[data-modal-title="Form"] #openingBalAmount,
-  #modalBack .modal[data-modal-title="Form"] input[name="amount"]{
-    width: 130px !important;
-    max-width: 130px !important;
-    min-width: 130px !important;
-    flex: 0 0 130px !important;
+  #modalBack .modal[data-modal-title="My Balance"] .kpi .number,
+  #modalBack .modal[data-modal-title="My Close of Day"] .kpi .number{
+    font-size:13px !important;
+    line-height:1 !important;
+    margin-top:3px !important;
   }
 
-  /* FORM: smaller footer button capsules */
-  #modalBack .modal[data-modal-title="Form"] .modal-actions{
-    padding: 10px 18px !important;
-    gap: 8px !important;
+  /* Form modal: halve Amount field and reduce button boxes */
+  #modalBack .modal[data-modal-title="Form"] .compact-modal-grid{
+    grid-template-columns: minmax(0, 1fr) 160px 170px !important;
+    align-items:end !important;
+  }
+  #modalBack .modal[data-modal-title="Form"] #floatAmount{
+    width:170px !important;
+    max-width:170px !important;
+    min-width:170px !important;
+    justify-self:start !important;
   }
   #modalBack .modal[data-modal-title="Form"] .modal-actions button{
-    min-height: 32px !important;
-    padding: 0 12px !important;
-    font-size: 11px !important;
-    border-radius: 12px !important;
+    min-height:32px !important;
+    height:32px !important;
+    padding:0 14px !important;
+    border-radius:12px !important;
+    font-size:12px !important;
+    min-width:auto !important;
   }
 
-  /* MY CLOSE OF DAY: remove redundant KPI box space */
-  #modalBack .modal[data-modal-title="My Close of Day"] .kpi{
-    padding: 6px 10px !important;
-    border-radius: 10px !important;
-    min-height: 0 !important;
-  }
-  #modalBack .modal[data-modal-title="My Close of Day"] .kpi .label{
-    font-size: 9px !important;
-    line-height: 1.0 !important;
-    letter-spacing: .02em !important;
-  }
-  #modalBack .modal[data-modal-title="My Close of Day"] .kpi .number{
-    font-size: 12px !important;
-    line-height: 1 !important;
-    margin-top: 3px !important;
-  }
-  #modalBack .modal[data-modal-title="My Close of Day"] .kpi-row{
-    gap: 8px !important;
+  /* My Close of Day: tighter KPI wrappers only, no other layout changes */
+  #modalBack .modal[data-modal-title="My Close of Day"] .cod-summary-grid{
+    gap:8px !important;
   }
 }
