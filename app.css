@@ -8833,3 +8833,119 @@ body[data-theme="ducess-sheet"] .my-balance-modal .my-balance-input{
     max-width:none !important;
   }
 }
+
+/* ===== TARGETED MODAL SIZE FIX: Form / My Balance / My Close of Day ===== */
+@media (min-width: 901px){
+
+  /* Widths */
+  #modalBack .modal[data-modal-title="Form"]{
+    width:min(760px, calc(100vw - 44px)) !important;
+    max-width:min(760px, calc(100vw - 44px)) !important;
+  }
+
+  #modalBack .modal[data-modal-title="My Balance"]{
+    width:min(900px, calc(100vw - 44px)) !important;
+    max-width:min(900px, calc(100vw - 44px)) !important;
+  }
+
+  #modalBack .modal[data-modal-title="My Close of Day"]{
+    width:min(1040px, calc(100vw - 44px)) !important;
+    max-width:min(1040px, calc(100vw - 44px)) !important;
+  }
+
+  /* Header and body */
+  #modalBack .modal[data-modal-title="Form"] .modal-head,
+  #modalBack .modal[data-modal-title="My Balance"] .modal-head,
+  #modalBack .modal[data-modal-title="My Close of Day"] .modal-head{
+    padding:14px 24px !important;
+  }
+
+  #modalBack .modal[data-modal-title="Form"] .modal-head h3,
+  #modalBack .modal[data-modal-title="My Balance"] .modal-head h3,
+  #modalBack .modal[data-modal-title="My Close of Day"] .modal-head h3{
+    font-size:16px !important;
+    line-height:1.1 !important;
+  }
+
+  #modalBack .modal[data-modal-title="Form"] .modal-body,
+  #modalBack .modal[data-modal-title="My Balance"] .modal-body,
+  #modalBack .modal[data-modal-title="My Close of Day"] .modal-body{
+    padding:16px 24px !important;
+  }
+
+  /* Labels */
+  #modalBack .modal[data-modal-title="Form"] .field label,
+  #modalBack .modal[data-modal-title="My Balance"] .field label,
+  #modalBack .modal[data-modal-title="My Close of Day"] .inline-field span,
+  #modalBack .modal[data-modal-title="My Close of Day"] .kpi .label,
+  #modalBack .modal[data-modal-title="My Balance"] .kpi .label{
+    font-size:11px !important;
+    line-height:1.05 !important;
+    margin-bottom:4px !important;
+  }
+
+  /* Inputs and display fields */
+  #modalBack .modal[data-modal-title="Form"] .entry-input,
+  #modalBack .modal[data-modal-title="Form"] .display-field,
+  #modalBack .modal[data-modal-title="My Balance"] .entry-input,
+  #modalBack .modal[data-modal-title="My Balance"] .display-field,
+  #modalBack .modal[data-modal-title="My Close of Day"] input{
+    min-height:42px !important;
+    padding:8px 12px !important;
+    font-size:12px !important;
+    border-radius:12px !important;
+  }
+
+  /* Compact grids */
+  #modalBack .modal[data-modal-title="Form"] .compact-modal-grid{
+    gap:12px !important;
+  }
+
+  #modalBack .modal[data-modal-title="My Balance"] .form-grid.three{
+    gap:12px !important;
+  }
+
+  #modalBack .modal[data-modal-title="My Close of Day"] .kpi-row{
+    gap:12px !important;
+    margin-bottom:12px !important;
+  }
+
+  /* KPI cards */
+  #modalBack .modal[data-modal-title="My Balance"] .kpi,
+  #modalBack .modal[data-modal-title="My Close of Day"] .kpi{
+    padding:12px 18px !important;
+    border-radius:16px !important;
+  }
+
+  #modalBack .modal[data-modal-title="My Balance"] .kpi .number,
+  #modalBack .modal[data-modal-title="My Close of Day"] .kpi .number{
+    font-size:18px !important;
+    line-height:1.05 !important;
+    margin-top:6px !important;
+  }
+
+  /* Notes / helper copy */
+  #modalBack .modal[data-modal-title="Form"] .note,
+  #modalBack .modal[data-modal-title="My Balance"] .note,
+  #modalBack .modal[data-modal-title="My Close of Day"] .note{
+    font-size:11px !important;
+    line-height:1.35 !important;
+  }
+
+  /* Footer buttons */
+  #modalBack .modal[data-modal-title="Form"] .modal-actions,
+  #modalBack .modal[data-modal-title="My Balance"] .modal-actions,
+  #modalBack .modal[data-modal-title="My Close of Day"] .modal-actions{
+    padding:14px 24px !important;
+    gap:10px !important;
+  }
+
+  #modalBack .modal[data-modal-title="Form"] .modal-actions button,
+  #modalBack .modal[data-modal-title="My Balance"] .modal-actions button,
+  #modalBack .modal[data-modal-title="My Close of Day"] .modal-actions button{
+    min-height:36px !important;
+    padding:0 16px !important;
+    font-size:12px !important;
+    border-radius:14px !important;
+  }
+}
