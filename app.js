@@ -1825,14 +1825,14 @@
 function renderTellerBalances() {
     const rows = state.staff.slice(0, state.ui.tellerEntriesLimit || 20).map(s=>{
       const acc = ensureStaffAccount(s.id);
-      const debtBalance = Math.max(0, -Number(acc.balance || 0));
+      const debtBalance = Number(acc.balance || 0) < 0 ? Number(acc.balance || 0) : 0;
       const totalCreditReceived = acc.entries
         .filter(e => ['customer_credit','credit','approved_float','approved_float_topup'].includes(String(e.type || '').toLowerCase()))
         .reduce((sum,e)=>sum+Number(e.amount||0),0);
       const totalDebitsPaid = acc.entries
         .filter(e => ['customer_debit','debit'].includes(String(e.type || '').toLowerCase()))
         .reduce((sum,e)=>sum+Number(e.amount||0),0);
-      return `<tr><td>${s.name}</td><td>${ROLE_LABELS[s.role] || s.role}</td><td>${acc.accountNumber}</td><td>${money(acc.balance)}</td><td>${money(debtBalance)}</td><td>${money(totalCreditReceived)}</td><td>${money(totalDebitsPaid)}</td></tr>`;
+      return `<tr><td>${s.name}</td><td>${ROLE_LABELS[s.role] || s.role}</td><td>${acc.accountNumber}</td><td>${money(acc.balance)}</td><td class="balance-negative">${debtBalance < 0 ? "-" + money(Math.abs(debtBalance)) : money(0)}</td><td>${money(totalCreditReceived)}</td><td>${money(totalDebitsPaid)}</td></tr>`;
     }).join('');
     return `<div class="table-card"><div class="action-row" style="justify-content:space-between;align-items:center"><h3>Teller and Posting Accounts</h3><div class="note" style="margin:0">Business Date: <strong>${businessDate()}</strong></div></div><div class="table-wrap"><table class="table"><thead><tr><th>Staff</th><th>Office</th><th>Account Number</th><th>Balance</th><th>Debt Balance</th><th>Total Credit Received</th><th>Total Debits Paid</th></tr></thead><tbody>${rows}</tbody></table></div><div class="action-row">${state.staff.length > (state.ui.tellerEntriesLimit || 20) ? `<button id="tellerMore" class="secondary">Show More</button>` : ''}${(state.ui.tellerEntriesLimit || 20) > 20 ? `<button id="tellerLess" class="secondary">Show Less</button>` : ''}</div></div>`;
   }
