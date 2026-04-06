@@ -1624,7 +1624,18 @@
       ['TOTAL INCOME', money(summary.totalIncome), 'TOTAL EXPENSE', money(summary.totalExpense), 'NET OPERATIONAL BALANCE', money(summary.netOperationalBalance)],
       [],
       ['S/N','DATE','TYPE','ACCOUNT NAME','AMOUNT','NOTE','DETAILS','BALANCE AFTER','RECEIVED OR PAID BY','POSTED BY'],
-      ...rows.map(r => [r.sn, r.date, r.type, r.accountName, r.amount, r.note, r.details, r.balanceAfter, r.receivedOrPaidBy, r.postedBy]),
+      ...rows.map(r => [
+        r.sn,
+        r.date,
+        String(r.type || '').toUpperCase(),
+        r.accountName,
+        r.amount,
+        r.note,
+        r.details,
+        r.balanceAfter,
+        r.receivedOrPaidBy,
+        r.postedBy
+      ]),
       [],
       ['TOTAL AMOUNT', summary.totalAmount]
     ];
@@ -1636,11 +1647,12 @@
   function printOperationalStatement() {
     const rows = buildOperationalStatementRows();
     const summary = getOperationalStatementSummary(rows);
+
     const bodyRows = rows.map(r => `
       <tr>
         <td>${r.sn}</td>
         <td>${r.date}</td>
-        <td>${r.type}</td>
+        <td>${String(r.type || '').toUpperCase()}</td>
         <td>${r.accountName}</td>
         <td>${money(r.amount)}</td>
         <td>${r.note}</td>
@@ -1654,13 +1666,13 @@
     const html = `
       <div class="statement-sheet operational-statement-sheet">
         <div class="statement-title">Operational Balance Statement</div>
-        <div class="statement-summary">
-          <div><strong>Total Income:</strong> ${money(summary.totalIncome)}</div>
-          <div><strong>Total Expense:</strong> ${money(summary.totalExpense)}</div>
-          <div><strong>Net Operational Balance:</strong> ${money(summary.netOperationalBalance)}</div>
+        <div class="statement-summary-grid">
+          <div class="statement-summary-item"><span>Total Income:</span> ${money(summary.totalIncome)}</div>
+          <div class="statement-summary-item"><span>Total Expense:</span> ${money(summary.totalExpense)}</div>
+          <div class="statement-summary-item"><span>Net Operational Balance:</span> ${money(summary.netOperationalBalance)}</div>
         </div>
         <div class="statement-rule"></div>
-        <table class="statement-table">
+        <table class="statement-table operational-statement-table">
           <thead>
             <tr>
               <th>S/N</th>
@@ -2791,16 +2803,39 @@
     const w = window.open('', '_blank');
     const statementStyles = `
       <style>
-        @page { margin: 12mm; }
-        body { font-family: Arial, Helvetica, sans-serif; color:#111; margin:0; }
-        .statement-sheet { padding: 6px 10px; }
-        .statement-title { font-size: 18px; font-weight: 700; margin: 0 0 10px; }
-        .statement-summary { display: grid; gap: 6px; font-size: 12px; margin: 0 0 8px; }
-        .statement-rule { border-top: 1px solid #999; margin: 8px 0 12px; }
-        .statement-table { width: 100%; border-collapse: collapse; font-size: 11px; }
-        .statement-table th, .statement-table td { border: 1px solid #666; padding: 5px 6px; text-align: left; vertical-align: top; }
-        .statement-table th { background: #f5f5f5; font-weight: 700; }
-        .statement-total { margin-top: 10px; font-size: 12px; }
+        @page { size: landscape; margin: 10mm; }
+        body { font-family: Arial, Helvetica, sans-serif; color:#111; margin:0; background:#fff; }
+        .shell, .workspace { margin:0; padding:0; }
+        .statement-sheet { padding: 4px 6px; }
+        .statement-title { font-size: 16px; font-weight: 700; margin: 0 0 8px; }
+        .statement-summary-grid {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 8px;
+          font-size: 11px;
+          margin: 0 0 8px;
+        }
+        .statement-summary-item {
+          padding: 4px 6px;
+          border: 1px solid #999;
+        }
+        .statement-summary-item span { font-weight: 700; }
+        .statement-rule { border-top: 1px solid #999; margin: 6px 0 8px; }
+        .statement-table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 9px;
+          table-layout: fixed;
+        }
+        .statement-table th, .statement-table td {
+          border: 1px solid #666;
+          padding: 4px 5px;
+          text-align: left;
+          vertical-align: top;
+          word-break: break-word;
+        }
+        .statement-table th { background: #f3f3f3; font-weight: 700; }
+        .statement-total { margin-top: 8px; font-size: 11px; }
       </style>`;
     w.document.write(`<html><head><title>Print</title><link rel="stylesheet" href="app.css">${statementStyles}</head><body><div class="shell"><div class="workspace">${html}</div></div></body></html>`);
     w.document.close();
