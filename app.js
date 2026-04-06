@@ -1844,7 +1844,12 @@ function renderTellerBalances() {
     return state.customers.flatMap(customer => (customer.transactions||[]).map(tx => ({ ...tx, customer })) ).sort((a,b)=>new Date(b.date)-new Date(a.date));
   }
 
-  function bindToolHandlers() {
+  
+  function isTelleringDirectModalTool(tool) {
+    return ['my_balance', 'form', 'my_close_day'].includes(tool);
+  }
+
+function bindToolHandlers() {
     switch (state.ui.tool) {
       case 'check_balance': bindCheckBalance(); break;
       case 'account_opening': bindAccountOpening(); break;
