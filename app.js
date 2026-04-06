@@ -1588,15 +1588,16 @@
     let runningBalance = 0;
     return filtered.map((e, idx) => {
       const amount = Number(e.amount || 0);
-      runningBalance += e.kind === 'income' ? amount : -amount;
+      const type = String(e.kind || e.type || '').toLowerCase();
+      runningBalance += type === 'income' ? amount : -amount;
       return {
         sn: idx + 1,
         date: fmtDate(e.date),
-        type: e.kind || '',
-        accountName: e.accountName || '—',
+        type,
+        accountName: e.accountName || e.account || '—',
         amount,
-        note: e.note || '—',
-        details: e.details || e.accountName || '—',
+        note: e.note || e.details || '',
+        details: e.details || e.note || '',
         balanceAfter: runningBalance,
         receivedOrPaidBy: e.receivedOrPaidBy || e.postedBy || '—',
         postedBy: e.postedBy || '—'
@@ -1629,7 +1630,7 @@
         String(r.type || '').toUpperCase(),
         r.accountName,
         Number(r.amount || 0),
-        r.note || '',
+        r.details || r.note || '',
         Number(r.balanceAfter || 0),
         r.postedBy || ''
       ]),
@@ -1701,8 +1702,11 @@
   
   function getBusinessFilteredRows() {
     const rawBusiness = filterByDate(flattenBusinessEntries(), state.ui.businessFilter || { preset: 'all', from: '', to: '' });
-    const typeFilter = state.ui.businessType || 'all';
-    return rawBusiness.filter(e => typeFilter === 'all' ? true : e.type === typeFilter);
+    const typeFilter = String(state.ui.businessType || 'all').toLowerCase();
+    return rawBusiness.filter(e => {
+      const rowType = String(e.type || e.kind || '').toLowerCase();
+      return typeFilter === 'all' ? true : rowType === typeFilter;
+    });
   }
 
   function buildBusinessStatementRows() {
@@ -2838,15 +2842,32 @@ function renderTellerBalances() {
   function flattenBusinessEntries() {
     const txRows = flattenCustomerTx().map(t => ({
       date: t.date,
-      accountNumber: t.customer.accountNumber,
-      details: t.details,
+      accountNumber: t.customer?.accountNumber || '',
+      accountName: t.customer?.name || t.accountName || t.customerName || t.customer?.accountNumber || '',
+      details: t.details || t.note || '',
+      note: t.note || t.details || '',
       kind: t.type,
-      amount: t.amount,
-      balanceAfter: t.balanceAfter,
-      receivedOrPaidBy: t.receivedOrPaidBy,
+      type: t.type,
+      delta: t.type === 'credit' ? Number(t.amount || 0) : -Number(t.amount || 0),
+      amount: Number(t.amount || 0),
+      balanceAfter: Number(t.balanceAfter || 0),
+      receivedOrPaidBy: t.receivedOrPaidBy || t.receivedBy || t.postedBy || '',
       postedBy: t.postedBy || t.postedById || ''
     }));
-    const extras = (state.businessExtras || []).map(e => ({...e, accountNumber: e.accountNumber || 'STAFF'}));
+    const extras = (state.businessExtras || []).map(e => ({
+      ...e,
+      accountNumber: e.accountNumber || 'STAFF',
+      accountName: e.accountName || e.customerName || e.accountNumber || 'STAFF',
+      details: e.details || e.note || '',
+      note: e.note || e.details || '',
+      type: e.type || e.kind || (Number(e.delta || 0) >= 0 ? 'credit' : 'debit'),
+      kind: e.kind || e.type || (Number(e.delta || 0) >= 0 ? 'credit' : 'debit'),
+      delta: Number(e.delta || ((e.type || e.kind) === 'debit' ? -Number(e.amount || 0) : Number(e.amount || 0))),
+      amount: Number(e.amount || 0),
+      balanceAfter: Number(e.balanceAfter || 0),
+      receivedOrPaidBy: e.receivedOrPaidBy || e.receivedBy || e.postedBy || '',
+      postedBy: e.postedBy || ''
+    }));
     return [...txRows, ...extras].sort((a,b)=>new Date(b.date)-new Date(a.date));
   }
 
