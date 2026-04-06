@@ -8713,3 +8713,70 @@ body[data-theme="ducess-sheet"] .my-balance-modal .my-balance-input{
     font-size:20px !important;
   }
 }
+
+/* ===== 2026-04-06 SURGICAL PATCH v7.1 ===== */
+/* Balances only: reduce filters and KPI label names. Nothing else touched. */
+
+@media (min-width: 981px){
+
+  /* Balances filter/action buttons */
+  .balances-shell .chip,
+  .balances-shell button.chip,
+  .balances-shell .seg-btn,
+  .balances-shell .filter-btn,
+  .balances-shell .action-btn,
+  .balances-shell .balances-toolbar button,
+  .balances-shell .balances-filters button,
+  .balance-shell .chip,
+  .balance-shell button.chip,
+  .balance-shell .seg-btn,
+  .balance-shell .filter-btn,
+  .balance-shell .action-btn,
+  .balance-shell .balances-toolbar button,
+  .balance-shell .balances-filters button{
+    font-size:12px !important;
+    line-height:1.05 !important;
+    padding:8px 14px !important;
+    border-radius:10px !important;
+  }
+
+  /* Date labels above From / To */
+  .balances-shell .balances-toolbar label,
+  .balances-shell .balances-filters label,
+  .balance-shell .balances-toolbar label,
+  .balance-shell .balances-filters label{
+    font-size:11px !important;
+    line-height:1 !important;
+  }
+
+  /* KPI cards headings like TOTAL CREDIT / ENTRIES / NET BOOK BALANCE */
+  .balances-shell .kpi-card h4,
+  .balances-shell .kpi-card .kpi-title,
+  .balances-shell .kpi-card .label,
+  .balances-shell .metric-card h4,
+  .balances-shell .metric-card .metric-label,
+  .balances-shell .metric-card .label,
+  .balance-shell .kpi-card h4,
+  .balance-shell .kpi-card .kpi-title,
+  .balance-shell .kpi-card .label,
+  .balance-shell .metric-card h4,
+  .balance-shell .metric-card .metric-label,
+  .balance-shell .metric-card .label{
+    font-size:11px !important;
+    line-height:1.05 !important;
+    letter-spacing:.05em !important;
+  }
+
+  /* KPI values slightly smaller for consistency */
+  .balances-shell .kpi-card .value,
+  .balances-shell .kpi-card .kpi-value,
+  .balances-shell .metric-card .value,
+  .balances-shell .metric-card .metric-value,
+  .balance-shell .kpi-card .value,
+  .balance-shell .kpi-card .kpi-value,
+  .balance-shell .metric-card .value,
+  .balance-shell .metric-card .metric-value{
+    font-size:18px !important;
+    line-height:1.05 !important;
+  }
+}
