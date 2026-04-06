@@ -8707,3 +8707,129 @@ body[data-theme="ducess-sheet"] .my-balance-modal .my-balance-input{
     letter-spacing:.04em !important;
   }
 }
+
+/* ===== 2026-04-06 SURGICAL PATCH: STANDARDIZE FORM / MY BALANCE / MY CLOSE OF DAY ===== */
+@media (min-width: 901px){
+
+  /* Modal shell widths */
+  #modalBack .modal[data-modal-title="Form"]{
+    width:min(820px, calc(100vw - 44px)) !important;
+    max-width:min(820px, calc(100vw - 44px)) !important;
+  }
+
+  #modalBack .modal[data-modal-title="My Balance"]{
+    width:min(860px, calc(100vw - 44px)) !important;
+    max-width:min(860px, calc(100vw - 44px)) !important;
+  }
+
+  #modalBack .modal[data-modal-title="My Close of Day"]{
+    width:min(980px, calc(100vw - 44px)) !important;
+    max-width:min(980px, calc(100vw - 44px)) !important;
+  }
+
+  /* Header / body rhythm */
+  #modalBack .modal[data-modal-title="Form"] .modal-head,
+  #modalBack .modal[data-modal-title="My Balance"] .modal-head,
+  #modalBack .modal[data-modal-title="My Close of Day"] .modal-head{
+    padding:16px 24px !important;
+  }
+
+  #modalBack .modal[data-modal-title="Form"] .modal-body,
+  #modalBack .modal[data-modal-title="My Balance"] .modal-body,
+  #modalBack .modal[data-modal-title="My Close of Day"] .modal-body{
+    padding:18px 24px !important;
+  }
+
+  #modalBack .modal[data-modal-title="Form"] .modal-head h3,
+  #modalBack .modal[data-modal-title="My Balance"] .modal-head h3,
+  #modalBack .modal[data-modal-title="My Close of Day"] .modal-head h3{
+    font-size:16px !important;
+    line-height:1.1 !important;
+  }
+
+  /* Labels and helper text */
+  #modalBack .modal[data-modal-title="Form"] .field label,
+  #modalBack .modal[data-modal-title="My Balance"] .field label,
+  #modalBack .modal[data-modal-title="My Close of Day"] .inline-field span{
+    font-size:12px !important;
+    line-height:1.05 !important;
+    margin-bottom:4px !important;
+  }
+
+  #modalBack .modal[data-modal-title="Form"] .note,
+  #modalBack .modal[data-modal-title="My Balance"] .note,
+  #modalBack .modal[data-modal-title="My Close of Day"] .note{
+    font-size:11px !important;
+    line-height:1.35 !important;
+  }
+
+  /* Inputs / display fields */
+  #modalBack .modal[data-modal-title="Form"] input,
+  #modalBack .modal[data-modal-title="My Balance"] input,
+  #modalBack .modal[data-modal-title="My Balance"] .display-field,
+  #modalBack .modal[data-modal-title="Form"] .display-field,
+  #modalBack .modal[data-modal-title="My Close of Day"] input{
+    min-height:40px !important;
+    padding:8px 12px !important;
+    font-size:12px !important;
+    border-radius:12px !important;
+  }
+
+  /* KPI cards */
+  #modalBack .modal[data-modal-title="My Balance"] .kpi,
+  #modalBack .modal[data-modal-title="My Close of Day"] .kpi{
+    padding:12px 18px !important;
+    border-radius:16px !important;
+  }
+
+  #modalBack .modal[data-modal-title="My Balance"] .kpi .label,
+  #modalBack .modal[data-modal-title="My Close of Day"] .kpi .label{
+    font-size:11px !important;
+    line-height:1.08 !important;
+    letter-spacing:.03em !important;
+  }
+
+  #modalBack .modal[data-modal-title="My Balance"] .kpi .number,
+  #modalBack .modal[data-modal-title="My Close of Day"] .kpi .number{
+    font-size:19px !important;
+    line-height:1.05 !important;
+  }
+
+  /* Compact grids */
+  #modalBack .modal[data-modal-title="Form"] .form-grid,
+  #modalBack .modal[data-modal-title="My Balance"] .form-grid{
+    gap:12px !important;
+  }
+
+  #modalBack .modal[data-modal-title="My Close of Day"] .kpi-row{
+    gap:14px !important;
+  }
+
+  /* Actions */
+  #modalBack .modal[data-modal-title="Form"] .modal-actions,
+  #modalBack .modal[data-modal-title="My Balance"] .modal-actions,
+  #modalBack .modal[data-modal-title="My Close of Day"] .modal-actions{
+    padding:14px 24px !important;
+    gap:10px !important;
+  }
+
+  #modalBack .modal[data-modal-title="Form"] .modal-actions button,
+  #modalBack .modal[data-modal-title="My Balance"] .modal-actions button,
+  #modalBack .modal[data-modal-title="My Close of Day"] .modal-actions button{
+    min-height:36px !important;
+    padding:0 16px !important;
+    font-size:12px !important;
+    border-radius:14px !important;
+  }
+
+  /* Slightly tighter special fields */
+  #modalBack .modal[data-modal-title="Form"] .field-date-compact .display-field{
+    max-width:160px !important;
+  }
+
+  #modalBack .modal[data-modal-title="My Balance"] #walletFundAmt,
+  #modalBack .modal[data-modal-title="My Balance"] #walletRepayAmt{
+    width:100% !important;
+    max-width:none !important;
+  }
+}
