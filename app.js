@@ -1849,6 +1849,11 @@ function renderTellerBalances() {
     return ['my_balance', 'form', 'my_close_day'].includes(tool);
   }
 
+
+  function normalizeTelleringTool(tool) {
+    return ['my_balance','form','my_close_day'].includes(tool) ? tool : 'tellering';
+  }
+
 function bindToolHandlers() {
     switch (state.ui.tool) {
       case 'check_balance': bindCheckBalance(); break;
