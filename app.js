@@ -1620,27 +1620,20 @@
     const rows = buildOperationalStatementRows();
     const summary = getOperationalStatementSummary(rows);
 
-    const headers = ['S/N','DATE','TYPE','ACCOUNT NAME','AMOUNT','NOTE','BALANCE AFTER','POSTED BY'];
-
-    const dataRows = rows.map(r => [
+    const csvRows = [
+      ['S/N','DATE','TYPE','ACCOUNT NAME','AMOUNT','NOTE','BALANCE AFTER','POSTED BY'],
+      ...rows.map(r => [
         r.sn,
         r.date,
         String(r.type || '').toUpperCase(),
         r.accountName,
         Number(r.amount || 0),
-        r.note,
+        r.note || '',
         Number(r.balanceAfter || 0),
-        r.postedBy
-    ]);
-
-    const csvRows = [
-      ['OPERATIONAL BALANCE STATEMENT','','','','','','',''],
-      ['TOTAL INCOME', money(summary.totalIncome),'TOTAL EXPENSE', money(summary.totalExpense),'NET OPERATIONAL BALANCE', money(summary.netOperationalBalance),'',''],
+        r.postedBy || ''
+      ]),
       [],
-      headers,
-      ...dataRows,
-      [],
-      ['TOTAL AMOUNT', summary.totalAmount,'','','','','','']
+      ['', '', '', '', '', 'TOTAL AMOUNT', Number(summary.totalAmount || 0), '']
     ];
 
     exportCsv(csvRows, 'operational_balance.csv', true);
