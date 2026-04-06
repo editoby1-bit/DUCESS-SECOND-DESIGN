@@ -1623,17 +1623,15 @@
       ['OPERATIONAL BALANCE STATEMENT'],
       ['TOTAL INCOME', money(summary.totalIncome), 'TOTAL EXPENSE', money(summary.totalExpense), 'NET OPERATIONAL BALANCE', money(summary.netOperationalBalance)],
       [],
-      ['S/N','DATE','TYPE','ACCOUNT NAME','AMOUNT','NOTE','DETAILS','BALANCE AFTER','RECEIVED OR PAID BY','POSTED BY'],
+      ['S/N','DATE','TYPE','ACCOUNT NAME','AMOUNT','NOTE','BALANCE AFTER','POSTED BY'],
       ...rows.map(r => [
         r.sn,
         r.date,
         String(r.type || '').toUpperCase(),
         r.accountName,
-        r.amount,
+        Number(r.amount || 0),
         r.note,
-        r.details,
-        r.balanceAfter,
-        r.receivedOrPaidBy,
+        Number(r.balanceAfter || 0),
         r.postedBy
       ]),
       [],
@@ -1656,9 +1654,7 @@
         <td>${r.accountName}</td>
         <td>${money(r.amount)}</td>
         <td>${r.note}</td>
-        <td>${r.details}</td>
         <td>${money(r.balanceAfter)}</td>
-        <td>${r.receivedOrPaidBy}</td>
         <td>${r.postedBy}</td>
       </tr>
     `).join('');
@@ -1681,14 +1677,12 @@
               <th>Account Name</th>
               <th>Amount</th>
               <th>Note</th>
-              <th>Details</th>
               <th>Balance After</th>
-              <th>Received or Paid By</th>
               <th>Posted By</th>
             </tr>
           </thead>
           <tbody>
-            ${bodyRows || '<tr><td colspan="10">No entries</td></tr>'}
+            ${bodyRows || '<tr><td colspan="8">No entries</td></tr>'}
           </tbody>
         </table>
         <div class="statement-total"><strong>Total Amount:</strong> ${money(summary.totalAmount)}</div>
