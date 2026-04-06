@@ -1615,6 +1615,7 @@
     };
   }
 
+  
   function exportOperationalStatementCsv() {
     const rows = buildOperationalStatementRows();
     const summary = getOperationalStatementSummary(rows);
@@ -1628,56 +1629,63 @@
       ['TOTAL AMOUNT', summary.totalAmount]
     ];
     exportCsv(csvRows, 'operational_balance.csv', true);
-
-    const previewRows = rows.map(r => `<tr><td>${r.sn}</td><td>${r.date}</td><td>${r.type}</td><td>${r.accountName}</td><td>${money(r.amount)}</td><td>${r.note}</td><td>${r.details}</td><td>${money(r.balanceAfter)}</td><td>${r.receivedOrPaidBy}</td><td>${r.postedBy}</td></tr>`).join('');
-    const html = `
-      <div class="print-sheet">
-        <h2>Operational Balance Statement</h2>
-        <div class="kpi-row" style="margin-bottom:12px">
-          <div class="kpi"><div class="label">Total Income</div><div class="number">${money(summary.totalIncome)}</div></div>
-          <div class="kpi"><div class="label">Total Expense</div><div class="number">${money(summary.totalExpense)}</div></div>
-          <div class="kpi"><div class="label">Net Operational Balance</div><div class="number">${money(summary.netOperationalBalance)}</div></div>
-        </div>
-        <div class="table-card">
-          <div class="table-wrap">
-            <table class="table">
-              <thead><tr><th>S/N</th><th>Date</th><th>Type</th><th>Account Name</th><th>Amount</th><th>Note</th><th>Details</th><th>Balance After</th><th>Received or Paid By</th><th>Posted By</th></tr></thead>
-              <tbody>${previewRows || '<tr><td colspan="10">No entries</td></tr>'}</tbody>
-            </table>
-          </div>
-          <div class="action-row"><strong>Total Amount: ${money(summary.totalAmount)}</strong></div>
-        </div>
-      </div>`;
-    printHtml(html, false);
   }
 
+
+  
   function printOperationalStatement() {
     const rows = buildOperationalStatementRows();
     const summary = getOperationalStatementSummary(rows);
-    const bodyRows = rows.map(r => `<tr><td>${r.sn}</td><td>${r.date}</td><td>${r.type}</td><td>${r.accountName}</td><td>${money(r.amount)}</td><td>${r.note}</td><td>${r.details}</td><td>${money(r.balanceAfter)}</td><td>${r.receivedOrPaidBy}</td><td>${r.postedBy}</td></tr>`).join('');
+    const bodyRows = rows.map(r => `
+      <tr>
+        <td>${r.sn}</td>
+        <td>${r.date}</td>
+        <td>${r.type}</td>
+        <td>${r.accountName}</td>
+        <td>${money(r.amount)}</td>
+        <td>${r.note}</td>
+        <td>${r.details}</td>
+        <td>${money(r.balanceAfter)}</td>
+        <td>${r.receivedOrPaidBy}</td>
+        <td>${r.postedBy}</td>
+      </tr>
+    `).join('');
+
     const html = `
-      <div class="print-sheet">
-        <h2>Operational Balance Statement</h2>
-        <div class="kpi-row" style="margin-bottom:12px">
-          <div class="kpi"><div class="label">Total Income</div><div class="number">${money(summary.totalIncome)}</div></div>
-          <div class="kpi"><div class="label">Total Expense</div><div class="number">${money(summary.totalExpense)}</div></div>
-          <div class="kpi"><div class="label">Net Operational Balance</div><div class="number">${money(summary.netOperationalBalance)}</div></div>
+      <div class="statement-sheet operational-statement-sheet">
+        <div class="statement-title">Operational Balance Statement</div>
+        <div class="statement-summary">
+          <div><strong>Total Income:</strong> ${money(summary.totalIncome)}</div>
+          <div><strong>Total Expense:</strong> ${money(summary.totalExpense)}</div>
+          <div><strong>Net Operational Balance:</strong> ${money(summary.netOperationalBalance)}</div>
         </div>
-        <div class="table-card">
-          <div class="table-wrap">
-            <table class="table">
-              <thead><tr><th>S/N</th><th>Date</th><th>Type</th><th>Account Name</th><th>Amount</th><th>Note</th><th>Details</th><th>Balance After</th><th>Received or Paid By</th><th>Posted By</th></tr></thead>
-              <tbody>${bodyRows || '<tr><td colspan="10">No entries</td></tr>'}</tbody>
-            </table>
-          </div>
-          <div class="action-row"><strong>Total Amount: ${money(summary.totalAmount)}</strong></div>
-        </div>
-      </div>`;
+        <div class="statement-rule"></div>
+        <table class="statement-table">
+          <thead>
+            <tr>
+              <th>S/N</th>
+              <th>Date</th>
+              <th>Type</th>
+              <th>Account Name</th>
+              <th>Amount</th>
+              <th>Note</th>
+              <th>Details</th>
+              <th>Balance After</th>
+              <th>Received or Paid By</th>
+              <th>Posted By</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${bodyRows || '<tr><td colspan="10">No entries</td></tr>'}
+          </tbody>
+        </table>
+        <div class="statement-total"><strong>Total Amount:</strong> ${money(summary.totalAmount)}</div>
+      </div>
+    `;
     printHtml(html, true);
   }
 
-
-function renderTellerBalances() {
+  function renderTellerBalances() {
     const rows = state.staff.slice(0, state.ui.tellerEntriesLimit || 20).map(s=>{
       const acc = ensureStaffAccount(s.id);
       const floatToday = acc.entries.filter(e=>['approved_float','approved_float_topup'].includes(e.type) && e.floatDate===businessDate()).reduce((sum,e)=>sum+Number(e.amount||0),0);
@@ -2781,7 +2789,20 @@ function renderTellerBalances() {
 
   function printHtml(html, autoPrint=true) {
     const w = window.open('', '_blank');
-    w.document.write(`<html><head><title>Print</title><link rel="stylesheet" href="app.css"></head><body><div class="shell"><div class="workspace">${html}</div></div></body></html>`);
+    const statementStyles = `
+      <style>
+        @page { margin: 12mm; }
+        body { font-family: Arial, Helvetica, sans-serif; color:#111; margin:0; }
+        .statement-sheet { padding: 6px 10px; }
+        .statement-title { font-size: 18px; font-weight: 700; margin: 0 0 10px; }
+        .statement-summary { display: grid; gap: 6px; font-size: 12px; margin: 0 0 8px; }
+        .statement-rule { border-top: 1px solid #999; margin: 8px 0 12px; }
+        .statement-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+        .statement-table th, .statement-table td { border: 1px solid #666; padding: 5px 6px; text-align: left; vertical-align: top; }
+        .statement-table th { background: #f5f5f5; font-weight: 700; }
+        .statement-total { margin-top: 10px; font-size: 12px; }
+      </style>`;
+    w.document.write(`<html><head><title>Print</title><link rel="stylesheet" href="app.css">${statementStyles}</head><body><div class="shell"><div class="workspace">${html}</div></div></body></html>`);
     w.document.close();
     w.focus();
     if (autoPrint) w.print();
