@@ -8949,3 +8949,79 @@ body[data-theme="ducess-sheet"] .my-balance-modal .my-balance-input{
     border-radius:14px !important;
   }
 }
+
+/* ===== SPECIFIC TWEAK: My Balance inputs + My Close of Day scale ===== */
+@media (min-width: 901px){
+
+  /* My Balance: make Wallet Funding Amount and Debt Repayment Amount same compact size as amount fields */
+  #modalBack .modal[data-modal-title="My Balance"] #walletFundAmt,
+  #modalBack .modal[data-modal-title="My Balance"] #walletRepayAmt{
+    width: 240px !important;
+    max-width: 240px !important;
+    min-width: 240px !important;
+    flex: 0 0 240px !important;
+  }
+
+  /* Keep Note wider */
+  #modalBack .modal[data-modal-title="My Balance"] #walletNote{
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+  }
+
+  /* My Close of Day: reduce overall feel */
+  #modalBack .modal[data-modal-title="My Close of Day"]{
+    width: min(900px, calc(100vw - 44px)) !important;
+    max-width: min(900px, calc(100vw - 44px)) !important;
+  }
+
+  #modalBack .modal[data-modal-title="My Close of Day"] .modal-head{
+    padding: 14px 22px !important;
+  }
+
+  #modalBack .modal[data-modal-title="My Close of Day"] .modal-head h3{
+    font-size: 15px !important;
+    line-height: 1.08 !important;
+  }
+
+  #modalBack .modal[data-modal-title="My Close of Day"] .modal-body{
+    padding: 14px 22px !important;
+  }
+
+  #modalBack .modal[data-modal-title="My Close of Day"] .inline-field span{
+    font-size: 11px !important;
+  }
+
+  #modalBack .modal[data-modal-title="My Close of Day"] input{
+    min-height: 38px !important;
+    padding: 7px 11px !important;
+    font-size: 12px !important;
+  }
+
+  #modalBack .modal[data-modal-title="My Close of Day"] .kpi-row{
+    gap: 10px !important;
+    margin-bottom: 10px !important;
+  }
+
+  #modalBack .modal[data-modal-title="My Close of Day"] .kpi{
+    padding: 10px 16px !important;
+    border-radius: 14px !important;
+  }
+
+  #modalBack .modal[data-modal-title="My Close of Day"] .kpi .label{
+    font-size: 10px !important;
+    line-height: 1.05 !important;
+  }
+
+  #modalBack .modal[data-modal-title="My Close of Day"] .kpi .number{
+    font-size: 16px !important;
+    line-height: 1.02 !important;
+    margin-top: 5px !important;
+  }
+
+  #modalBack .modal[data-modal-title="My Close of Day"] .note{
+    font-size: 10.5px !important;
+    line-height: 1.3 !important;
+  }
+}
