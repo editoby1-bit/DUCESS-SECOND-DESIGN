@@ -1391,7 +1391,7 @@
       actions.unshift({label:'Reject Journal', className:'danger', onClick: ()=>{ rejectRequestRemote(req.id).then((result)=>{ if(result?.ok===false) showToast(result?.error?.message || 'Unable to reject request'); }); closeModal(); }});
       actions.unshift({label:'Approve Journal', className:'success', onClick: ()=>{ approveRequestRemote(req.id).then((result)=>{ if(result?.ok===false) showToast(result?.error?.message || 'Unable to approve request'); }); closeModal(); }});
     }
-    openModal('Journal Approval', `<div class="stack"><div class="kpi-row"><div class="kpi"><div class="label">Posted By</div><div class="number">${escapeHtml(req.requestedByName)}</div></div><div class="kpi"><div class="label">Form</div><div class="number">${money(opening)}</div></div><div class="kpi"><div class="label">Total</div><div class="number">${money(total)}</div></div><div class="kpi"><div class="label">Overdraw</div><div class="number ${running<0?'balance-negative':''}">${money(Math.max(0,-running))}</div></div></div>${fieldNoteBlock}<div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Customer</th><th>Account</th><th>Amount</th><th>Remaining Balance</th></tr></thead><tbody>${bodyRows}</tbody></table></div></div>`, actions);
+    openModal('Journal Approval', `<div class="stack"><div class="kpi-row balance-kpi-row"><div class="kpi"><div class="label">Posted By</div><div class="number">${escapeHtml(req.requestedByName)}</div></div><div class="kpi"><div class="label">Form</div><div class="number">${money(opening)}</div></div><div class="kpi"><div class="label">Total</div><div class="number">${money(total)}</div></div><div class="kpi"><div class="label">Overdraw</div><div class="number ${running<0?'balance-negative':''}">${money(Math.max(0,-running))}</div></div></div>${fieldNoteBlock}<div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Customer</th><th>Account</th><th>Amount</th><th>Remaining Balance</th></tr></thead><tbody>${bodyRows}</tbody></table></div></div>`, actions);
   }
 
   function openRequestDetailModal(reqId){
@@ -1511,7 +1511,7 @@
     const totalCustomers = customers.length;
     return `
       <div class="stack">
-        <div class="kpi-row">
+        <div class="kpi-row balance-kpi-row">
           <div class="kpi"><div class="label">Total Customers</div><div class="number">${totalCustomers}</div></div>
         </div>
         <div class="table-card">
@@ -2613,7 +2613,7 @@
   function renderBalanceFilters(kind) {
     const filter = state.ui[`${kind}Filter`] || { preset:'all', from:'', to:'' };
     const presets = [['daily','Daily'],['weekly','Weekly'],['monthly','Monthly'],['all','All']];
-    const types = kind==='business' ? [['all','All'],['credit','Credit'],['debit','Debit']] : [['all','All'],['income','Income'],['expense','Expense']]; const activeType = state.ui[`${kind}Type`] || 'all'; return `<div class="form-card"><div class="action-inline">${presets.map(([k,l])=>`<button class="filter-chip ${filter.preset===k?'active':'secondary'}" data-filter-kind="${kind}" data-filter-preset="${k}">${l}</button>`).join('')}<label class="inline-field"><span>From</span><input id="${kind}From" type="date" value="${filter.from||''}"></label><label class="inline-field"><span>To</span><input id="${kind}To" type="date" value="${filter.to||''}"></label><button class="secondary" id="${kind}CustomApply">Apply Custom</button><button class="secondary" id="${kind}ExportCsv">Export CSV</button><button class="secondary" id="${kind}PrintSummary">Print Summary</button></div><div class="action-inline" style="margin-top:10px">${types.map(([k,l])=>`<button class="filter-chip ${activeType===k?'active':'secondary'}" data-type-kind="${kind}" data-type-filter="${k}">${l}</button>`).join('')}</div></div>`;
+    const types = kind==='business' ? [['all','All'],['credit','Credit'],['debit','Debit']] : [['all','All'],['income','Income'],['expense','Expense']]; const activeType = state.ui[`${kind}Type`] || 'all'; return `<div class="form-card balance-filters-card"><div class="action-inline balance-filters-row">${presets.map(([k,l])=>`<button class="filter-chip ${filter.preset===k?'active':'secondary'}" data-filter-kind="${kind}" data-filter-preset="${k}">${l}</button>`).join('')}<label class="inline-field"><span>From</span><input id="${kind}From" type="date" value="${filter.from||''}"></label><label class="inline-field"><span>To</span><input id="${kind}To" type="date" value="${filter.to||''}"></label><button class="secondary" id="${kind}CustomApply">Apply Custom</button><button class="secondary" id="${kind}ExportCsv">Export CSV</button><button class="secondary" id="${kind}PrintSummary">Print Summary</button></div><div class="action-inline balance-filters-row" style="margin-top:10px">${types.map(([k,l])=>`<button class="filter-chip ${activeType===k?'active':'secondary'}" data-type-kind="${kind}" data-type-filter="${k}">${l}</button>`).join('')}</div></div>`;
   }
 
   function bindBalanceFilters(kind) {
