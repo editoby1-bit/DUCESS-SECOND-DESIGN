@@ -1619,9 +1619,10 @@
   function exportOperationalStatementCsv() {
     const rows = buildOperationalStatementRows();
     const summary = getOperationalStatementSummary(rows);
+    const activeFilter = String(state.ui.operationalType || 'all').toLowerCase();
 
     const csvRows = [
-      ['S/N','DATE','TYPE','ACCOUNT NAME','AMOUNT','NOTE','BALANCE AFTER','POSTED BY'],
+      ['S/N','DATE','TYPE','ACCOUNT NAME','AMOUNT','DETAILS','BALANCE AFTER','POSTED BY'],
       ...rows.map(r => [
         r.sn,
         r.date,
@@ -1632,9 +1633,16 @@
         Number(r.balanceAfter || 0),
         r.postedBy || ''
       ]),
-      [],
-      ['', '', '', '', '', 'TOTAL AMOUNT', Number(summary.totalAmount || 0), '']
+      []
     ];
+
+    if (activeFilter === 'all') {
+      csvRows.push(['', '', '', 'TOTAL INCOME', Number(summary.totalIncome || 0), '', '', '']);
+      csvRows.push(['', '', '', 'TOTAL EXPENSE', Number(summary.totalExpense || 0), '', '', '']);
+      csvRows.push(['', '', '', 'NET BALANCE', Number(summary.netOperationalBalance || 0), '', '', '']);
+    } else {
+      csvRows.push(['', '', '', 'TOTAL AMOUNT', Number(summary.totalAmount || 0), '', '', '']);
+    }
 
     exportCsv(csvRows, 'operational_balance.csv', true);
   }
@@ -1699,17 +1707,23 @@
 
   function buildBusinessStatementRows() {
     const filtered = [...getBusinessFilteredRows()].sort((a,b)=>new Date(a.date)-new Date(b.date));
-    return filtered.map((e, idx) => ({
-      sn: idx + 1,
-      date: fmtDate(e.date),
-      type: String(e.type || '').toUpperCase(),
-      accountName: e.customer?.name || e.accountName || e.customerName || e.accountNumber || '—',
-      amount: Number(e.amount || 0),
-      note: e.note || '',
-      balanceAfter: Number(e.balanceAfter || e.customer?.balance || 0),
-      receivedOrPaidBy: e.receivedBy || e.receivedOrPaidBy || e.postedBy || '',
-      postedBy: e.postedBy || ''
-    }));
+    return filtered.map((e, idx) => {
+      const txType = String(e.type || e.kind || '').toLowerCase();
+      const normalizedType = txType === 'credit' || txType === 'debit'
+        ? txType.toUpperCase()
+        : (Number(e.delta || 0) >= 0 ? 'CREDIT' : 'DEBIT');
+      return {
+        sn: idx + 1,
+        date: fmtDate(e.date),
+        type: normalizedType,
+        accountName: e.customer?.name || e.accountName || e.customerName || e.accountNumber || '—',
+        amount: Number(e.amount || 0),
+        details: e.details || e.note || '',
+        balanceAfter: Number(e.balanceAfter || 0),
+        receivedOrPaidBy: e.receivedBy || e.receivedOrPaidBy || e.postedBy || '',
+        postedBy: e.postedBy || ''
+      };
+    });
   }
 
   function getBusinessStatementSummary(rows) {
@@ -1726,22 +1740,32 @@
   function exportBusinessStatementCsv() {
     const rows = buildBusinessStatementRows();
     const summary = getBusinessStatementSummary(rows);
+    const activeFilter = String(state.ui.businessType || 'all').toLowerCase();
+
     const csvRows = [
-      ['S/N','DATE','TYPE','ACCOUNT NAME','AMOUNT','NOTE','BALANCE AFTER','RECEIVED OR PAID BY','POSTED BY'],
+      ['S/N','DATE','TYPE','ACCOUNT NAME','AMOUNT','DETAILS','BALANCE AFTER','RECEIVED OR PAID BY','POSTED BY'],
       ...rows.map(r => [
         r.sn,
         r.date,
         r.type,
         r.accountName,
         Number(r.amount || 0),
-        r.note || '',
+        r.details || '',
         Number(r.balanceAfter || 0),
         r.receivedOrPaidBy || '',
         r.postedBy || ''
       ]),
-      [],
-      ['', '', '', '', '', 'TOTAL AMOUNT', Number(summary.totalAmount || 0), '', '']
+      []
     ];
+
+    if (activeFilter === 'all') {
+      csvRows.push(['', '', '', 'TOTAL CREDIT', Number(summary.totalCredit || 0), '', '', '', '']);
+      csvRows.push(['', '', '', 'TOTAL DEBIT', Number(summary.totalDebit || 0), '', '', '', '']);
+      csvRows.push(['', '', '', 'NET BALANCE', Number(summary.netBookBalance || 0), '', '', '', '']);
+    } else {
+      csvRows.push(['', '', '', 'TOTAL AMOUNT', Number(summary.totalAmount || 0), '', '', '', '']);
+    }
+
     exportCsv(csvRows, 'business_balance.csv', true);
   }
 
@@ -1755,7 +1779,7 @@
         <td>${r.type}</td>
         <td>${r.accountName}</td>
         <td>${money(r.amount)}</td>
-        <td>${r.note}</td>
+        <td>${r.details}</td>
         <td>${money(r.balanceAfter)}</td>
         <td>${r.receivedOrPaidBy}</td>
         <td>${r.postedBy}</td>
@@ -1778,7 +1802,7 @@
               <th>Type</th>
               <th>Account Name</th>
               <th>Amount</th>
-              <th>Note</th>
+              <th>Details</th>
               <th>Balance After</th>
               <th>Received Or Paid By</th>
               <th>Posted By</th>
