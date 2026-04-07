@@ -9378,3 +9378,114 @@ body[data-theme="ducess-sheet"] .my-balance-modal .my-balance-input{
     margin-left:auto !important;
   }
 }
+
+
+/* ===== 2026-04-07 SURGICAL PATCH 4: final compact modal sizing + home no-scroll fit ===== */
+@media (min-width: 901px){
+  /* Form: reduce Amount by half again */
+  #modalBack .modal[data-modal-title="Form"] .compact-modal-grid{
+    grid-template-columns: max-content max-content 68px !important;
+  }
+  #modalBack .modal[data-modal-title="Form"] #floatAmount{
+    width:68px !important;
+    min-width:68px !important;
+    max-width:68px !important;
+  }
+
+  /* My Balance: cut funding + repayment amount inputs by half again */
+  #modalBack .modal[data-modal-title="My Balance"] #walletFundAmt,
+  #modalBack .modal[data-modal-title="My Balance"] #walletRepayAmt{
+    width:120px !important;
+    max-width:120px !important;
+    min-width:120px !important;
+    flex:0 0 120px !important;
+  }
+
+  /* Make buttons in Form and My Balance slightly smaller again */
+  #modalBack .modal[data-modal-title="Form"] .modal-actions button,
+  #modalBack .modal[data-modal-title="My Balance"] .modal-actions button{
+    min-height:30px !important;
+    height:30px !important;
+    padding:0 12px !important;
+    font-size:11.5px !important;
+    border-radius:11px !important;
+  }
+}
+
+@media (min-width: 981px){
+  /* Home screen: fit full circular dashboard without slight page scroll */
+  .module-grid{
+    min-height:540px !important;
+    height:500px !important;
+    margin-top:4px !important;
+  }
+
+  .module-grid::before,
+  .module-grid::after,
+  .module-hub,
+  .module-card[data-module-key="administration"],
+  .module-card[data-module-key="approvals"],
+  .module-card[data-module-key="balances"],
+  .module-card[data-module-key="tellering"],
+  .module-card[data-module-key="customer_service"]{
+    top:auto;
+  }
+
+  .module-grid::before{
+    top:51% !important;
+    width:500px !important;
+    height:500px !important;
+  }
+
+  .module-grid::after{
+    top:51% !important;
+    width:370px !important;
+    height:370px !important;
+  }
+
+  .module-grid-title{
+    top:14px !important;
+    font-size:25px !important;
+  }
+
+  .module-hub{
+    top:51% !important;
+    width:198px !important;
+    height:198px !important;
+  }
+
+  .module-grid > .module-card{
+    width:170px !important;
+    min-width:170px !important;
+    max-width:170px !important;
+    min-height:96px !important;
+  }
+
+  .module-card .module-icon{
+    width:76px !important;
+    height:76px !important;
+    font-size:33px !important;
+    margin:0 auto -12px auto !important;
+  }
+
+  .module-card .module-title{
+    padding:16px 12px 8px 12px !important;
+    font-size:16px !important;
+  }
+
+  .module-card[data-module-key="administration"]{
+    left:50% !important; top:130px !important; transform:translate(-50%,-50%) !important;
+  }
+  .module-card[data-module-key="approvals"]{
+    left:30% !important; top:242px !important; transform:translate(-50%,-50%) !important;
+  }
+  .module-card[data-module-key="balances"]{
+    left:70% !important; top:242px !important; transform:translate(-50%,-50%) !important;
+  }
+  .module-card[data-module-key="tellering"]{
+    left:36% !important; top:405px !important; transform:translate(-50%,-50%) !important;
+  }
+  .module-card[data-module-key="customer_service"]{
+    left:64% !important; top:405px !important; transform:translate(-50%,-50%) !important;
+  }
+}
