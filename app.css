@@ -9491,39 +9491,44 @@ body[data-theme="ducess-sheet"] .my-balance-modal .my-balance-input{
 }
 
 
-/* ===== 2026-04-07 SURGICAL PATCH 6: business/operational KPI wrappers hug content ===== */
+/* ===== 2026-04-07 SURGICAL PATCH 6B: business/operational KPI wrappers fit content exactly ===== */
 .compact-page-kpi-row{
   display:flex !important;
   flex-wrap:wrap !important;
-  gap:16px !important;
-  align-items:stretch !important;
+  gap:10px !important;
+  align-items:flex-start !important;
   justify-content:flex-start !important;
   grid-template-columns:none !important;
 }
 .compact-page-kpi-row .compact-page-kpi{
+  display:inline-flex !important;
+  flex-direction:column !important;
+  align-items:flex-start !important;
+  justify-content:center !important;
   flex:0 0 auto !important;
-  width:auto !important;
-  min-width:180px !important;
+  width:fit-content !important;
+  min-width:0 !important;
   max-width:max-content !important;
-  padding:12px 18px !important;
-  border-radius:22px !important;
+  padding:8px 12px !important;
+  border-radius:18px !important;
 }
 .compact-page-kpi-row .compact-page-kpi .label{
-  font-size:11px !important;
+  font-size:10px !important;
   line-height:1 !important;
   margin:0 !important;
   white-space:nowrap !important;
 }
 .compact-page-kpi-row .compact-page-kpi .number{
-  font-size:18px !important;
+  font-size:14px !important;
+  font-weight:700 !important;
   line-height:1.05 !important;
-  margin-top:6px !important;
+  margin-top:4px !important;
   white-space:nowrap !important;
 }
 @media (max-width: 900px){
   .compact-page-kpi-row .compact-page-kpi{
-    min-width:unset !important;
-    width:100% !important;
-    max-width:none !important;
+    width:fit-content !important;
+    min-width:0 !important;
+    max-width:100% !important;
   }
 }
