@@ -9532,3 +9532,28 @@ body[data-theme="ducess-sheet"] .my-balance-modal .my-balance-input{
     max-width:100% !important;
   }
 }
+
+/* ===== 2026-04-07 FINAL ROUND OF POLISH ===== */
+@media (min-width: 981px){
+  /* Account Opening + Account Maintenance: shift inputs closer to labels only */
+  .opening-card .cs2-label,
+  .maintenance-card .cs2-label{
+    width:84px !important;
+    flex:0 0 84px !important;
+  }
+  .opening-card .cs2-row,
+  .maintenance-card .cs2-row{
+    gap:4px !important;
+  }
+
+  /* Account Reactivation: reduce Account Number input by half only */
+  .reactivation-card .cs2-row:first-of-type .cs2-short,
+  .reactivation-card .cs2-row:first-of-type .cs2-input-wrap.cs2-short{
+    width:27px !important;
+    flex:0 0 27px !important;
+  }
+  .reactivation-card .cs2-row:first-of-type #reactivationAcc{
+    padding:0 4px !important;
+    text-align:center;
+  }
+}
