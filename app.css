@@ -9489,3 +9489,41 @@ body[data-theme="ducess-sheet"] .my-balance-modal .my-balance-input{
     left:64% !important; top:405px !important; transform:translate(-50%,-50%) !important;
   }
 }
+
+
+/* ===== 2026-04-07 SURGICAL PATCH 6: business/operational KPI wrappers hug content ===== */
+.compact-page-kpi-row{
+  display:flex !important;
+  flex-wrap:wrap !important;
+  gap:16px !important;
+  align-items:stretch !important;
+  justify-content:flex-start !important;
+  grid-template-columns:none !important;
+}
+.compact-page-kpi-row .compact-page-kpi{
+  flex:0 0 auto !important;
+  width:auto !important;
+  min-width:180px !important;
+  max-width:max-content !important;
+  padding:12px 18px !important;
+  border-radius:22px !important;
+}
+.compact-page-kpi-row .compact-page-kpi .label{
+  font-size:11px !important;
+  line-height:1 !important;
+  margin:0 !important;
+  white-space:nowrap !important;
+}
+.compact-page-kpi-row .compact-page-kpi .number{
+  font-size:18px !important;
+  line-height:1.05 !important;
+  margin-top:6px !important;
+  white-space:nowrap !important;
+}
+@media (max-width: 900px){
+  .compact-page-kpi-row .compact-page-kpi{
+    min-width:unset !important;
+    width:100% !important;
+    max-width:none !important;
+  }
+}

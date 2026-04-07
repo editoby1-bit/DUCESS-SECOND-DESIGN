@@ -1557,13 +1557,13 @@
     const credits = filtered.filter(t => t.kind === 'credit').reduce((s,t)=>s+Number(t.amount||0),0);
     const debits = filtered.filter(t => t.kind === 'debit').reduce((s,t)=>s+Number(t.amount||0),0);
     return `
-      <div class="stack">
+      <div class="stack business-balance-stack">
         ${renderBalanceFilters('business')}
-        <div class="kpi-row">
-          <div class="kpi"><div class="label">Total Credit</div><div class="number">${money(credits)}</div></div>
-          <div class="kpi"><div class="label">Total Debit</div><div class="number">${money(debits)}</div></div>
-          <div class="kpi"><div class="label">Entries</div><div class="number">${filtered.length}</div></div>
-          <div class="kpi"><div class="label">Net Book Balance</div><div class="number">${money(credits-debits)}</div></div>
+        <div class="kpi-row compact-page-kpi-row business-balance-kpis">
+          <div class="kpi compact-page-kpi"><div class="label">Total Credit</div><div class="number">${money(credits)}</div></div>
+          <div class="kpi compact-page-kpi"><div class="label">Total Debit</div><div class="number">${money(debits)}</div></div>
+          <div class="kpi compact-page-kpi"><div class="label">Entries</div><div class="number">${filtered.length}</div></div>
+          <div class="kpi compact-page-kpi"><div class="label">Net Book Balance</div><div class="number">${money(credits-debits)}</div></div>
         </div>
         <div class="table-card"><h3>Business Entries</h3><div class="table-wrap"><table class="table"><thead><tr><th>Date</th><th>Account</th><th>Details</th><th>Debit</th><th>Credit</th><th>Balance</th><th>Received/Paid By</th><th>Posted By</th></tr></thead><tbody>${filtered.slice(0,state.ui.businessEntriesLimit || 20).map(t=>`<tr><td>${fmtDate(t.date)}</td><td>${t.accountNumber || '—'}</td><td>${t.details}</td><td>${t.kind==='debit'?money(t.amount):''}</td><td>${t.kind==='credit'?money(t.amount):''}</td><td>${money(t.balanceAfter || 0)}</td><td>${t.receivedOrPaidBy || '—'}</td><td>${t.postedBy || '—'}</td></tr>`).join('') || '<tr><td colspan="8">No entries</td></tr>'}</tbody></table></div><div class="action-row">${filtered.length > (state.ui.businessEntriesLimit || 20) ? `<button id="businessMore" class="secondary">Show More</button>` : ''}${(state.ui.businessEntriesLimit || 20) > 20 ? `<button id="businessLess" class="secondary">Show Less</button>` : ''}</div></div>
       </div>`;
@@ -1574,13 +1574,13 @@
     const income = filtered.filter(e=>e.kind==='income');
     const expense = filtered.filter(e=>e.kind==='expense');
     return `
-      <div class="stack">
+      <div class="stack operational-balance-stack">
         ${renderBalanceFilters('operational')}
-        <div class="kpi-row">
-          <div class="kpi"><div class="label">Total Income</div><div class="number">${money(income.reduce((s,e)=>s+Number(e.amount||0),0))}</div></div>
-          <div class="kpi"><div class="label">Total Expense</div><div class="number">${money(expense.reduce((s,e)=>s+Number(e.amount||0),0))}</div></div>
-          <div class="kpi"><div class="label">Net Operational</div><div class="number">${money(income.reduce((s,e)=>s+Number(e.amount||0),0)-expense.reduce((s,e)=>s+Number(e.amount||0),0))}</div></div>
-          <div class="kpi"><div class="label">Entries</div><div class="number">${filtered.length}</div></div>
+        <div class="kpi-row compact-page-kpi-row operational-balance-kpis">
+          <div class="kpi compact-page-kpi"><div class="label">Total Income</div><div class="number">${money(income.reduce((s,e)=>s+Number(e.amount||0),0))}</div></div>
+          <div class="kpi compact-page-kpi"><div class="label">Total Expense</div><div class="number">${money(expense.reduce((s,e)=>s+Number(e.amount||0),0))}</div></div>
+          <div class="kpi compact-page-kpi"><div class="label">Net Operational</div><div class="number">${money(income.reduce((s,e)=>s+Number(e.amount||0),0)-expense.reduce((s,e)=>s+Number(e.amount||0),0))}</div></div>
+          <div class="kpi compact-page-kpi"><div class="label">Entries</div><div class="number">${filtered.length}</div></div>
         </div>
         <div class="table-card"><h3>Operational Entries</h3><div class="table-wrap"><table class="table"><thead><tr><th>Date</th><th>Account</th><th>Type</th><th>Amount</th><th>Note</th><th>Posted By</th><th>Approved By</th></tr></thead><tbody>${filtered.slice(0,state.ui.operationalEntriesLimit || 20).map(e=>`<tr><td>${fmtDate(e.date)}</td><td>${e.accountName}</td><td>${e.kind}</td><td>${money(e.amount)}</td><td>${e.note||'—'}</td><td>${e.postedBy}</td><td>${e.approvedBy}</td></tr>`).join('') || '<tr><td colspan="7">No entries</td></tr>'}</tbody></table></div><div class="action-row">${filtered.length > (state.ui.operationalEntriesLimit || 20) ? `<button id="operationalMore" class="secondary">Show More</button>` : ''}${(state.ui.operationalEntriesLimit || 20) > 20 ? `<button id="operationalLess" class="secondary">Show Less</button>` : ''}</div></div>
       </div>`;
