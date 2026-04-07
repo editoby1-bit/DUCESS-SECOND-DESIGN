@@ -9253,3 +9253,102 @@ body[data-theme="ducess-sheet"] .my-balance-modal .my-balance-input{
     gap:8px !important;
   }
 }
+
+/* ===== 2026-04-07 SURGICAL PATCH 2: KPI wrappers hug content exactly ===== */
+@media (min-width: 901px){
+  /* Form: make Staff display field hug "Admin Officer" and reduce Amount by half */
+  #modalBack .modal[data-modal-title="Form"] .compact-modal-grid{
+    grid-template-columns: max-content max-content 170px !important;
+    align-items:end !important;
+    justify-content:start !important;
+    column-gap:14px !important;
+  }
+  #modalBack .modal[data-modal-title="Form"] .compact-modal-grid .field{
+    width:auto !important;
+    min-width:0 !important;
+  }
+  #modalBack .modal[data-modal-title="Form"] .compact-modal-grid .display-field{
+    display:inline-flex !important;
+    width:auto !important;
+    min-width:0 !important;
+    max-width:none !important;
+    padding-inline:16px !important;
+    white-space:nowrap !important;
+  }
+  #modalBack .modal[data-modal-title="Form"] #floatAmount{
+    width:170px !important;
+    min-width:170px !important;
+    max-width:170px !important;
+  }
+
+  /* My Balance: halve all three inputs */
+  #modalBack .modal[data-modal-title="My Balance"] .form-grid.three{
+    grid-template-columns: 170px 170px 170px !important;
+    justify-content:start !important;
+    align-items:end !important;
+    gap:12px !important;
+  }
+  #modalBack .modal[data-modal-title="My Balance"] #walletFundAmt,
+  #modalBack .modal[data-modal-title="My Balance"] #walletRepayAmt,
+  #modalBack .modal[data-modal-title="My Balance"] #walletNote{
+    width:170px !important;
+    min-width:170px !important;
+    max-width:170px !important;
+    flex:0 0 170px !important;
+  }
+
+  /* KPI cards: boxes should hug content instead of stretching */
+  #modalBack .modal[data-modal-title="My Balance"] .kpi-row,
+  #modalBack .modal[data-modal-title="My Close of Day"] .kpi-row{
+    display:flex !important;
+    flex-wrap:wrap !important;
+    align-items:flex-start !important;
+    justify-content:flex-start !important;
+    gap:10px !important;
+    margin-bottom:14px !important;
+  }
+  #modalBack .modal[data-modal-title="My Balance"] .kpi,
+  #modalBack .modal[data-modal-title="My Close of Day"] .kpi{
+    display:inline-flex !important;
+    flex-direction:column !important;
+    flex:0 0 auto !important;
+    width:fit-content !important;
+    min-width:0 !important;
+    max-width:max-content !important;
+    padding:8px 14px !important;
+    border-radius:12px !important;
+  }
+  #modalBack .modal[data-modal-title="My Balance"] .kpi .label,
+  #modalBack .modal[data-modal-title="My Close of Day"] .kpi .label{
+    display:block !important;
+    width:auto !important;
+    white-space:nowrap !important;
+    font-size:10px !important;
+    line-height:1.05 !important;
+  }
+  #modalBack .modal[data-modal-title="My Balance"] .kpi .number,
+  #modalBack .modal[data-modal-title="My Close of Day"] .kpi .number{
+    display:block !important;
+    width:auto !important;
+    white-space:nowrap !important;
+    font-size:13px !important;
+    line-height:1 !important;
+    margin-top:4px !important;
+  }
+
+  /* Buttons: wrappers should hug labels */
+  #modalBack .modal[data-modal-title="Form"] .modal-actions button,
+  #modalBack .modal[data-modal-title="My Balance"] .modal-actions button,
+  #modalBack .modal[data-modal-title="My Close of Day"] .modal-actions button{
+    width:auto !important;
+    min-width:0 !important;
+    min-height:32px !important;
+    height:32px !important;
+    padding:0 14px !important;
+    border-radius:12px !important;
+    display:inline-flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    white-space:nowrap !important;
+  }
+}
