@@ -174,8 +174,8 @@
   const state = bootstrapState();
   state.ui = state.ui || { module: null, tool: null, selectedCustomerId: null, theme: 'classic', businessFilter: { preset: 'all', from: '', to: '' }, operationalFilter: { preset: 'all', from: '', to: '' }, approvalsLimit: 20, businessEntriesLimit: 20, operationalEntriesLimit: 20, tellerEntriesLimit: 20, approvalsSection:'tellering', generatedJournals:{}, customerDirectorySearch: '' };
   state.ui.customerDirectorySearch = state.ui.customerDirectorySearch || '';
-  state.ui.module = null;
-  state.ui.tool = null;
+  if (state.ui.module && !MODULES[state.ui.module]) state.ui.module = null;
+  if (state.ui.module && state.ui.tool && !(MODULES[state.ui.module]?.tools || []).includes(state.ui.tool)) state.ui.tool = null;
   ensureState();
   if (isSupabaseApprovalMode()) {
     syncAllSharedStateFromGateway();
@@ -1942,7 +1942,11 @@ function bindToolHandlers() {
       lookupFill(byId('workspace'), c);
     };
     byId('lookupBtn').onclick = () => openCustomerSearchModal(state.customers);
-    byId('lookupAcc').oninput = () => { const v = (byId('lookupAcc')?.value || '').trim(); if (/^\d{4}$/.test(v)) doLookup(true); };
+    byId('lookupAcc').oninput = () => {
+      const v = (byId('lookupAcc')?.value || '').trim();
+      if (!v) return doLookup(true);
+      if (/^\d{4}$/.test(v)) doLookup(true);
+    };
     byId('lookupAcc').onchange = () => doLookup(true);
     byId('lookupAcc').onkeyup = (e) => { if (e.key === "Enter") doLookup(false); };
     byId('openStatementBtn').onclick = () => { state.ui.tool = 'account_statement'; renderWorkspace(); setTimeout(()=>{ byId('stmtAcc').value = getSelectedCustomer()?.accountNumber || ''; }, 30); };
@@ -2005,6 +2009,25 @@ function bindToolHandlers() {
 
   function bindMaintenance(prefix) {
     const detailIds = [`${prefix}Name`, `${prefix}Address`, `${prefix}Phone`, `${prefix}Nin`, `${prefix}Bvn`, `${prefix}OldAccount`];
+    const clearFilledCustomer = () => {
+      if (byId(`${prefix}Name`)) byId(`${prefix}Name`).value = '';
+      if (byId(`${prefix}Address`)) byId(`${prefix}Address`).value = '';
+      if (byId(`${prefix}Phone`)) byId(`${prefix}Phone`).value = '';
+      if (byId(`${prefix}Nin`)) byId(`${prefix}Nin`).value = '';
+      if (byId(`${prefix}Bvn`)) byId(`${prefix}Bvn`).value = '';
+      if (byId(`${prefix}OldAccount`)) byId(`${prefix}OldAccount`).value = '';
+      byId(`${prefix}DisplayName`).textContent = '—';
+      byId(`${prefix}DisplayPhone`).textContent = '—';
+      byId(`${prefix}DisplayStatus`).textContent = '—';
+      if (state.ui.selectedCustomerId) {
+        const selected = getSelectedCustomer();
+        if (selected?.accountNumber === (byId(`${prefix}Acc`)?.value || '').trim() || !(byId(`${prefix}Acc`)?.value || '').trim()) {
+          state.ui.selectedCustomerId = null;
+        }
+      }
+      save();
+      setDetailsEditable(false);
+    };
     const setDetailsEditable = (editable) => {
       detailIds.forEach(id => {
         const el = byId(id);
@@ -2034,9 +2057,7 @@ function bindToolHandlers() {
     const doLookup = (quiet=false) => {
       const accVal = (byId(`${prefix}Acc`)?.value || '').trim();
       if (!accVal) {
-        byId(`${prefix}DisplayName`).textContent = '—';
-        byId(`${prefix}DisplayPhone`).textContent = '—';
-        byId(`${prefix}DisplayStatus`).textContent = '—';
+        clearFilledCustomer();
         return;
       }
       const c = getCustomerByAccountNo(accVal);
@@ -2050,6 +2071,7 @@ function bindToolHandlers() {
     if (accInput) {
       accInput.oninput = () => {
         const v = (accInput.value || '').trim();
+        if (!v) return doLookup(true);
         if (/^\d{4}$/.test(v)) doLookup(true);
       };
       accInput.onchange = () => doLookup(true);

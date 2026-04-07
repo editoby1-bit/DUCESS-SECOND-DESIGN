@@ -9741,3 +9741,42 @@ body.home-lock-scroll{
     max-width: 128px !important;
   }
 }
+
+/* ===== 2026-04-07 SURGICAL PATCH: hard-refresh restore + tighter tellering labels + 7-digit my-balance inputs ===== */
+@media (min-width: 981px){
+  .journal-sheet .posting-inline-group.posting-inline-account{
+    grid-template-columns: 96px 80px auto !important;
+    column-gap: 4px !important;
+  }
+
+  .journal-sheet .posting-row-name{
+    grid-template-columns: 96px minmax(260px, 520px) auto !important;
+    column-gap: 4px !important;
+  }
+
+  .journal-sheet .posting-row-amount{
+    grid-template-columns: 96px 146px auto auto !important;
+    column-gap: 4px !important;
+  }
+
+  .journal-sheet .posting-inline-group.posting-inline-account .sheet-label,
+  .journal-sheet .posting-row-name .sheet-label,
+  .journal-sheet .posting-row-amount .sheet-label{
+    margin-right: 0 !important;
+    white-space: nowrap !important;
+  }
+
+  .journal-sheet .posting-inline-group.posting-inline-account #txSearch,
+  .journal-sheet .posting-row-amount #txPostSingle,
+  .journal-sheet .posting-row-amount #txJournalAdd{
+    margin-left: 0 !important;
+  }
+
+  #modalBack .modal[data-modal-title="My Balance"] #walletFundAmt,
+  #modalBack .modal[data-modal-title="My Balance"] #walletRepayAmt{
+    width: 9ch !important;
+    min-width: 9ch !important;
+    max-width: 9ch !important;
+    flex: 0 0 9ch !important;
+  }
+}
