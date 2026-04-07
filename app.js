@@ -1930,18 +1930,10 @@ function bindToolHandlers() {
 
   function bindCheckBalance() {
     const hidePhoto = () => { const row = byId('checkBalancePhotoRow'); if (row) row.classList.add('hidden'); };
-    const clearFields = () => {
-      if (byId('lookupAcc')) byId('lookupAcc').value = '';
-      state.ui.checkBalanceLoaded = false;
-      state.ui.selectedCustomerId = null;
-      save();
-      hidePhoto();
-      lookupFill(byId('workspace'), null);
-    };
     const doLookup = (quiet=false) => {
       const val = (byId('lookupAcc')?.value || "").trim();
       hidePhoto();
-      if (!val) { state.ui.checkBalanceLoaded = false; state.ui.selectedCustomerId = null; save(); return lookupFill(byId('workspace'), null); }
+      if (!val) { state.ui.checkBalanceLoaded = false; save(); return lookupFill(byId('workspace'), null); }
       const c = getCustomerByAccountNo(val);
       if (!c) { if (!quiet) showToast('Customer not found. Use name search.'); return; }
       state.ui.selectedCustomerId = c.id;
@@ -1950,10 +1942,10 @@ function bindToolHandlers() {
       lookupFill(byId('workspace'), c);
     };
     byId('lookupBtn').onclick = () => openCustomerSearchModal(state.customers);
-    byId('lookupAcc').oninput = () => { const v = (byId('lookupAcc')?.value || '').trim(); if (/^\d{4}$/.test(v)) doLookup(true); else if (!v) clearFields(); };
+    byId('lookupAcc').oninput = () => { const v = (byId('lookupAcc')?.value || '').trim(); if (/^\d{4}$/.test(v)) doLookup(true); };
     byId('lookupAcc').onchange = () => doLookup(true);
     byId('lookupAcc').onkeyup = (e) => { if (e.key === "Enter") doLookup(false); };
-    byId('openStatementBtn').onclick = () => { state.ui.tool = 'account_statement'; renderWorkspace(); setTimeout(()=>{ if (byId('stmtAcc')) byId('stmtAcc').value = getSelectedCustomer()?.accountNumber || ''; }, 30); };
+    byId('openStatementBtn').onclick = () => { state.ui.tool = 'account_statement'; renderWorkspace(); setTimeout(()=>{ byId('stmtAcc').value = getSelectedCustomer()?.accountNumber || ''; }, 30); };
     const photoBtn = byId('searchPhotoBtn'); if (photoBtn) photoBtn.onclick = ()=> {
       const row = byId('checkBalancePhotoRow');
       const selected = getSelectedCustomer();
@@ -2021,22 +2013,9 @@ function bindToolHandlers() {
         el.classList.toggle('cs-readonly', !editable);
       });
     };
-    const clearFields = () => {
-      state.ui.selectedCustomerId = null;
-      save();
-      if (byId(`${prefix}Acc`)) byId(`${prefix}Acc`).value = '';
-      detailIds.forEach(id => { const el = byId(id); if (el) el.value = ''; });
-      if (byId(`${prefix}DisplayName`)) byId(`${prefix}DisplayName`).textContent = '—';
-      if (byId(`${prefix}DisplayPhone`)) byId(`${prefix}DisplayPhone`).textContent = '—';
-      if (byId(`${prefix}DisplayStatus`)) byId(`${prefix}DisplayStatus`).textContent = '—';
-      setDetailsEditable(false);
-    };
-    const fillCustomer = (c, quiet=false) => {
+    const fillCustomer = (c) => {
       if (!c) return;
-      if (prefix==='reactivation' && !(isCustomerFrozen(c) || c.active === false)) {
-        if (!quiet) showToast('Account is not frozen');
-        return;
-      }
+      if (prefix==='reactivation' && !(isCustomerFrozen(c) || c.active === false)) return showToast('Account is not frozen');
       state.ui.selectedCustomerId = c.id;
       save();
       byId(`${prefix}Acc`).value = c.accountNumber || '';
@@ -2055,7 +2034,9 @@ function bindToolHandlers() {
     const doLookup = (quiet=false) => {
       const accVal = (byId(`${prefix}Acc`)?.value || '').trim();
       if (!accVal) {
-        clearFields();
+        byId(`${prefix}DisplayName`).textContent = '—';
+        byId(`${prefix}DisplayPhone`).textContent = '—';
+        byId(`${prefix}DisplayStatus`).textContent = '—';
         return;
       }
       const c = getCustomerByAccountNo(accVal);
@@ -2063,18 +2044,16 @@ function bindToolHandlers() {
         if (!quiet) showToast('Customer not found. Use name search.');
         return;
       }
-      fillCustomer(c, quiet);
+      fillCustomer(c);
     };
     const accInput = byId(`${prefix}Acc`);
     if (accInput) {
       accInput.oninput = () => {
         const v = (accInput.value || '').trim();
         if (/^\d{4}$/.test(v)) doLookup(true);
-        else if (!v) clearFields();
       };
       accInput.onchange = () => doLookup(true);
       accInput.onkeyup = (e) => { if (e.key === 'Enter') doLookup(false); };
-      accInput.onblur = () => { const v = (accInput.value || '').trim(); if (/^\d{4}$/.test(v)) doLookup(true); };
     }
     const searchBtn = byId(`${prefix}Search`);
     if (searchBtn) searchBtn.onclick = () => openCustomerSearchModal(state.customers);
@@ -2111,7 +2090,7 @@ function bindToolHandlers() {
     const selected = getSelectedCustomer();
     if (selected) {
       const matchesTool = (accInput?.value || '').trim() ? (selected.accountNumber === (accInput?.value || '').trim()) : true;
-      if (matchesTool) fillCustomer(selected, true);
+      if (matchesTool) fillCustomer(selected);
     }
   }
 
