@@ -9616,3 +9616,73 @@ body[data-theme="ducess-sheet"] .my-balance-modal .my-balance-input{
 body.home-lock-scroll{
   overflow:hidden !important;
 }
+
+/* ===== 2026-04-07 VERY CLOSE LABEL / INPUT POLISH ===== */
+@media (min-width: 981px){
+  /* Pull customer-service input boxes much closer to their labels */
+  .opening-card .cs2-row,
+  .maintenance-card .cs2-row,
+  .reactivation-card .cs2-row,
+  .check-balance-card .cs2-row{
+    gap:2px !important;
+  }
+
+  .opening-card .cs2-label,
+  .maintenance-card .cs2-label,
+  .reactivation-card .cs2-label,
+  .check-balance-card .cs2-label{
+    width:66px !important;
+    flex:0 0 66px !important;
+  }
+
+  .opening-card .cs2-input-wrap,
+  .maintenance-card .cs2-input-wrap,
+  .reactivation-card .cs2-input-wrap,
+  .check-balance-card .cs2-input-wrap,
+  .opening-card .cs2-display,
+  .maintenance-card .cs2-display,
+  .reactivation-card .cs2-display,
+  .check-balance-card .cs2-display{
+    margin-left:0 !important;
+  }
+
+  /* Keep the account statement account-number label separate from date filters */
+  .polished-statement-grid,
+  .account-statement-filter-grid{
+    grid-template-columns:96px 170px 170px !important;
+    column-gap:12px !important;
+    row-gap:8px !important;
+    align-items:start !important;
+  }
+
+  .polished-statement-grid .stmt-acc-field,
+  .account-statement-filter-grid .stmt-acc-field{
+    width:96px !important;
+    min-width:96px !important;
+    max-width:96px !important;
+  }
+
+  .polished-statement-grid .stmt-date-field,
+  .account-statement-filter-grid .stmt-date-field{
+    width:170px !important;
+    min-width:170px !important;
+    max-width:170px !important;
+  }
+
+  .polished-statement-grid .stmt-acc-input,
+  .account-statement-filter-grid .stmt-acc-input{
+    width:54px !important;
+    min-width:54px !important;
+    max-width:54px !important;
+    text-align:center !important;
+    padding-left:4px !important;
+    padding-right:4px !important;
+  }
+
+  .polished-statement-grid .stmt-field label,
+  .account-statement-filter-grid .stmt-field label{
+    display:block !important;
+    white-space:nowrap !important;
+    margin-bottom:4px !important;
+  }
+}
