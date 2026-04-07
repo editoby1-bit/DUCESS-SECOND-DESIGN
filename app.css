@@ -9352,3 +9352,29 @@ body[data-theme="ducess-sheet"] .my-balance-modal .my-balance-input{
     white-space:nowrap !important;
   }
 }
+
+
+/* ===== 2026-04-07 SURGICAL PATCH 3: final form/my-balance button alignment ===== */
+@media (min-width: 901px){
+  #modalBack .modal[data-modal-title="Form"] .compact-modal-grid{
+    grid-template-columns: max-content max-content 85px !important;
+  }
+  #modalBack .modal[data-modal-title="Form"] #floatAmount{
+    width:85px !important;
+    min-width:85px !important;
+    max-width:85px !important;
+  }
+
+  #modalBack .modal[data-modal-title="My Balance"] .modal-actions{
+    justify-content:flex-start !important;
+    gap:12px !important;
+  }
+  #modalBack .modal[data-modal-title="My Balance"] .modal-actions button{
+    width:auto !important;
+    min-width:0 !important;
+    padding:0 12px !important;
+  }
+  #modalBack .modal[data-modal-title="My Balance"] .modal-actions button:last-child{
+    margin-left:auto !important;
+  }
+}

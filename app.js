@@ -2674,7 +2674,6 @@ function bindToolHandlers() {
         </div>
       </div>
     `,[
-      {label:'Close', className:'secondary', onClick: closeModal},
       {label:'Fund Wallet', onClick: ()=> {
         const amt = Number(byId('walletFundAmt').value||0); if(!(amt>0)) return showToast('Enter amount');
         createRequest('wallet_fund',{staffId:st.id,amount:amt,note:byId('walletNote').value.trim()}); closeModal(); render(); showToast('Wallet funding sent for approval');
@@ -2684,7 +2683,8 @@ function bindToolHandlers() {
         if (amt > Number(acc.walletBalance||0)) return showToast('Insufficient wallet balance');
         if (amt > Number(acc.debtBalance||0)) return showToast('Amount exceeds debt');
         createRequest('debt_repayment',{staffId:st.id,amount:amt,note:byId('walletNote').value.trim()}); closeModal(); render(); showToast('Debt repayment sent for approval');
-      }}
+      }},
+      {label:'Close', className:'secondary', onClick: closeModal}
     ]);
   }
 
