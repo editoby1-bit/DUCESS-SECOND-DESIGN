@@ -939,6 +939,7 @@
   }
 
   function render() {
+    document.body.classList.toggle('home-lock-scroll', !state.ui.module && !state.ui.tool);
     bindHeader();
     renderHero();
     renderModules();
