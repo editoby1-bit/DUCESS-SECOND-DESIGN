@@ -1128,7 +1128,6 @@
           <div class="cs2-button-row">
             <button id="searchPhotoBtn" class="sheet-btn cs2-btn cs2-btn-ghost">Photo</button>
             <button id="openStatementBtn" class="sheet-btn cs2-btn cs2-btn-ghost">Statement</button>
-            <button id="clearCheckFieldsBtn" class="sheet-btn cs2-btn cs2-btn-ghost">Clear Field</button>
           </div>
           <div class="sheet-photo-row hidden" id="checkBalancePhotoRow">
             <div class="photo-box inline-photo" data-fill="photo"><span>No Photo</span></div>
@@ -1212,7 +1211,6 @@
           <div class="cs2-button-row">
             <button id="${prefix}Edit" class="sheet-btn cs2-btn cs2-btn-ghost">Edit</button>
             <button id="${prefix}Submit" class="sheet-btn cs2-btn ${isReactivation ? 'cs2-btn-solid' : 'cs2-btn-ghost'}">${btnLabel}</button>
-            <button id="${prefix}Clear" class="sheet-btn cs2-btn cs2-btn-ghost">Clear Field</button>
           </div>
         </div>
       </div>`;
@@ -1956,7 +1954,6 @@ function bindToolHandlers() {
     byId('lookupAcc').onchange = () => doLookup(true);
     byId('lookupAcc').onkeyup = (e) => { if (e.key === "Enter") doLookup(false); };
     byId('openStatementBtn').onclick = () => { state.ui.tool = 'account_statement'; renderWorkspace(); setTimeout(()=>{ if (byId('stmtAcc')) byId('stmtAcc').value = getSelectedCustomer()?.accountNumber || ''; }, 30); };
-    const clearBtn = byId('clearCheckFieldsBtn'); if (clearBtn) clearBtn.onclick = clearFields;
     const photoBtn = byId('searchPhotoBtn'); if (photoBtn) photoBtn.onclick = ()=> {
       const row = byId('checkBalancePhotoRow');
       const selected = getSelectedCustomer();
@@ -2088,8 +2085,6 @@ function bindToolHandlers() {
       setDetailsEditable(true);
       showToast(prefix === 'reactivation' ? 'Account details are now editable' : 'You can now edit and save the account details');
     };
-    const clearBtn = byId(`${prefix}Clear`);
-    if (clearBtn) clearBtn.onclick = clearFields;
     byId(`${prefix}Submit`).onclick = () => {
       const c = getSelectedCustomer() || getCustomerByAccountNo(byId(`${prefix}Acc`).value);
       if (!c) return showToast('Search for an account first');

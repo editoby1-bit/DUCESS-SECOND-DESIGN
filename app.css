@@ -9795,3 +9795,39 @@ body.home-lock-scroll{
     flex:0 0 138px !important;
   }
 }
+
+
+/* 2026-04-07 surgical rollback + credit/debit label proximity fix */
+@media (min-width: 981px){
+  /* restore customer-service spacing to prior approved look */
+  .opening-card .cs2-row,
+  .maintenance-card .cs2-row,
+  .reactivation-card .cs2-row,
+  .check-balance-card .cs2-row{
+    gap:3px !important;
+  }
+
+  .opening-card .cs2-label,
+  .maintenance-card .cs2-label,
+  .reactivation-card .cs2-label,
+  .check-balance-card .cs2-label{
+    width:74px !important;
+    flex:0 0 74px !important;
+  }
+
+  /* make credit/debit rows use the same label-to-input distance as customer service */
+  .journal-sheet .posting-inline-group.posting-inline-account{
+    grid-template-columns:74px 150px auto !important;
+    column-gap:3px !important;
+  }
+
+  .journal-sheet .posting-row-name{
+    grid-template-columns:74px minmax(260px, 520px) auto !important;
+    column-gap:3px !important;
+  }
+
+  .journal-sheet .posting-row-amount{
+    grid-template-columns:74px 146px auto auto !important;
+    column-gap:3px !important;
+  }
+}
