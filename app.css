@@ -9686,3 +9686,58 @@ body.home-lock-scroll{
     margin-bottom:4px !important;
   }
 }
+
+
+/* ===== 2026-04-07 LATE SURGICAL PATCH: tighter customer-service spacing + tellering amount widths ===== */
+@media (min-width: 981px){
+  .opening-card .cs2-row,
+  .maintenance-card .cs2-row,
+  .reactivation-card .cs2-row,
+  .check-balance-card .cs2-row{
+    gap: 1px !important;
+  }
+
+  .opening-card .cs2-label,
+  .maintenance-card .cs2-label,
+  .reactivation-card .cs2-label,
+  .check-balance-card .cs2-label{
+    width: 58px !important;
+    flex: 0 0 58px !important;
+  }
+
+  .polished-statement-grid,
+  .account-statement-filter-grid{
+    grid-template-columns: 120px 170px 170px !important;
+    column-gap: 12px !important;
+    row-gap: 8px !important;
+  }
+
+  .polished-statement-grid .stmt-acc-field,
+  .account-statement-filter-grid .stmt-acc-field{
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+  }
+
+  .polished-statement-grid .stmt-acc-input,
+  .account-statement-filter-grid .stmt-acc-input{
+    width: 54px !important;
+    min-width: 54px !important;
+    max-width: 54px !important;
+    text-align: center !important;
+  }
+
+  #modalBack .modal[data-modal-title="My Balance"] #walletFundAmt,
+  #modalBack .modal[data-modal-title="My Balance"] #walletRepayAmt{
+    width: 128px !important;
+    min-width: 128px !important;
+    max-width: 128px !important;
+    flex: 0 0 128px !important;
+  }
+
+  #modalBack .modal[data-modal-title="Form"] #floatAmount{
+    width: 128px !important;
+    min-width: 128px !important;
+    max-width: 128px !important;
+  }
+}

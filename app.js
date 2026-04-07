@@ -2013,34 +2013,51 @@ function bindToolHandlers() {
         el.classList.toggle('cs-readonly', !editable);
       });
     };
-    setDetailsEditable(false);
-    const search = () => {
-      const c = getCustomerByAccountNo(byId(`${prefix}Acc`).value);
-      if (!c) return showToast('Customer not found');
+    const fillCustomer = (c) => {
+      if (!c) return;
       if (prefix==='reactivation' && !(isCustomerFrozen(c) || c.active === false)) return showToast('Account is not frozen');
       state.ui.selectedCustomerId = c.id;
       save();
-      byId(`${prefix}Name`).value = c.name;
-      if (byId(`${prefix}Address`)) byId(`${prefix}Address`).value = c.address;
-      if (byId(`${prefix}Phone`)) byId(`${prefix}Phone`).value = c.phone;
-      if (byId(`${prefix}Nin`)) byId(`${prefix}Nin`).value = c.nin;
-      if (byId(`${prefix}Bvn`)) byId(`${prefix}Bvn`).value = c.bvn;
+      byId(`${prefix}Acc`).value = c.accountNumber || '';
+      byId(`${prefix}Name`).value = c.name || '';
+      if (byId(`${prefix}Address`)) byId(`${prefix}Address`).value = c.address || '';
+      if (byId(`${prefix}Phone`)) byId(`${prefix}Phone`).value = c.phone || '';
+      if (byId(`${prefix}Nin`)) byId(`${prefix}Nin`).value = c.nin || '';
+      if (byId(`${prefix}Bvn`)) byId(`${prefix}Bvn`).value = c.bvn || '';
       if (byId(`${prefix}OldAccount`)) byId(`${prefix}OldAccount`).value = c.oldAccountNumber || '';
-      byId(`${prefix}DisplayName`).textContent = c.name;
-      byId(`${prefix}DisplayPhone`).textContent = c.phone;
+      byId(`${prefix}DisplayName`).textContent = c.name || '—';
+      byId(`${prefix}DisplayPhone`).textContent = c.phone || '—';
       byId(`${prefix}DisplayStatus`).textContent = customerStatusLabel(c);
       setDetailsEditable(false);
     };
-    byId(`${prefix}Search`).onclick = search;
-    const accInput = byId(`${prefix}Acc</div>`);
+    setDetailsEditable(false);
+    const doLookup = (quiet=false) => {
+      const accVal = (byId(`${prefix}Acc`)?.value || '').trim();
+      if (!accVal) {
+        byId(`${prefix}DisplayName`).textContent = '—';
+        byId(`${prefix}DisplayPhone`).textContent = '—';
+        byId(`${prefix}DisplayStatus`).textContent = '—';
+        return;
+      }
+      const c = getCustomerByAccountNo(accVal);
+      if (!c) {
+        if (!quiet) showToast('Customer not found. Use name search.');
+        return;
+      }
+      fillCustomer(c);
+    };
+    const accInput = byId(`${prefix}Acc`);
     if (accInput) {
       accInput.oninput = () => {
         const v = (accInput.value || '').trim();
-        if (/^\d{4,}$/.test(v)) search();
+        if (/^\d{4}$/.test(v)) doLookup(true);
       };
-      accInput.onkeyup = (e) => { if (e.key === 'Enter') search(); };
+      accInput.onchange = () => doLookup(true);
+      accInput.onkeyup = (e) => { if (e.key === 'Enter') doLookup(false); };
     }
-    const editBtn = byId(`${prefix}Edit</div>`);
+    const searchBtn = byId(`${prefix}Search`);
+    if (searchBtn) searchBtn.onclick = () => openCustomerSearchModal(state.customers);
+    const editBtn = byId(`${prefix}Edit`);
     if (editBtn) editBtn.onclick = () => {
       const c = getSelectedCustomer() || getCustomerByAccountNo(byId(`${prefix}Acc`).value);
       if (!c) return showToast('Search for an account first');
@@ -2070,9 +2087,28 @@ function bindToolHandlers() {
       }
       render();
     };
+    const selected = getSelectedCustomer();
+    if (selected) {
+      const matchesTool = (accInput?.value || '').trim() ? (selected.accountNumber === (accInput?.value || '').trim()) : true;
+      if (matchesTool) fillCustomer(selected);
+    }
   }
 
   function bindStatement() {
+    const stmtAcc = byId('stmtAcc');
+    const autoSelect = (quiet=false) => {
+      const val = (stmtAcc?.value || '').trim();
+      if (!val) return;
+      const c = getCustomerByAccountNo(val);
+      if (!c) { if (!quiet) showToast('Customer not found. Use name search.'); return; }
+      state.ui.selectedCustomerId = c.id;
+      save();
+    };
+    if (stmtAcc) {
+      stmtAcc.oninput = () => { const v = (stmtAcc.value || '').trim(); if (/^\d{4}$/.test(v)) autoSelect(true); };
+      stmtAcc.onchange = () => autoSelect(true);
+      stmtAcc.onkeyup = (e) => { if (e.key === 'Enter') autoSelect(false); };
+    }
     byId('stmtGenerate').onclick = () => {
       const c = getCustomerByAccountNo(byId('stmtAcc').value);
       if (!c) return showToast('Customer not found');
@@ -3038,6 +3074,27 @@ function bindToolHandlers() {
     }
     if (state.ui.tool === 'account_statement') {
       if (byId('stmtAcc')) byId('stmtAcc').value = c.accountNumber;
+      return;
+    }
+    if (state.ui.tool === 'account_maintenance') {
+      if (byId('maintenanceAcc')) byId('maintenanceAcc').value = c.accountNumber;
+      if (byId('maintenanceName')) byId('maintenanceName').value = c.name || '';
+      if (byId('maintenanceAddress')) byId('maintenanceAddress').value = c.address || '';
+      if (byId('maintenancePhone')) byId('maintenancePhone').value = c.phone || '';
+      if (byId('maintenanceNin')) byId('maintenanceNin').value = c.nin || '';
+      if (byId('maintenanceBvn')) byId('maintenanceBvn').value = c.bvn || '';
+      if (byId('maintenanceOldAccount')) byId('maintenanceOldAccount').value = c.oldAccountNumber || '';
+      if (byId('maintenanceDisplayName')) byId('maintenanceDisplayName').textContent = c.name || '—';
+      if (byId('maintenanceDisplayPhone')) byId('maintenanceDisplayPhone').textContent = c.phone || '—';
+      if (byId('maintenanceDisplayStatus')) byId('maintenanceDisplayStatus').textContent = customerStatusLabel(c);
+      return;
+    }
+    if (state.ui.tool === 'account_reactivation') {
+      if (byId('reactivationAcc')) byId('reactivationAcc').value = c.accountNumber;
+      if (byId('reactivationName')) byId('reactivationName').value = c.name || '';
+      if (byId('reactivationDisplayName')) byId('reactivationDisplayName').textContent = c.name || '—';
+      if (byId('reactivationDisplayPhone')) byId('reactivationDisplayPhone').textContent = c.phone || '—';
+      if (byId('reactivationDisplayStatus')) byId('reactivationDisplayStatus').textContent = customerStatusLabel(c);
       return;
     }
   }
