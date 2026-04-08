@@ -9729,10 +9729,12 @@ body.home-lock-scroll{
 
   #modalBack .modal[data-modal-title="My Balance"] #walletFundAmt,
   #modalBack .modal[data-modal-title="My Balance"] #walletRepayAmt{
-    width: 128px !important;
-    min-width: 128px !important;
-    max-width: 128px !important;
-    flex: 0 0 128px !important;
+    width: 8ch !important;
+    min-width: 8ch !important;
+    max-width: 8ch !important;
+    flex: 0 0 8ch !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
   }
 
   #modalBack .modal[data-modal-title="Form"] #floatAmount{
@@ -9742,92 +9744,154 @@ body.home-lock-scroll{
   }
 }
 
-/* ===== 2026-04-07 FINAL CUSTOMER SERVICE + TELLERING ALIGNMENT PATCH ===== */
+/* ===== 2026-04-08 SURGICAL PATCH: ultra-tight tellering labels + exact 7-digit my-balance inputs + safe home refresh ===== */
 @media (min-width: 981px){
-  .opening-card .cs2-row,
-  .maintenance-card .cs2-row,
-  .reactivation-card .cs2-row,
-  .check-balance-card .cs2-row{
-    gap:0 !important;
-  }
-
-  .opening-card .cs2-label,
-  .maintenance-card .cs2-label,
-  .reactivation-card .cs2-label,
-  .check-balance-card .cs2-label{
-    width:50px !important;
-    flex:0 0 50px !important;
-  }
-
-  .maintenance-card .cs2-row .cs2-input-wrap,
-  .reactivation-card .cs2-row .cs2-input-wrap,
-  .check-balance-card .cs2-row .cs2-input-wrap,
-  .opening-card .cs2-row .cs2-input-wrap{
-    margin-left:0 !important;
-  }
-
   .journal-sheet .posting-inline-group.posting-inline-account{
-    gap:2px !important;
+    grid-template-columns: 86px 80px auto !important;
+    column-gap: 2px !important;
   }
 
-  .journal-sheet .posting-inline-group.posting-inline-account .sheet-label{
-    margin-right:0 !important;
+  .journal-sheet .posting-row-name{
+    grid-template-columns: 86px minmax(260px, 520px) auto !important;
+    column-gap: 2px !important;
+  }
+
+  .journal-sheet .posting-row-amount{
+    grid-template-columns: 86px 146px auto auto !important;
+    column-gap: 2px !important;
+  }
+
+  .journal-sheet .posting-inline-group.posting-inline-account .sheet-label,
+  .journal-sheet .posting-row-name .sheet-label,
+  .journal-sheet .posting-row-amount .sheet-label{
+    margin-right: 0 !important;
+    padding-right: 0 !important;
+    white-space: nowrap !important;
+    justify-self: start !important;
   }
 
   .journal-sheet .posting-inline-group.posting-inline-account #txAcc,
-  .journal-sheet .posting-row-name #txName,
   .journal-sheet .posting-row-amount #txAmount{
-    margin-left:0 !important;
+    margin-left: 0 !important;
+    justify-self: start !important;
+  }
+
+  .journal-sheet .posting-inline-group.posting-inline-account #txSearch,
+  .journal-sheet .posting-row-amount #txPostSingle,
+  .journal-sheet .posting-row-amount #txJournalAdd{
+    margin-left: 0 !important;
   }
 
   #modalBack .modal[data-modal-title="My Balance"] #walletFundAmt,
   #modalBack .modal[data-modal-title="My Balance"] #walletRepayAmt{
-    width:108px !important;
-    min-width:108px !important;
-    max-width:108px !important;
-    flex:0 0 108px !important;
+    width: 8ch !important;
+    min-width: 8ch !important;
+    max-width: 8ch !important;
+    flex: 0 0 8ch !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
   }
 
-  #modalBack .modal[data-modal-title="Form"] #floatAmount{
-    width:138px !important;
-    min-width:138px !important;
-    max-width:138px !important;
-    flex:0 0 138px !important;
+  body.home-lock-scroll{
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  body.home-lock-scroll .shell{
+    min-height: 100vh !important;
+    padding-top: 14px !important;
+    padding-bottom: 14px !important;
+  }
+
+  body.home-lock-scroll .module-grid{
+    margin-top: 12px !important;
+    padding-bottom: 12px !important;
   }
 }
 
 
-/* 2026-04-07 surgical rollback + credit/debit label proximity fix */
+/* ===== 2026-04-08 HOTFIX: restore credit/debit label spacing correctly + exact 7-digit my-balance + refresh-safe home ===== */
 @media (min-width: 981px){
-  /* restore customer-service spacing to prior approved look */
-  .opening-card .cs2-row,
-  .maintenance-card .cs2-row,
-  .reactivation-card .cs2-row,
-  .check-balance-card .cs2-row{
-    gap:3px !important;
-  }
-
-  .opening-card .cs2-label,
-  .maintenance-card .cs2-label,
-  .reactivation-card .cs2-label,
-  .check-balance-card .cs2-label{
-    width:74px !important;
-    flex:0 0 74px !important;
-  }
-
-  /* make credit/debit rows use the same label-to-input distance as customer service */
   .journal-sheet .posting-inline-group.posting-inline-account{
-    grid-template-columns:74px 150px auto !important;
-    column-gap:3px !important;
+    display:inline-flex !important;
+    align-items:center !important;
+    gap:2px !important;
+    width:auto !important;
+  }
+
+  .journal-sheet .posting-inline-group.posting-inline-account .posting-label-account,
+  .journal-sheet .posting-row-amount .amount-primary-label{
+    width:auto !important;
+    min-width:0 !important;
+    max-width:none !important;
+    margin-right:0 !important;
+    padding-right:0 !important;
+    justify-self:start !important;
+    white-space:nowrap !important;
+  }
+
+  .journal-sheet .posting-row-name .posting-label-name{
+    width:118px !important;
+    min-width:118px !important;
+    max-width:118px !important;
+    margin-right:0 !important;
+    padding-right:0 !important;
+    justify-self:start !important;
+    white-space:nowrap !important;
   }
 
   .journal-sheet .posting-row-name{
-    grid-template-columns:74px minmax(260px, 520px) auto !important;
-    column-gap:3px !important;
+    grid-template-columns:118px minmax(260px, 1fr) auto !important;
+    column-gap:8px !important;
+  }
+
+  .journal-sheet .posting-row-name .value-wide,
+  .journal-sheet .posting-row-name #txName{
+    min-width:0 !important;
+    width:100% !important;
+    max-width:none !important;
   }
 
   .journal-sheet .posting-row-amount{
-    grid-template-columns:74px 146px auto auto !important;
-    column-gap:3px !important;
+    display:inline-grid !important;
+    grid-template-columns:max-content 146px max-content max-content !important;
+    column-gap:2px !important;
+    align-items:center !important;
+    width:auto !important;
   }
+
+  .journal-sheet .posting-inline-group.posting-inline-account #txAcc,
+  .journal-sheet .posting-row-amount #txAmount{
+    margin-left:0 !important;
+    justify-self:start !important;
+  }
+
+  .journal-sheet .posting-inline-group.posting-inline-account #txSearch,
+  .journal-sheet .posting-row-amount #txPostSingle,
+  .journal-sheet .posting-row-amount #txJournalAdd{
+    transform:none !important;
+    margin-left:0 !important;
+    justify-self:start !important;
+  }
+
+  #modalBack .modal[data-modal-title="My Balance"] #walletFundAmt,
+  #modalBack .modal[data-modal-title="My Balance"] #walletRepayAmt{
+    width:7ch !important;
+    min-width:7ch !important;
+    max-width:7ch !important;
+    flex:0 0 7ch !important;
+    padding-left:4px !important;
+    padding-right:4px !important;
+    text-align:left !important;
+  }
+}
+
+body.home-lock-scroll{
+  overflow-x:hidden !important;
+  overflow-y:auto !important;
+}
+
+body.home-lock-scroll .shell{
+  min-height:100vh !important;
+  height:auto !important;
 }
