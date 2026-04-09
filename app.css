@@ -10277,3 +10277,121 @@ body.home-lock-scroll .shell{
     max-width:12ch !important;
   }
 }
+
+
+/* ===== 2026-04-09 surgical polish v20 ===== */
+@media (min-width: 981px){
+  .module-grid{
+    min-height:560px !important;
+    height:560px !important;
+  }
+  .module-grid::before{
+    top:54% !important;
+    width:500px !important;
+    height:500px !important;
+  }
+  .module-grid::after{
+    top:54% !important;
+    width:368px !important;
+    height:368px !important;
+  }
+  .module-hub{
+    top:54% !important;
+    width:188px !important;
+    height:188px !important;
+  }
+  .module-hub-logo{
+    width:88% !important;
+    height:88% !important;
+    object-fit:contain !important;
+    object-position:center !important;
+  }
+  .module-card[data-module-key="administration"]{ left:50% !important; top:165px !important; transform:translate(-50%,-50%) !important; }
+  .module-card[data-module-key="balances"]{ left:28% !important; top:280px !important; transform:translate(-50%,-50%) !important; }
+  .module-card[data-module-key="tellering"]{ left:72% !important; top:280px !important; transform:translate(-50%,-50%) !important; }
+  .module-card[data-module-key="approvals"]{ left:28% !important; top:450px !important; transform:translate(-50%,-50%) !important; }
+  .module-card[data-module-key="customer_service"]{ left:72% !important; top:450px !important; transform:translate(-50%,-50%) !important; }
+
+  #staffSelect,
+  .inline-field.compact select{
+    width:182px !important;
+    min-width:182px !important;
+    max-width:182px !important;
+    padding:2px 6px !important;
+    font-size:10px !important;
+    height:26px !important;
+    border-radius:8px !important;
+  }
+
+  .opening-card .cs2-wide{
+    width:194px !important;
+    flex:0 0 194px !important;
+  }
+
+  .opening-card .cs2-medium,
+  .maintenance-card .cs2-medium{
+    width:13ch !important;
+    flex:0 0 13ch !important;
+  }
+  .opening-card .cs2-medium .cs2-input,
+  .maintenance-card .cs2-medium .cs2-input{
+    width:100% !important;
+  }
+
+  .approval-opening-linear{
+    max-width:620px !important;
+    gap:10px !important;
+  }
+  .approval-opening-linear .field{
+    width:100% !important;
+    max-width:620px !important;
+  }
+  .approval-opening-linear .display-field{
+    width:100% !important;
+  }
+  .approval-opening-linear .approval-assign-field{
+    max-width:110px !important;
+    width:110px !important;
+  }
+  .approval-opening-linear .approval-assign-field label{
+    display:block !important;
+    margin-bottom:6px !important;
+  }
+  .approval-assign-input,
+  #approvalAssignAccount{
+    width:88px !important;
+    min-width:88px !important;
+    max-width:88px !important;
+    padding:8px 10px !important;
+    text-align:center !important;
+    box-sizing:border-box !important;
+  }
+
+  #modalBack .modal[data-modal-title="Account Opening"] .modal-actions{
+    gap:8px !important;
+  }
+  #modalBack .modal[data-modal-title="Account Opening"] .modal-actions button{
+    padding:8px 14px !important;
+    min-height:34px !important;
+    font-size:12px !important;
+    border-radius:10px !important;
+    min-width:0 !important;
+  }
+
+  #modalBack .modal[data-modal-title="Central Close of Day"] .modal-actions{
+    gap:8px !important;
+  }
+  #modalBack .modal[data-modal-title="Central Close of Day"] .modal-actions button{
+    padding:8px 14px !important;
+    min-height:34px !important;
+    font-size:12px !important;
+    border-radius:10px !important;
+    min-width:0 !important;
+  }
+  #approvalsCentralCloseDayBtn{
+    padding:8px 14px !important;
+    min-height:34px !important;
+    font-size:12px !important;
+    border-radius:10px !important;
+  }
+}

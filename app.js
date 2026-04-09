@@ -1417,8 +1417,18 @@
     const photoBlock = `<div class="approval-photo-stack"><button type="button" class="secondary" id="approvalPhotoToggle">Display Picture</button><div class="approval-photo-panel hidden" id="approvalPhotoPanel"><div class="photo-box approval-photo-box">${photoSrc ? `<img src="${photoSrc}" alt="customer photo">` : '<span>No Photo</span>'}</div></div></div>`;
     let html = '';
     if (req.type === 'account_opening') {
-      const assignBlock = req.status === 'pending' ? `<div class="form-grid two modal-cs-grid approval-assignment-grid"><div class="field field-account"><label>Assign Account Number</label><input id="approvalAssignAccount" class="entry-input approval-assign-input" maxlength="4" inputmode="numeric" value="${esc(p.generatedAccountNumber || '')}"></div></div>` : '';
-      html = `<div class="stack"><div class="form-grid two modal-cs-grid">${field('Name', p.name, 'field-wide')}${field('Phone', p.phone, 'field-phone')}${field('Address', p.address, 'field-wide')}${field('NIN', p.nin, 'field-id')}${field('BVN', p.bvn, 'field-bvn')}</div>${assignBlock}${photoBlock}</div>`;
+      const assignBlock = req.status === 'pending'
+        ? `<div class="field field-account approval-assign-field"><label>Assign Account Number</label><input id="approvalAssignAccount" class="entry-input approval-assign-input" maxlength="4" inputmode="numeric" value="${esc(p.generatedAccountNumber || '')}"></div>`
+        : '';
+      html = `<div class="stack approval-opening-linear">
+        ${field('Name', p.name, 'field-wide')}
+        ${field('Phone', p.phone, 'field-phone')}
+        ${field('Address', p.address, 'field-wide')}
+        ${field('NIN', p.nin, 'field-id')}
+        ${field('BVN', p.bvn, 'field-bvn')}
+        ${assignBlock}
+        ${photoBlock}
+      </div>`;
     } else if (req.type === 'account_maintenance') {
       const patch = p.patch || {};
       html = `<div class="stack"><div class="form-grid two modal-cs-grid">${field('Customer Name', customer?.name || patch.name, 'field-wide')}${field('Account Number', p.accountNumber, 'field-account')}${field('Current Status', customerStatusLabel(customer), 'field-status')}${field('Old Account Number', patch.oldAccountNumber, 'field-account')}${field('Updated Name', patch.name, 'field-wide')}${field('Updated Phone', patch.phone, 'field-phone')}${field('Updated Address', patch.address, 'field-wide')}${field('Updated NIN', patch.nin, 'field-id')}${field('Updated BVN', patch.bvn, 'field-bvn')}</div>${photoBlock}</div>`;
