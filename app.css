@@ -10593,3 +10593,114 @@ body.home-lock-scroll .shell{
 #journalCommissionRow .journal-cell-label{
   margin-top:2px;
 }
+
+
+/* ===== 2026-04-09 surgical polish v25: make other customer-service modals portable like Check Balance ===== */
+@media (min-width: 981px){
+  .opening-card,
+  .maintenance-card,
+  .reactivation-card{
+    width:fit-content !important;
+    max-width:none !important;
+    margin:0 !important;
+    padding:14px 16px !important;
+    border-radius:12px !important;
+    justify-self:start !important;
+  }
+
+  .opening-card .cs2-title,
+  .maintenance-card .cs2-title,
+  .reactivation-card .cs2-title{
+    margin-bottom:14px !important;
+  }
+
+  .opening-card .cs2-stack,
+  .maintenance-card .cs2-stack,
+  .reactivation-card .cs2-stack{
+    width:fit-content !important;
+    gap:10px !important;
+  }
+
+  .opening-card .cs2-row,
+  .maintenance-card .cs2-row,
+  .reactivation-card .cs2-row{
+    width:fit-content !important;
+    gap:6px !important;
+  }
+
+  .opening-card .cs2-label,
+  .maintenance-card .cs2-label,
+  .reactivation-card .cs2-label{
+    width:70px !important;
+    flex:0 0 70px !important;
+  }
+
+  .opening-card .cs2-wide,
+  .maintenance-card .cs2-name-narrow,
+  .reactivation-card .cs2-wide{
+    width:250px !important;
+    flex:0 0 250px !important;
+  }
+
+  .opening-card .cs2-medium,
+  .maintenance-card .cs2-medium{
+    width:170px !important;
+    flex:0 0 170px !important;
+  }
+
+  .opening-card .cs2-short,
+  .maintenance-card .cs2-short,
+  .reactivation-card .cs2-short{
+    width:4.8ch !important;
+    flex:0 0 4.8ch !important;
+  }
+
+  .opening-card .cs2-upload-row{
+    width:fit-content !important;
+    padding-left:76px !important;
+    gap:8px !important;
+  }
+
+  .maintenance-card .cs2-footer,
+  .reactivation-card .cs2-footer{
+    width:fit-content !important;
+    max-width:560px !important;
+    display:flex !important;
+    flex-direction:column !important;
+    align-items:flex-start !important;
+    gap:6px !important;
+  }
+
+  .maintenance-card .cs2-status,
+  .maintenance-card .cs2-hint,
+  .reactivation-card .cs2-status,
+  .reactivation-card .cs2-hint{
+    width:auto !important;
+    max-width:560px !important;
+    flex:none !important;
+  }
+
+  .workspace-tool-body .form-card:has(.account-statement-filter-grid){
+    width:fit-content !important;
+    max-width:none !important;
+    margin:0 !important;
+    padding:14px 16px !important;
+    border-radius:12px !important;
+    justify-self:start !important;
+  }
+
+  .workspace-tool-body .form-card:has(.account-statement-filter-grid) h3{
+    margin-bottom:12px !important;
+  }
+
+  .workspace-tool-body .form-card:has(.account-statement-filter-grid) .account-statement-filter-grid{
+    width:fit-content !important;
+    justify-content:start !important;
+    margin:0 !important;
+  }
+
+  .workspace-tool-body .form-card:has(.account-statement-filter-grid) .compact-action-row{
+    width:fit-content !important;
+    margin-top:10px !important;
+  }
+}
