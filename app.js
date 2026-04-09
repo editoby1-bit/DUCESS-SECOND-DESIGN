@@ -1383,7 +1383,7 @@
                 <div class="journal-cell action"><button id="journalAddRow" class="sheet-btn">Add to Journal</button></div>
                 <div class="journal-cell action"><button id="journalCollapseBtn" class="secondary">${journalCollapsed ? 'Expand Journal' : 'Collapse Journal'}</button></div>
               </div>
-              ${kind === 'credit' ? `<div class="journal-entry-top row-three commission-journal-row"><div class="journal-cell commission-toggle-cell"><label class="commission-toggle-chip"><input id="journalTakeCommission" type="checkbox"> <span>Take Commission</span></label></div><div class="journal-cell"><input id="journalCommission" class="entry-input" type="number"><div class="journal-cell-label">To Commission</div></div><div class="journal-cell grow"><div class="display-field" id="journalCustomerGets">${money(0)}</div><div class="journal-cell-label">To Customer Account</div></div></div>` : ''}
+              ${kind === 'credit' ? `<div class="journal-entry-top row-three commission-journal-row subtle-commission-toggle-row"><div class="journal-cell commission-toggle-cell"><label class="commission-toggle-chip commission-toggle-chip-mini"><input id="journalTakeCommission" type="checkbox"> <span>Take Commission</span></label></div></div><div class="journal-entry-top row-three commission-journal-row subtle-commission-row hidden" id="journalCommissionRow"><div class="journal-cell commission-mini-field"><input id="journalCommission" class="entry-input commission-input" type="number"><div class="journal-cell-label">To Commission</div></div><div class="journal-cell commission-mini-field grow"><div class="display-field commission-display" id="journalCustomerGets">${money(0)}</div><div class="journal-cell-label">To Customer Account</div></div></div>` : ''}
             </div>
             <div class="action-row journal-submit-row"><button id="journalSubmit">Submit Journal</button><button class="secondary" id="journalClear">Clear Journal</button><label class="sheet-btn secondary file-trigger-btn" for="journalFieldNoteInput">Upload Field Note</label><input id="journalFieldNoteInput" type="file" accept="image/*,.pdf,application/pdf" class="visually-hidden-file-input"><span class="compact-file-name" id="journalFieldNoteName">No file selected</span></div>
           </div>
@@ -2285,8 +2285,11 @@ function bindToolHandlers() {
       if (byId('txCustomerGets')) byId('txCustomerGets').textContent = money(preview.customerGets);
     };
     const updateJournalCommissionPreview = () => {
+      const toggle = byId('journalTakeCommission');
+      const row = byId('journalCommissionRow');
       const display = byId('journalCustomerGets');
       if (!display) return;
+      if (row && toggle) row.classList.toggle('hidden', !toggle.checked);
       const preview = commissionPreview(byId('journalAmount')?.value || 0, byId('journalCommission')?.value || 0);
       display.textContent = money(preview.customerGets);
     };

@@ -10555,3 +10555,41 @@ body.home-lock-scroll .shell{
   color:#64748b;
   margin-top:3px;
 }
+
+.commission-toggle-chip-mini{
+  gap:4px;
+  font-size:11px;
+  line-height:1.05;
+}
+.commission-toggle-chip input[type="checkbox"]{
+  width:11px;
+  height:11px;
+  min-width:11px;
+  min-height:11px;
+  margin:0;
+  accent-color:#2563eb;
+}
+.commission-toggle-chip-mini input[type="checkbox"]{
+  width:10px;
+  height:10px;
+  min-width:10px;
+  min-height:10px;
+}
+.commission-toggle-cell{
+  min-width:0;
+}
+.commission-journal-row.subtle-commission-toggle-row{
+  gap:6px;
+  padding-top:2px;
+}
+#journalCommissionRow .commission-input{
+  width:88px;
+  min-width:88px;
+}
+#journalCommissionRow .commission-display{
+  min-width:118px;
+  width:fit-content;
+}
+#journalCommissionRow .journal-cell-label{
+  margin-top:2px;
+}
