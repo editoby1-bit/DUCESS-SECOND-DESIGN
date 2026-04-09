@@ -9895,3 +9895,93 @@ body.home-lock-scroll .shell{
   min-height:100vh !important;
   height:auto !important;
 }
+
+
+/* ===== 2026-04-09 surgical polish: home layout, selector, check-balance shell, credit/debit proximity ===== */
+@media (min-width: 981px){
+  .top-actions .inline-field.compact span{
+    display:none !important;
+  }
+
+  #staffSelect,
+  .inline-field.compact select{
+    min-width:240px !important;
+    max-width:240px !important;
+    height:30px !important;
+    padding:4px 9px !important;
+    font-size:10px !important;
+    border-radius:9px !important;
+  }
+
+  body.home-lock-scroll{
+    overflow:hidden !important;
+  }
+
+  body.home-lock-scroll .shell{
+    min-height:100vh !important;
+    height:100vh !important;
+    overflow:hidden !important;
+    padding-top:8px !important;
+    padding-bottom:8px !important;
+  }
+
+  body.home-lock-scroll .topbar{
+    margin-bottom:8px !important;
+  }
+
+  body.home-lock-scroll .module-grid{
+    height:calc(100vh - 96px) !important;
+    min-height:0 !important;
+    margin-top:0 !important;
+    padding-top:0 !important;
+    padding-bottom:0 !important;
+    overflow:hidden !important;
+  }
+
+  .check-balance-card{
+    max-width:560px !important;
+  }
+
+  .journal-sheet .posting-inline-group.posting-inline-account{
+    gap:2px !important;
+  }
+
+  .journal-sheet .posting-inline-group.posting-inline-account .posting-label-account{
+    width:auto !important;
+    min-width:0 !important;
+    max-width:none !important;
+    flex:0 0 auto !important;
+    margin-right:0 !important;
+    padding-right:0 !important;
+  }
+
+  .journal-sheet .posting-inline-group.posting-inline-account #txAcc{
+    width:104px !important;
+    min-width:104px !important;
+    max-width:104px !important;
+    margin-left:0 !important;
+  }
+
+  .journal-sheet .posting-row-name{
+    grid-template-columns:118px 520px !important;
+    width:auto !important;
+    column-gap:8px !important;
+  }
+
+  .journal-sheet .posting-row-name .value-wide,
+  .journal-sheet .posting-row-name #txName{
+    width:520px !important;
+    max-width:520px !important;
+  }
+
+  .journal-sheet .posting-row-amount{
+    grid-template-columns:max-content 132px max-content max-content !important;
+    column-gap:2px !important;
+  }
+
+  .journal-sheet .posting-row-amount #txAmount{
+    width:132px !important;
+    max-width:132px !important;
+    min-width:132px !important;
+  }
+}

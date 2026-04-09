@@ -940,6 +940,7 @@
 
   function render() {
     document.body.classList.remove('home-lock-scroll');
+    if (!state.ui.module) document.body.classList.add('home-lock-scroll');
     bindHeader();
     renderHero();
     renderModules();
@@ -993,7 +994,9 @@
 
   function renderModules() {
     const current = state.ui.module;
-    byId('moduleGrid').innerHTML = `<div class="module-grid-title">DASHBOARD</div><div class="module-hub"><img src="logo.png" alt="Ducess Enterprises" class="module-hub-logo"></div>` + Object.entries(MODULES).map(([key,m]) => {
+    const moduleOrder = ['administration','balances','tellering','customer_service','approvals'];
+    byId('moduleGrid').innerHTML = `<div class="module-grid-title">DASHBOARD</div><div class="module-hub"><img src="logo.png" alt="Ducess Enterprises" class="module-hub-logo"></div>` + moduleOrder.map((key) => {
+      const m = MODULES[key];
       const allowed = moduleAllowed(key);
       return `<div class="module-card ${current===key?'active':''} ${allowed?'':'disabled'}" data-module="${key}" data-module-key="${key}">
         <div class="module-icon">${m.icon}</div>
@@ -2241,8 +2244,28 @@ function bindToolHandlers() {
 
     if (byId('txSearch')) byId('txSearch').onclick = () => openCustomerSearchModal(state.customers);
     if (byId('txAcc')) {
-      byId('txAcc').oninput = () => { const v = (byId('txAcc').value || '').trim(); if (/^\d{4}$/.test(v)) searchSingle(); };
-      byId('txAcc').onchange = searchSingle;
+      byId('txAcc').oninput = () => {
+        const v = (byId('txAcc').value || '').trim();
+        if (!v) {
+          if (byId('txName')) byId('txName').textContent = '—';
+          if (byId('txBalance')) byId('txBalance').innerHTML = '—';
+          state.ui.selectedCustomerId = null;
+          save();
+          return;
+        }
+        if (/^\d{4}$/.test(v)) searchSingle();
+      };
+      byId('txAcc').onchange = () => {
+        const v = (byId('txAcc').value || '').trim();
+        if (!v) {
+          if (byId('txName')) byId('txName').textContent = '—';
+          if (byId('txBalance')) byId('txBalance').innerHTML = '—';
+          state.ui.selectedCustomerId = null;
+          save();
+          return;
+        }
+        searchSingle();
+      };
       byId('txAcc').onkeyup = e => { if(e.key==='Enter') searchSingle(); };
     }
 
@@ -3170,6 +3193,14 @@ function bindToolHandlers() {
   }
 
   function startApp() {
+    try {
+      const navEntry = performance.getEntriesByType?.('navigation')?.[0];
+      if (navEntry?.type === 'reload') {
+        state.ui.module = null;
+        state.ui.tool = null;
+        save();
+      }
+    } catch (err) {}
     applyTheme(state.ui.theme || 'classic', false);
     render();
     if (isSupabaseApprovalMode()) {
