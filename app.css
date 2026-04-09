@@ -10440,11 +10440,11 @@ body.home-lock-scroll .shell{
     padding:16px 13px 9px 13px !important;
     font-size:18px !important;
   }
-  .module-card[data-module-key="customer_service"]{ left:50% !important; top:166px !important; transform:translate(-50%,-50%) !important; }
-  .module-card[data-module-key="approvals"]{ left:73% !important; top:286px !important; transform:translate(-50%,-50%) !important; }
-  .module-card[data-module-key="administration"]{ left:68% !important; top:446px !important; transform:translate(-50%,-50%) !important; }
-  .module-card[data-module-key="balances"]{ left:32% !important; top:446px !important; transform:translate(-50%,-50%) !important; }
-  .module-card[data-module-key="tellering"]{ left:27% !important; top:286px !important; transform:translate(-50%,-50%) !important; }
+  .module-card[data-module-key="customer_service"]{ left:50% !important; top:148px !important; transform:translate(-50%,-50%) !important; }
+  .module-card[data-module-key="approvals"]{ left:70.5% !important; top:286px !important; transform:translate(-50%,-50%) !important; }
+  .module-card[data-module-key="administration"]{ left:66% !important; top:420px !important; transform:translate(-50%,-50%) !important; }
+  .module-card[data-module-key="balances"]{ left:34% !important; top:420px !important; transform:translate(-50%,-50%) !important; }
+  .module-card[data-module-key="tellering"]{ left:29.5% !important; top:286px !important; transform:translate(-50%,-50%) !important; }
 
   /* APPROVAL -> ACCOUNT OPENING: no extra-width fields; compact actions */
   .approval-opening-linear{
