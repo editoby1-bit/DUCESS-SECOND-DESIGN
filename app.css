@@ -10134,3 +10134,40 @@ body.home-lock-scroll .shell{
     border-radius:14px !important;
   }
 }
+
+
+/* ===== 2026-04-09 surgical polish v18 ===== */
+@media (min-width: 981px){
+  .top-actions .inline-field.compact{
+    gap:0 !important;
+    width:auto !important;
+    display:inline-flex !important;
+    align-items:center !important;
+  }
+
+  #staffSelect,
+  .inline-field.compact select{
+    min-width:0 !important;
+    width:168px !important;
+    max-width:168px !important;
+    height:26px !important;
+    padding:2px 8px !important;
+    border-radius:8px !important;
+  }
+
+  .check-balance-card{
+    padding:14px 16px !important;
+    border-radius:12px !important;
+  }
+
+  .check-balance-card .cs2-wide{
+    width:320px !important;
+    flex:0 0 320px !important;
+  }
+
+  .module-card[data-module-key="customer_service"]{left:50% !important; top:16% !important; transform:translateX(-50%) !important;}
+  .module-card[data-module-key="administration"]{left:66% !important; top:73% !important; transform:none !important;}
+  .module-card[data-module-key="tellering"]{left:17% !important; top:50% !important; transform:translateY(-50%) !important;}
+  .module-card[data-module-key="approvals"]{left:73% !important; top:50% !important; transform:translateY(-50%) !important;}
+  .module-card[data-module-key="balances"]{left:18% !important; top:74% !important; transform:none !important;}
+}
