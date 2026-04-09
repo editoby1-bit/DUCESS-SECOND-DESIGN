@@ -10395,3 +10395,118 @@ body.home-lock-scroll .shell{
     border-radius:10px !important;
   }
 }
+
+
+/* ===== 2026-04-09 surgical polish v21 ===== */
+@media (min-width: 981px){
+  /* HOME SCREEN: restore requested tile order, tighter circle, more visible logo */
+  .module-grid{
+    min-height:540px !important;
+    height:540px !important;
+    margin-top:8px !important;
+  }
+  .module-grid::before{
+    top:54% !important;
+    width:460px !important;
+    height:460px !important;
+    background:radial-gradient(circle at center, rgba(255,255,255,.86) 0 34%, rgba(233,244,249,.62) 52%, rgba(215,235,243,.22) 67%, rgba(214,236,244,0) 82%) !important;
+  }
+  .module-grid::after{
+    top:54% !important;
+    width:338px !important;
+    height:338px !important;
+    border-width:12px !important;
+    box-shadow:0 0 0 2px rgba(212,231,238,.92), 0 0 0 14px rgba(241,247,251,.68), inset 0 0 0 7px rgba(255,255,255,.90) !important;
+  }
+  .module-hub{
+    top:54% !important;
+    width:198px !important;
+    height:198px !important;
+    border-width:8px !important;
+  }
+  .module-hub-logo{
+    width:97% !important;
+    height:97% !important;
+    object-fit:contain !important;
+    object-position:center !important;
+    border-radius:50% !important;
+  }
+  .module-card .module-icon{
+    width:82px !important;
+    height:82px !important;
+    margin:0 auto -12px auto !important;
+  }
+  .module-card .module-title{
+    padding:16px 13px 9px 13px !important;
+    font-size:18px !important;
+  }
+  .module-card[data-module-key="customer_service"]{ left:50% !important; top:166px !important; transform:translate(-50%,-50%) !important; }
+  .module-card[data-module-key="approvals"]{ left:73% !important; top:286px !important; transform:translate(-50%,-50%) !important; }
+  .module-card[data-module-key="administration"]{ left:68% !important; top:446px !important; transform:translate(-50%,-50%) !important; }
+  .module-card[data-module-key="balances"]{ left:32% !important; top:446px !important; transform:translate(-50%,-50%) !important; }
+  .module-card[data-module-key="tellering"]{ left:27% !important; top:286px !important; transform:translate(-50%,-50%) !important; }
+
+  /* APPROVAL -> ACCOUNT OPENING: no extra-width fields; compact actions */
+  .approval-opening-linear{
+    max-width:420px !important;
+    gap:8px !important;
+    align-items:flex-start !important;
+  }
+  .approval-opening-linear .field{
+    width:auto !important;
+    max-width:none !important;
+    min-width:0 !important;
+  }
+  .approval-opening-linear .field-wide,
+  .approval-opening-linear .field:nth-child(1),
+  .approval-opening-linear .field:nth-child(3){
+    width:380px !important;
+  }
+  .approval-opening-linear .field-phone{
+    width:180px !important;
+  }
+  .approval-opening-linear .field-id,
+  .approval-opening-linear .field-bvn{
+    width:210px !important;
+  }
+  .approval-opening-linear .display-field{
+    width:100% !important;
+    min-height:42px !important;
+    padding:8px 12px !important;
+    box-sizing:border-box !important;
+  }
+  .approval-opening-linear .approval-assign-field{
+    width:4.9ch !important;
+    max-width:4.9ch !important;
+    min-width:4.9ch !important;
+  }
+  .approval-opening-linear .approval-assign-field label{
+    white-space:nowrap !important;
+    margin-bottom:5px !important;
+  }
+  .approval-assign-input,
+  #approvalAssignAccount{
+    width:4.9ch !important;
+    min-width:4.9ch !important;
+    max-width:4.9ch !important;
+    padding:7px 6px !important;
+    text-align:center !important;
+    box-sizing:border-box !important;
+  }
+  .approval-photo-stack{
+    margin-top:4px !important;
+    gap:8px !important;
+  }
+  #modalBack .modal[data-modal-title="Account Opening"] .modal-actions{
+    gap:6px !important;
+    padding:12px 18px !important;
+  }
+  #modalBack .modal[data-modal-title="Account Opening"] .modal-actions button{
+    padding:6px 12px !important;
+    min-height:28px !important;
+    font-size:11px !important;
+    line-height:1.05 !important;
+    border-radius:10px !important;
+    min-width:0 !important;
+  }
+}
