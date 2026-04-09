@@ -342,6 +342,34 @@
     save();
   }
 
+  function getCommissionIncomeAccount() {
+    const accounts = state.operations?.incomeAccounts || [];
+    return accounts.find(a => String(a.name || '').trim().toLowerCase() === 'commission') || accounts[0] || null;
+  }
+
+  function normalizeCommissionAmount(totalAmount, commissionAmount) {
+    const total = Number(totalAmount || 0);
+    const commission = Number(commissionAmount || 0);
+    if (!(total > 0) || !(commission > 0)) return 0;
+    return Math.min(total, Math.max(0, commission));
+  }
+
+  function getCustomerCreditAmount(payload) {
+    const total = Number(payload?.amount || 0);
+    const commission = normalizeCommissionAmount(total, payload?.commissionAmount);
+    const explicit = Number(payload?.customerCreditAmount || 0);
+    if (commission <= 0) return total;
+    return Math.max(0, explicit > 0 ? explicit : total - commission);
+  }
+
+  function commissionSummaryText(payload) {
+    const total = Number(payload?.amount || 0);
+    const commission = normalizeCommissionAmount(total, payload?.commissionAmount);
+    if (!(commission > 0)) return '';
+    const customerGets = getCustomerCreditAmount(payload);
+    return ` • Commission ${money(commission)} • To Customer Account ${money(customerGets)}`;
+  }
+
   function hasPermission(tool, staff=currentStaff()) {
     if (!staff) return false;
     if (['check_balance','operational_accounts','my_balance','my_close_day'].includes(tool)) return true;
@@ -803,14 +831,55 @@
       case 'customer_credit': {
         const c = state.customers.find(x => x.id === req.payload.customerId);
         if (!c || isCustomerFrozen(c) || c.active === false) break;
-        c.transactions.push(txObj('credit', req.payload.amount, req.payload.details, req.requestedByName, req.requestedBy, currentStaff()?.name || '', 'customer', req.payload.date, {
+        const totalAmount = Number(req.payload.amount || 0);
+        const commissionAmount = normalizeCommissionAmount(totalAmount, req.payload.commissionAmount);
+        const customerCreditAmount = getCustomerCreditAmount(req.payload);
+        const commissionTraceId = req.payload.commissionTraceId || uid('ctr');
+        const baseDetails = String(req.payload.details || '').trim();
+        const commissionDetailTag = commissionAmount > 0 ? `${baseDetails ? ' • ' : ''}To Commission ${money(commissionAmount)} • To Customer Account ${money(customerCreditAmount)}` : '';
+        c.transactions.push(txObj('credit', customerCreditAmount, `${baseDetails}${commissionDetailTag}`.trim(), req.requestedByName, req.requestedBy, currentStaff()?.name || '', 'customer', req.payload.date, {
           receivedOrPaidBy: req.payload.receivedOrPaidBy,
           paymentMode: req.payload.paymentMode || req.payload.payoutSource || '',
           postedBy: req.requestedByName,
-          approvedBy: currentStaff()?.name || ''
+          approvedBy: currentStaff()?.name || '',
+          sourceAmount: totalAmount,
+          commissionAmount,
+          commissionTraceId,
+          customerCreditAmount
         }));
         recalcCustomerBalance(c);
-        addStaffEntry(req.payload.staffId, 'customer_credit', req.payload.amount, -req.payload.amount, `Customer credit ${c.accountNumber}`, { customerId: c.id, date: `${req.payload.date}T12:00:00.000Z` });
+        addStaffEntry(req.payload.staffId, 'customer_credit', totalAmount, -totalAmount, `Customer credit ${c.accountNumber}`, { customerId: c.id, date: `${req.payload.date}T12:00:00.000Z`, commissionAmount, commissionTraceId, customerCreditAmount });
+        if (commissionAmount > 0) {
+          const commissionAccount = getCommissionIncomeAccount();
+          state.operations.entries.unshift({
+            id: uid('op'),
+            kind: 'income',
+            accountId: commissionAccount?.id || 'commission',
+            accountName: commissionAccount?.name || 'Commission',
+            amount: commissionAmount,
+            note: `Commission from ${c.accountNumber} • Trace ${commissionTraceId}`,
+            date: `${req.payload.date}T12:00:00.000Z`,
+            postedBy: req.requestedByName,
+            approvedBy: currentStaff()?.name || '',
+            traceId: commissionTraceId,
+            sourceTransactionType: 'customer_credit'
+          });
+          state.businessExtras ||= [];
+          state.businessExtras.unshift({
+            date: `${req.payload.date}T12:00:00.000Z`,
+            accountNumber: commissionAccount?.accountNumber || 'INC-2000',
+            accountName: commissionAccount?.name || 'Commission',
+            details: `Commission from ${c.accountNumber} • Trace ${commissionTraceId}`,
+            kind: 'credit',
+            amount: commissionAmount,
+            balanceAfter: 0,
+            receivedOrPaidBy: req.payload.receivedOrPaidBy || '',
+            postedBy: currentStaff()?.name || req.requestedByName,
+            type: 'commission_credit',
+            traceId: commissionTraceId
+          });
+          pushAudit('commission_applied', `${c.accountNumber} • Amount ${money(totalAmount)} • Commission ${money(commissionAmount)} • Customer ${money(customerCreditAmount)} • Trace ${commissionTraceId}`);
+        }
         break;
       }
       case 'customer_debit': {
@@ -1282,6 +1351,7 @@
               <button id="txPostSingle" class="sheet-btn secondary tiny-btn ultra-compact-btn">Post</button>
               ${journalVisible ? '' : `<button id="txJournalAdd" class="sheet-btn secondary tiny-btn ultra-compact-btn">Generate Journal</button>`}
             </div>
+            ${kind === 'credit' ? `<div class="posting-row posting-row-commission-toggle subtle-commission-toggle-row"><label class="commission-toggle-chip"><input id="txTakeCommission" type="checkbox"> <span>Take Commission</span></label></div><div class="posting-row posting-row-commission subtle-commission-row hidden" id="txCommissionRow"><div class="commission-mini-field"><label class="sheet-label" for="txCommission">To Commission</label><input id="txCommission" class="entry-input sheet-input commission-input" type="number" /></div><div class="commission-mini-field"><label class="sheet-label">To Customer Account</label><div class="display-field commission-display" id="txCustomerGets">${money(0)}</div></div></div>` : ''}
           </div>
         </div>
         <div class="tellering-inline-meta form-card compact-left tellering-entry-card">
@@ -1313,6 +1383,7 @@
                 <div class="journal-cell action"><button id="journalAddRow" class="sheet-btn">Add to Journal</button></div>
                 <div class="journal-cell action"><button id="journalCollapseBtn" class="secondary">${journalCollapsed ? 'Expand Journal' : 'Collapse Journal'}</button></div>
               </div>
+              ${kind === 'credit' ? `<div class="journal-entry-top row-three commission-journal-row"><div class="journal-cell commission-toggle-cell"><label class="commission-toggle-chip"><input id="journalTakeCommission" type="checkbox"> <span>Take Commission</span></label></div><div class="journal-cell"><input id="journalCommission" class="entry-input" type="number"><div class="journal-cell-label">To Commission</div></div><div class="journal-cell grow"><div class="display-field" id="journalCustomerGets">${money(0)}</div><div class="journal-cell-label">To Customer Account</div></div></div>` : ''}
             </div>
             <div class="action-row journal-submit-row"><button id="journalSubmit">Submit Journal</button><button class="secondary" id="journalClear">Clear Journal</button><label class="sheet-btn secondary file-trigger-btn" for="journalFieldNoteInput">Upload Field Note</label><input id="journalFieldNoteInput" type="file" accept="image/*,.pdf,application/pdf" class="visually-hidden-file-input"><span class="compact-file-name" id="journalFieldNoteName">No file selected</span></div>
           </div>
@@ -1358,9 +1429,9 @@
   }
   function approvalDetails(a) {
     const p = a.payload || {};
-    if (a.type === 'customer_credit') return `${money(p.amount)} to ${customerName(p.customerId) || p.accountNumber}${p.details ? ' • ' + p.details : ''}`;
+    if (a.type === 'customer_credit') return `${money(p.amount)} to ${customerName(p.customerId) || p.accountNumber}${commissionSummaryText(p)}${p.details ? ' • ' + p.details : ''}`;
     if (a.type === 'customer_debit') return `${money(p.amount)} from ${customerName(p.customerId) || p.accountNumber}${p.details ? ' • ' + p.details : ''}`;
-    if (a.type === 'customer_credit_journal' || a.type === 'customer_debit_journal') { const rows = p.rows || p.entries || []; const total = rows.reduce((s,r)=>s+Number(r.amount||0),0); const attachmentTag = p.fieldNote ? ' • Note attached' : ''; return `${rows.length} item${rows.length===1?'':'s'} • Total ${money(total)}${attachmentTag}`; }
+    if (a.type === 'customer_credit_journal' || a.type === 'customer_debit_journal') { const rows = p.rows || p.entries || []; const total = rows.reduce((s,r)=>s+Number(r.amount||0),0); const totalCommission = rows.reduce((s,r)=>s+normalizeCommissionAmount(r.amount, r.commissionAmount),0); const attachmentTag = p.fieldNote ? ' • Note attached' : ''; const commissionTag = a.type === 'customer_credit_journal' && totalCommission > 0 ? ` • Commission ${money(totalCommission)}` : ''; return `${rows.length} item${rows.length===1?'':'s'} • Total ${money(total)}${commissionTag}${attachmentTag}`; }
     if (a.type === 'wallet_fund') return `${staffName(p.staffId)} • Wallet fund • ${money(p.amount)}`;
     if (a.type === 'debt_repayment') return `${staffName(p.staffId)} • Debt repayment • ${money(p.amount)}`;
     return requestSummary(a);
@@ -1378,7 +1449,7 @@
     const p = a.payload || {};
     if (a.type === 'float_declaration') return `${money(p.amount)} for ${p.date}`;
     if (a.type === 'float_topup') return `${money(p.amount)} to ${p.staffName || 'staff'} for ${p.date}`;
-    if (a.type === 'customer_credit' || a.type === 'customer_debit') return `${p.accountNumber} • ${money(p.amount)}`;
+    if (a.type === 'customer_credit' || a.type === 'customer_debit') return `${p.accountNumber} • ${money(p.amount)}${a.type === 'customer_credit' ? commissionSummaryText(p) : ''}`;
     if (a.type === 'account_opening') return `${p.name} • Phone ${p.phone || '—'} • NIN ${p.nin || '—'} • BVN ${p.bvn || '—'}`;
     if (a.type === 'account_maintenance') return `${p.accountNumber} • update`; 
     if (a.type === 'account_reactivation') return `${p.accountNumber} • reactivate`; 
@@ -1395,17 +1466,18 @@
     const req = state.approvals.find(r=>r.id===reqId); if(!req) return;
     const rows = req.payload?.rows || req.payload?.entries || [];
     const total = rows.reduce((s,r)=>s+Number(r.amount||0),0);
+    const totalCommission = rows.reduce((s,r)=>s+normalizeCommissionAmount(r.amount, r.commissionAmount),0);
     const opening = getOpeningBalanceForDate(req.payload?.staffId, req.payload?.date || req.payload?.businessDate);
     const fieldNote = req.payload?.fieldNote || null;
     let running = opening;
-    const bodyRows = rows.map((r,i)=>{ running -= Number(r.amount||0); return `<tr><td>${i+1}</td><td>${escapeHtml(r.customerName || '—')}</td><td>${escapeHtml(r.accountNumber || '—')}</td><td>${money(r.amount)}</td><td class="${running<0?'balance-negative':''}">${money(running)}</td></tr>`; }).join('');
+    const bodyRows = rows.map((r,i)=>{ const commission = normalizeCommissionAmount(r.amount, r.commissionAmount); const customerGets = getCustomerCreditAmount(r); running -= Number(r.amount||0); const commissionMeta = commission > 0 ? `<div class="journal-inline-meta">To Commission ${money(commission)} • To Customer Account ${money(customerGets)}</div>` : ''; return `<tr><td>${i+1}</td><td>${escapeHtml(r.customerName || '—')}${commissionMeta}</td><td>${escapeHtml(r.accountNumber || '—')}</td><td>${money(r.amount)}</td><td class="${running<0?'balance-negative':''}">${money(running)}</td></tr>`; }).join('');
     const fieldNoteBlock = fieldNote?.dataUrl ? `<div class="journal-attachment-review"><div class="label">Field Note</div><div class="journal-attachment-card"><div class="journal-attachment-meta"><strong>${escapeHtml(fieldNote.name || 'Attached file')}</strong><span>${escapeHtml(formatFileSize(fieldNote.size || 0))}</span></div><a href="${fieldNote.dataUrl}" target="_blank" rel="noopener" download="${escapeHtml(fieldNote.name || 'field-note')}">Open Attachment</a></div></div>` : '';
     const actions = [{label:'Close', className:'secondary', onClick: closeModal}];
     if (req.status === 'pending') {
       actions.unshift({label:'Reject Journal', className:'danger', onClick: ()=>{ rejectRequestRemote(req.id).then((result)=>{ if(result?.ok===false) showToast(result?.error?.message || 'Unable to reject request'); }); closeModal(); }});
       actions.unshift({label:'Approve Journal', className:'success', onClick: ()=>{ approveRequestRemote(req.id).then((result)=>{ if(result?.ok===false) showToast(result?.error?.message || 'Unable to approve request'); }); closeModal(); }});
     }
-    openModal('Journal Approval', `<div class="stack"><div class="kpi-row balance-kpi-row"><div class="kpi"><div class="label">Posted By</div><div class="number">${escapeHtml(req.requestedByName)}</div></div><div class="kpi"><div class="label">Form</div><div class="number">${money(opening)}</div></div><div class="kpi"><div class="label">Total</div><div class="number">${money(total)}</div></div><div class="kpi"><div class="label">Overdraw</div><div class="number ${running<0?'balance-negative':''}">${money(Math.max(0,-running))}</div></div></div>${fieldNoteBlock}<div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Customer</th><th>Account</th><th>Amount</th><th>Remaining Balance</th></tr></thead><tbody>${bodyRows}</tbody></table></div></div>`, actions);
+    openModal('Journal Approval', `<div class="stack"><div class="kpi-row balance-kpi-row"><div class="kpi"><div class="label">Posted By</div><div class="number">${escapeHtml(req.requestedByName)}</div></div><div class="kpi"><div class="label">Form</div><div class="number">${money(opening)}</div></div><div class="kpi"><div class="label">Total</div><div class="number">${money(total)}</div></div>${req.type === 'customer_credit_journal' ? `<div class="kpi"><div class="label">Commission</div><div class="number">${money(totalCommission)}</div></div>` : ''}<div class="kpi"><div class="label">Overdraw</div><div class="number ${running<0?'balance-negative':''}">${money(Math.max(0,-running))}</div></div></div>${fieldNoteBlock}<div class="table-wrap"><table class="table"><thead><tr><th>S/N</th><th>Customer</th><th>Account</th><th>Amount</th><th>Remaining Balance</th></tr></thead><tbody>${bodyRows}</tbody></table></div></div>`, actions);
   }
 
   function openRequestDetailModal(reqId){
@@ -2199,8 +2271,27 @@ function bindToolHandlers() {
     const attachmentState = state.ui.staffJournalAttachments[visibilityKey] ||= { fieldNote: null, loading: false };
 
     const selectedMode = () => q('input[name="txMode"]:checked')?.value || 'cash';
-    const resetFields = () => { ['txAcc','txAmount','txDetails','txCounterparty'].forEach(id=>{ if(byId(id)) byId(id).value=''; }); if (byId('txName')) byId('txName').textContent='—'; if (byId('txBalance')) byId('txBalance').innerHTML='—'; state.ui.selectedCustomerId=null; };
-    const resetJournalEntryFields = () => { ['journalAcc','journalAmount','journalCounterparty','journalDetails'].forEach(id=>{ if(byId(id)) byId(id).value=''; }); if (byId('journalName')) byId('journalName').textContent='—'; state.ui.selectedJournalCustomerId = null; };
+    const commissionPreview = (amountValue, commissionValue) => {
+      const amount = Number(amountValue || 0);
+      const commission = normalizeCommissionAmount(amount, commissionValue);
+      return { amount, commission, customerGets: Math.max(0, amount - commission) };
+    };
+    const updateSingleCommissionPreview = () => {
+      const toggle = byId('txTakeCommission');
+      const row = byId('txCommissionRow');
+      if (!toggle || !row) return;
+      row.classList.toggle('hidden', !toggle.checked);
+      const preview = commissionPreview(byId('txAmount')?.value || 0, byId('txCommission')?.value || 0);
+      if (byId('txCustomerGets')) byId('txCustomerGets').textContent = money(preview.customerGets);
+    };
+    const updateJournalCommissionPreview = () => {
+      const display = byId('journalCustomerGets');
+      if (!display) return;
+      const preview = commissionPreview(byId('journalAmount')?.value || 0, byId('journalCommission')?.value || 0);
+      display.textContent = money(preview.customerGets);
+    };
+    const resetFields = () => { ['txAcc','txAmount','txDetails','txCounterparty','txCommission'].forEach(id=>{ if(byId(id)) byId(id).value=''; }); if (byId('txTakeCommission')) byId('txTakeCommission').checked=false; if (byId('txName')) byId('txName').textContent='—'; if (byId('txBalance')) byId('txBalance').innerHTML='—'; state.ui.selectedCustomerId=null; updateSingleCommissionPreview(); };
+    const resetJournalEntryFields = () => { ['journalAcc','journalAmount','journalCounterparty','journalDetails','journalCommission'].forEach(id=>{ if(byId(id)) byId(id).value=''; }); if (byId('journalTakeCommission')) byId('journalTakeCommission').checked=false; if (byId('journalName')) byId('journalName').textContent='—'; state.ui.selectedJournalCustomerId = null; updateJournalCommissionPreview(); };
 
     const recalcPreview = () => {
       const approvedBase = currentFloatAvailable(staff.id, businessDate());
@@ -2214,7 +2305,7 @@ function bindToolHandlers() {
         const variance = Math.max(0, -remaining);
         return { row, before, remaining, variance };
       });
-      const rows = withBalances.map(({ row, before, remaining, variance }, displayIndex) => `<tr><td>${displayIndex+1}</td><td>${row.customerName}</td><td>${row.accountNumber}</td><td>${money(before)}</td><td>${money(row.amount)}</td><td class="${remaining<0?'balance-negative':''}">${money(remaining)}</td><td class="${variance>0?'balance-negative':''}">${money(variance)}</td><td><span class="linklike" data-remove-row="${row.id}">Remove</span></td></tr>`).join('') || '<tr><td colspan="8">No journal entries yet</td></tr>';
+      const rows = withBalances.map(({ row, before, remaining, variance }, displayIndex) => { const commissionMeta = row.commissionAmount > 0 ? `<div class="journal-inline-meta">To Commission ${money(row.commissionAmount)} • To Customer Account ${money(row.customerCreditAmount || Math.max(0, Number(row.amount || 0) - Number(row.commissionAmount || 0)))}</div>` : ''; return `<tr><td>${displayIndex+1}</td><td>${row.customerName}${commissionMeta}</td><td>${row.accountNumber}</td><td>${money(before)}</td><td>${money(row.amount)}</td><td class="${remaining<0?'balance-negative':''}">${money(remaining)}</td><td class="${variance>0?'balance-negative':''}">${money(variance)}</td><td><span class="linklike" data-remove-row="${row.id}">Remove</span></td></tr>`; }).join('') || '<tr><td colspan="8">No journal entries yet</td></tr>';
       if (byId('journalRows')) byId('journalRows').innerHTML = rows;
       ['journalRunningFloat','postingRunningFloat'].forEach(id => { if (byId(id)) byId(id).textContent = money(Math.max(0,running)); });
       ['journalVariance','postingVariance'].forEach(id => { if (byId(id)) byId(id).textContent = money(Math.max(0,-running)); });
@@ -2280,6 +2371,10 @@ function bindToolHandlers() {
       byId('txAcc').onkeyup = e => { if(e.key==='Enter') searchSingle(); };
     }
 
+    if (byId('txTakeCommission')) byId('txTakeCommission').onchange = updateSingleCommissionPreview;
+    if (byId('txAmount')) byId('txAmount').oninput = updateSingleCommissionPreview;
+    if (byId('txCommission')) byId('txCommission').oninput = updateSingleCommissionPreview;
+
     const jumpToJournalPane = () => {
       requestAnimationFrame(() => {
         const pane = byId('journalPane') || q('#journalPane') || byId('journalPaneWrap');
@@ -2312,6 +2407,10 @@ function bindToolHandlers() {
       byId('journalAcc').onkeyup = e => { if(e.key==='Enter') searchJournal(); };
     }
 
+    if (byId('journalTakeCommission')) byId('journalTakeCommission').onchange = updateJournalCommissionPreview;
+    if (byId('journalAmount')) byId('journalAmount').oninput = updateJournalCommissionPreview;
+    if (byId('journalCommission')) byId('journalCommission').oninput = updateJournalCommissionPreview;
+
     if (byId('journalAddRow')) byId('journalAddRow').onclick = () => {
       const customer = (state.ui.selectedJournalCustomerId && state.customers.find(c => c.id === state.ui.selectedJournalCustomerId)) || getCustomerByAccountNo(byId('journalAcc')?.value || '');
       if (!customer) return showToast('Search for customer first');
@@ -2319,12 +2418,17 @@ function bindToolHandlers() {
       const amount = Number(byId('journalAmount')?.value || 0);
       if (!(amount > 0)) return showToast('Enter a valid amount');
       const mode = selectedMode();
+      const commissionAmount = kind === 'credit' && byId('journalTakeCommission')?.checked ? normalizeCommissionAmount(amount, byId('journalCommission')?.value || 0) : 0;
+      const customerCreditAmount = kind === 'credit' ? Math.max(0, amount - commissionAmount) : amount;
       journal.unshift({
         id: uid('jr'),
         customerId: customer.id,
         customerName: customer.name,
         accountNumber: customer.accountNumber,
         amount,
+        customerCreditAmount,
+        commissionAmount,
+        commissionTraceId: commissionAmount > 0 ? uid('ctr') : '',
         details: byId('journalDetails')?.value.trim() || '',
         receivedOrPaidBy: byId('journalCounterparty')?.value.trim() || '',
         payoutSource: mode,
@@ -2383,12 +2487,17 @@ function bindToolHandlers() {
       const amount = Number(byId('txAmount').value || 0);
       if (!(amount > 0)) return showToast('Enter a valid amount');
       const mode = selectedMode();
+      const commissionAmount = kind === 'credit' && byId('txTakeCommission')?.checked ? normalizeCommissionAmount(amount, byId('txCommission')?.value || 0) : 0;
+      const customerCreditAmount = kind === 'credit' ? Math.max(0, amount - commissionAmount) : amount;
       confirmAction(`Submit single ${kind} request for approval?`, () => {
         submitApprovalThroughGateway(kind === 'credit' ? 'customer_credit' : 'customer_debit', {
           customerId: customer.id,
           customerName: customer.name,
           accountNumber: customer.accountNumber,
           amount,
+          customerCreditAmount,
+          commissionAmount,
+          commissionTraceId: commissionAmount > 0 ? uid('ctr') : '',
           details: byId('txDetails').value.trim(),
           receivedOrPaidBy: byId('txCounterparty').value.trim(),
           payoutSource: mode,
@@ -2419,6 +2528,9 @@ function bindToolHandlers() {
             customerName: row.customerName,
             accountNumber: row.accountNumber,
             amount: row.amount,
+            customerCreditAmount: row.customerCreditAmount,
+            commissionAmount: row.commissionAmount,
+            commissionTraceId: row.commissionTraceId,
             details: row.details,
             receivedOrPaidBy: row.receivedOrPaidBy,
             payoutSource: row.payoutSource,
@@ -2440,6 +2552,8 @@ function bindToolHandlers() {
       });
     };
 
+    updateSingleCommissionPreview();
+    updateJournalCommissionPreview();
     recalcPreview();
   }
 

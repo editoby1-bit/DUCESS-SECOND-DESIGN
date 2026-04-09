@@ -10510,3 +10510,48 @@ body.home-lock-scroll .shell{
     min-width:0 !important;
   }
 }
+
+/* Commission patch */
+.subtle-commission-toggle-row{
+  padding-top:4px;
+  margin-left:0;
+}
+.commission-toggle-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-size:12px;
+  color:#475569;
+}
+.subtle-commission-row{
+  display:flex;
+  gap:12px;
+  align-items:flex-end;
+  flex-wrap:wrap;
+  padding-top:4px;
+}
+.commission-mini-field{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+.commission-input{
+  width:92px;
+  min-width:92px;
+}
+.commission-display{
+  min-width:120px;
+  padding:8px 10px;
+}
+.commission-journal-row{
+  align-items:flex-end;
+  gap:10px;
+}
+.commission-toggle-cell{
+  min-width:130px;
+}
+.journal-inline-meta{
+  font-size:11px;
+  color:#64748b;
+  margin-top:3px;
+}
