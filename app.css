@@ -9985,3 +9985,152 @@ body.home-lock-scroll .shell{
     min-width:132px !important;
   }
 }
+
+/* ===== 2026-04-09 final surgical polish v17 ===== */
+@media (min-width: 981px){
+  /* Top role selector: even smaller */
+  .top-actions .inline-field.compact,
+  .top-actions .inline-field.compact label{
+    width:auto !important;
+  }
+
+  #staffSelect,
+  .inline-field.compact select{
+    min-width:180px !important;
+    max-width:180px !important;
+    width:180px !important;
+    height:28px !important;
+    padding:3px 8px !important;
+    font-size:10px !important;
+    border-radius:8px !important;
+  }
+
+  /* Reduce left-panel to modal gap */
+  .workspace-switcher{
+    grid-template-columns:240px minmax(0, 1fr) !important;
+    gap:10px !important;
+    align-items:start !important;
+  }
+
+  /* Check Balance: shell should hug the actual modal size */
+  .check-balance-card{
+    width:fit-content !important;
+    max-width:none !important;
+    margin:0 !important;
+    padding:16px 18px !important;
+    border-radius:14px !important;
+    justify-self:start !important;
+  }
+
+  .check-balance-card .cs2-title{
+    margin-bottom:14px !important;
+  }
+
+  .check-balance-card .cs2-stack{
+    width:fit-content !important;
+    gap:10px !important;
+  }
+
+  .check-balance-card .cs2-row{
+    width:fit-content !important;
+    gap:6px !important;
+  }
+
+  .check-balance-card .cs2-label{
+    width:70px !important;
+    flex:0 0 70px !important;
+  }
+
+  .check-balance-card .cs2-wide{
+    width:440px !important;
+    flex:0 0 440px !important;
+  }
+
+  .check-balance-card .cs2-medium{
+    width:190px !important;
+    flex:0 0 190px !important;
+  }
+
+  .check-balance-card .cs2-short{
+    width:4.8ch !important;
+    flex:0 0 4.8ch !important;
+  }
+
+  .check-balance-card .cs2-button-row{
+    gap:8px !important;
+  }
+
+  /* Credit / Debit: bring the modal closer to the left panel */
+  .tellering-stack .journal-sheet.standalone-posting-sheet,
+  .tellering-stack .tellering-entry-card{
+    margin-left:0 !important;
+  }
+
+  .tellering-stack .journal-sheet.standalone-posting-sheet{
+    width:fit-content !important;
+    max-width:none !important;
+    padding-right:18px !important;
+  }
+
+  /* Tight 4-digit account number width */
+  .journal-sheet .posting-inline-group.posting-inline-account{
+    grid-template-columns:max-content 4.8ch auto !important;
+    column-gap:4px !important;
+    width:max-content !important;
+  }
+
+  .journal-sheet .posting-inline-group.posting-inline-account #txAcc{
+    width:4.8ch !important;
+    min-width:4.8ch !important;
+    max-width:4.8ch !important;
+    padding-left:8px !important;
+    padding-right:8px !important;
+  }
+
+  /* Shorter account name field, with tighter relation to KPI group */
+  .journal-sheet .posting-row-top{
+    grid-template-columns:max-content max-content !important;
+    column-gap:10px !important;
+    width:fit-content !important;
+    align-items:center !important;
+  }
+
+  .journal-sheet .posting-row-name{
+    grid-template-columns:118px 430px !important;
+    column-gap:6px !important;
+    width:fit-content !important;
+  }
+
+  .journal-sheet .posting-row-name #txName,
+  .journal-sheet .posting-row-name .value-wide{
+    width:430px !important;
+    max-width:430px !important;
+    min-width:430px !important;
+  }
+
+  .journal-sheet .posting-row-amount{
+    grid-template-columns:max-content 132px max-content max-content !important;
+    column-gap:6px !important;
+    width:fit-content !important;
+  }
+
+  .journal-sheet .posting-row-amount #txAmount{
+    width:132px !important;
+    min-width:132px !important;
+    max-width:132px !important;
+  }
+
+  /* KPI pills should fit their content exactly */
+  .compact-posting-kpis{
+    gap:4px !important;
+    width:fit-content !important;
+  }
+
+  .compact-posting-kpis .mini-kpi.small,
+  .posting-row-top .posting-kpis .mini-kpi.small{
+    min-width:0 !important;
+    width:auto !important;
+    padding:7px 12px !important;
+    border-radius:14px !important;
+  }
+}
