@@ -10171,3 +10171,109 @@ body.home-lock-scroll .shell{
   .module-card[data-module-key="approvals"]{left:73% !important; top:50% !important; transform:translateY(-50%) !important;}
   .module-card[data-module-key="balances"]{left:18% !important; top:74% !important; transform:none !important;}
 }
+
+
+/* ===== 2026-04-09 final surgical polish v19 ===== */
+@media (min-width: 981px){
+  /* Home circle: tighter, more balanced ring after tile swap */
+  .module-grid{
+    min-height:620px !important;
+    height:620px !important;
+  }
+  .module-grid::before{
+    top:53% !important;
+    width:520px !important;
+    height:520px !important;
+  }
+  .module-grid::after{
+    top:53% !important;
+    width:390px !important;
+    height:390px !important;
+  }
+  .module-hub{
+    top:53% !important;
+    width:240px !important;
+    height:240px !important;
+  }
+  .module-hub-logo{
+    width:98% !important;
+    height:98% !important;
+    object-fit:contain !important;
+    border-radius:50% !important;
+  }
+  .module-card[data-module-key="customer_service"]{ left:50% !important; top:170px !important; transform:translate(-50%,-50%) !important; }
+  .module-card[data-module-key="tellering"]{ left:25% !important; top:275px !important; transform:translate(-50%,-50%) !important; }
+  .module-card[data-module-key="approvals"]{ left:75% !important; top:275px !important; transform:translate(-50%,-50%) !important; }
+  .module-card[data-module-key="balances"]{ left:27% !important; top:480px !important; transform:translate(-50%,-50%) !important; }
+  .module-card[data-module-key="administration"]{ left:73% !important; top:475px !important; transform:translate(-50%,-50%) !important; }
+
+  /* Top role selector: shell should hug content */
+  .top-actions .inline-field.compact{
+    width:auto !important;
+    min-width:0 !important;
+    max-width:none !important;
+    padding:0 !important;
+    border:none !important;
+    background:transparent !important;
+    box-shadow:none !important;
+  }
+  #staffSelect,
+  .inline-field.compact select{
+    width:196px !important;
+    min-width:196px !important;
+    max-width:196px !important;
+    padding:2px 8px !important;
+    border-radius:8px !important;
+  }
+
+  /* Approval account opening detail modal */
+  .approval-assignment-grid{
+    max-width:220px !important;
+    width:220px !important;
+    margin-top:2px !important;
+  }
+  .approval-assignment-grid .field{
+    max-width:220px !important;
+  }
+  .approval-assignment-grid label{
+    font-size:13px !important;
+    font-weight:700 !important;
+    margin-bottom:6px !important;
+    display:block !important;
+  }
+  .approval-assign-input,
+  #approvalAssignAccount{
+    width:5.2ch !important;
+    min-width:5.2ch !important;
+    max-width:5.2ch !important;
+    text-align:center !important;
+    padding-left:8px !important;
+    padding-right:8px !important;
+  }
+
+  /* Central Close of Day button */
+  #approvalsCentralCloseDayBtn{
+    padding:10px 18px !important;
+    min-height:40px !important;
+    font-size:12px !important;
+    border-radius:12px !important;
+    width:auto !important;
+    min-width:0 !important;
+  }
+
+  /* Account Opening should mirror Account Maintenance widths */
+  .opening-card .opening-sheet-grid > .sheet-input-cell.wide{
+    max-width:250px !important;
+    width:250px !important;
+  }
+  .opening-card .opening-sheet-grid > .sheet-input-cell.phone,
+  .opening-card .opening-sheet-grid > .sheet-input-cell.nin,
+  .opening-card .opening-sheet-grid > .sheet-input-cell.bvn,
+  .maintenance-card .maintenance-sheet-grid > .sheet-input-cell.phone,
+  .maintenance-card .maintenance-sheet-grid > .sheet-input-cell.nin,
+  .maintenance-card .maintenance-sheet-grid > .sheet-input-cell.bvn{
+    width:12ch !important;
+    min-width:12ch !important;
+    max-width:12ch !important;
+  }
+}
