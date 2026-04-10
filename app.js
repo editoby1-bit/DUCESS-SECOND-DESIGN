@@ -1556,7 +1556,7 @@
   }
 
   function openJournalApprovalModal(reqId){
-    const req = state.approvals.find(r=>r.id===reqId); if(!req) return;
+    const req = state.approvals.find(r => String(r?.id) === String(reqId)); if(!req) return;
     const rows = req.payload?.rows || req.payload?.entries || [];
     const total = rows.reduce((s,r)=>s+Number(r.amount||0),0);
     const totalCharges = rows.reduce((s,r)=>s+getTotalChargeAmount(r),0);
