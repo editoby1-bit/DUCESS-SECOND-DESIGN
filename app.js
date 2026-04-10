@@ -1493,7 +1493,7 @@
     const allRows = state.approvals.filter(a => categories[currentSection].includes(a.type));
     const limit = state.ui.approvalsLimit || 20;
     const approvals = allRows.slice(0, limit);
-    const rows = approvals.map((a, i) => `<tr><td>${i+1}</td><td>${prettyApprovalType(a.type)}</td><td>${approvalSubmittedBy(a)}</td><td>${approvalDetails(a)}</td><td>${fmtDate(a.requestedAt)}</td><td><span class="badge ${a.status}">${a.status}</span></td><td>${a.type.includes('_journal') ? `<div class="stack-actions"><button data-inspect-journal="${a.id}" class="secondary" onclick="window.__ducessOpenJournalApproval && window.__ducessOpenJournalApproval(\'${a.id}\'); return false;">Inspect</button>${a.status === 'pending' ? `<div class="inline-actions"><button data-approve="${a.id}" class="success">Approve</button><button data-reject="${a.id}" class="danger">Reject</button></div>`:''}</div>`:''}${['account_opening','account_maintenance','account_reactivation'].includes(a.type) ? `<button data-inspect-request="${a.id}" class="secondary">View</button> `:''}${!a.type.includes('_journal') ? (a.status === 'pending' ? `<div class="inline-actions"><button data-approve="${a.id}" class="success">Approve</button><button data-reject="${a.id}" class="danger">Reject</button></div>` : a.approvedBy || '—') : ''}</td></tr>`).join('');
+    const rows = approvals.map((a, i) => `<tr><td>${i+1}</td><td>${prettyApprovalType(a.type)}</td><td>${approvalSubmittedBy(a)}</td><td>${approvalDetails(a)}</td><td>${fmtDate(a.requestedAt)}</td><td><span class="badge ${a.status}">${a.status}</span></td><td>${a.type.includes('_journal') ? `<div class="stack-actions"><button type="button" data-inspect-journal="${a.id}" class="secondary">Inspect</button>${a.status === 'pending' ? `<div class="inline-actions"><button type="button" data-approve="${a.id}" class="success">Approve</button><button type="button" data-reject="${a.id}" class="danger">Reject</button></div>`:''}</div>`:''}${['account_opening','account_maintenance','account_reactivation'].includes(a.type) ? `<button type="button" data-inspect-request="${a.id}" class="secondary">View</button> `:''}${!a.type.includes('_journal') ? (a.status === 'pending' ? `<div class="inline-actions"><button type="button" data-approve="${a.id}" class="success">Approve</button><button type="button" data-reject="${a.id}" class="danger">Reject</button></div>` : a.approvedBy || '—') : ''}</td></tr>`).join('');
     const codRows=(state.cod||[]).filter(c=>c.status==='flagged').map((c,i)=>{
       const creditCash = Number(c.totalCreditCash ?? approvedCreditTotalForDateByMode(c.staffId, c.date, 'cash'));
       const creditTransfer = Number(c.totalCreditTransfer ?? approvedCreditTotalForDateByMode(c.staffId, c.date, 'transfer'));
@@ -2758,21 +2758,29 @@ function bindToolHandlers() {
 
   function bindApprovalInspectDelegation() {
     if (window.__ducessApprovalInspectDelegationBound) return;
-    document.addEventListener('click', (event) => {
-      const journalBtn = event.target.closest('[data-inspect-journal]');
+
+    const handleInspectTrigger = (event) => {
+      const journalBtn = event.target?.closest?.('[data-inspect-journal]');
       if (journalBtn) {
         event.preventDefault();
         event.stopPropagation();
+        if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
         openJournalApprovalModal(journalBtn.dataset.inspectJournal);
-        return;
+        return true;
       }
-      const requestBtn = event.target.closest('[data-inspect-request]');
+      const requestBtn = event.target?.closest?.('[data-inspect-request]');
       if (requestBtn) {
         event.preventDefault();
         event.stopPropagation();
+        if (typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
         openRequestDetailModal(requestBtn.dataset.inspectRequest);
+        return true;
       }
-    }, true);
+      return false;
+    };
+
+    document.addEventListener('pointerdown', handleInspectTrigger, true);
+    document.addEventListener('click', handleInspectTrigger, true);
     window.__ducessApprovalInspectDelegationBound = true;
   }
 
