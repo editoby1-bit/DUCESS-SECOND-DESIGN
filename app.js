@@ -1136,6 +1136,15 @@
     };
     byId('modalClose').onclick = closeModal;
     byId('modalBack').onclick = (e) => { if (e.target === byId('modalBack')) closeModal(); };
+    document.onclick = (event) => {
+      const inspectBtn = event.target.closest('[data-inspect-journal]');
+      if (inspectBtn) {
+        event.preventDefault();
+        event.stopPropagation();
+        openJournalApprovalModal(inspectBtn.dataset.inspectJournal);
+        return;
+      }
+    };
   }
 
   function renderHero() {
@@ -2491,6 +2500,7 @@ function bindToolHandlers() {
       save();
       renderWorkspace();
       requestAnimationFrame(() => {
+        if (byId('txAcc')) byId('txAcc').value = value;
         if (byId('txName')) byId('txName').textContent = c.name;
         if (byId('txBalance')) byId('txBalance').innerHTML = balanceHtml(c.balance);
       });
@@ -2771,7 +2781,10 @@ function bindToolHandlers() {
     qq('[data-approval-section]').forEach(btn => btn.onclick = ()=>{ state.ui.approvalsSection = btn.dataset.approvalSection; save(); renderWorkspace(); smoothScrollToOpenedSegment('#approvalsSectionTabs'); });
     const assignTopup = byId('assignFloatTopupFromApprovals');
     if (assignTopup) assignTopup.onclick = () => openFloatTopUpModal();
-    qq('[data-inspect-journal]').forEach(btn => btn.onclick = ()=> openJournalApprovalModal(btn.dataset.inspectJournal));
+    qq('[data-inspect-journal]').forEach(btn => {
+      btn.style.cursor = 'pointer';
+      btn.onclick = (e) => { e.preventDefault(); e.stopPropagation(); openJournalApprovalModal(btn.dataset.inspectJournal); };
+    });
     qq('[data-inspect-request]').forEach(btn => btn.onclick = ()=> openRequestDetailModal(btn.dataset.inspectRequest));
   }
 
