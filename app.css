@@ -10725,3 +10725,13 @@ body.home-lock-scroll .shell{
   letter-spacing:0 !important;
   overflow:visible !important;
 }
+
+
+/* ===== 2026-04-10 surgical patch: direct credit account input must mirror journal width ===== */
+.journal-sheet .posting-inline-group.posting-inline-account #txAcc,
+.journal-sheet .posting-inline-account #txAcc{
+  width:64px !important;
+  min-width:64px !important;
+  max-width:64px !important;
+  text-align:center !important;
+}

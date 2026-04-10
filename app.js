@@ -1422,7 +1422,7 @@
               <div class="posting-row-left">
                 <div class="posting-inline-group posting-inline-account">
                   <label class="sheet-label posting-label-account" for="txAcc">Account Number</label>
-                  <input id="txAcc" class="entry-input sheet-input short-code" maxlength="4" />
+                  <input id="txAcc" class="entry-input sheet-input short-code" maxlength="4" inputmode="numeric" value="${escapeHtml(String(state.ui.txAccDraft ?? getSelectedCustomer()?.accountNumber ?? ''))}" />
                   <button id="txSearch" class="sheet-btn tiny-btn ultra-compact-btn">Search</button>
                 </div>
               </div>
@@ -2422,6 +2422,7 @@ function bindToolHandlers() {
     };
     const resetFields = () => {
       ['txAcc','txAmount','txDetails','txCounterparty'].forEach(id=>{ if(byId(id)) byId(id).value=''; });
+      state.ui.txAccDraft = '';
       if (byId('txApplyCharges')) byId('txApplyCharges').checked = false;
       CHARGE_DEFS.forEach(def => {
         const check = q(`[data-charge-check="${def.key}"][data-charge-scope="single"]`);
@@ -2480,6 +2481,7 @@ function bindToolHandlers() {
 
     const searchSingle = () => {
       const value = (byId('txAcc')?.value || '').trim();
+      state.ui.txAccDraft = value;
       const c = getCustomerByAccountNo(value);
       if (!c) return showToast('Customer not found');
       if (isCustomerFrozen(c) || c.active === false) { freezeInactiveCustomer(c); save(); return showToast('Account is frozen'); }
@@ -2510,6 +2512,7 @@ function bindToolHandlers() {
     if (byId('txAcc')) {
       byId('txAcc').oninput = () => {
         const v = (byId('txAcc').value || '').trim();
+        state.ui.txAccDraft = v;
         if (!v) {
           if (byId('txName')) byId('txName').textContent = '—';
           if (byId('txBalance')) byId('txBalance').innerHTML = '—';
@@ -2526,6 +2529,7 @@ function bindToolHandlers() {
       };
       byId('txAcc').onchange = () => {
         const v = (byId('txAcc').value || '').trim();
+        state.ui.txAccDraft = v;
         if (!v) {
           if (byId('txName')) byId('txName').textContent = '—';
           if (byId('txBalance')) byId('txBalance').innerHTML = '—';
@@ -2751,6 +2755,28 @@ function bindToolHandlers() {
   }
 
   window.__ducessOpenJournalApproval = openJournalApprovalModal;
+
+  function bindApprovalInspectDelegation() {
+    if (window.__ducessApprovalInspectDelegationBound) return;
+    document.addEventListener('click', (event) => {
+      const journalBtn = event.target.closest('[data-inspect-journal]');
+      if (journalBtn) {
+        event.preventDefault();
+        event.stopPropagation();
+        openJournalApprovalModal(journalBtn.dataset.inspectJournal);
+        return;
+      }
+      const requestBtn = event.target.closest('[data-inspect-request]');
+      if (requestBtn) {
+        event.preventDefault();
+        event.stopPropagation();
+        openRequestDetailModal(requestBtn.dataset.inspectRequest);
+      }
+    }, true);
+    window.__ducessApprovalInspectDelegationBound = true;
+  }
+
+  bindApprovalInspectDelegation();
 
   function bindApprovals() {
     qq('[data-approve]').forEach(btn => btn.onclick = () => {
@@ -3430,6 +3456,7 @@ function bindToolHandlers() {
       return;
     }
     if (state.ui.tool === 'credit' || state.ui.tool === 'debit') {
+      state.ui.txAccDraft = c.accountNumber || '';
       if (byId('txAcc')) byId('txAcc').value = c.accountNumber;
       if (byId('txName')) byId('txName').textContent = c.name;
       if (byId('txBalance')) byId('txBalance').textContent = money(c.balance);
