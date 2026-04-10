@@ -2356,30 +2356,69 @@ function bindToolHandlers() {
     const attachmentState = state.ui.staffJournalAttachments[visibilityKey] ||= { fieldNote: null, loading: false };
 
     const selectedMode = () => q('input[name="txMode"]:checked')?.value || 'cash';
-    const commissionPreview = (amountValue, commissionValue) => {
+    const readChargePreview = (scope, amountValue) => {
       const amount = Number(amountValue || 0);
-      const commission = normalizeCommissionAmount(amount, commissionValue);
-      return { amount, commission, customerGets: Math.max(0, amount - commission) };
+      const applyToggleId = scope === 'single' ? 'txApplyCharges' : 'journalApplyCharges';
+      const rowId = scope === 'single' ? 'txChargesRow' : 'journalChargesRow';
+      const totalId = scope === 'single' ? 'txTotalCharges' : 'journalTotalCharges';
+      const customerId = scope === 'single' ? 'txCustomerGets' : 'journalCustomerGets';
+      const toggle = byId(applyToggleId);
+      const row = byId(rowId);
+      const totalEl = byId(totalId);
+      const customerEl = byId(customerId);
+      const enabled = !!(toggle && toggle.checked);
+      if (row) row.classList.toggle('hidden', !enabled);
+
+      let totalCharges = 0;
+      CHARGE_DEFS.forEach(def => {
+        const check = q(`[data-charge-check="${def.key}"][data-charge-scope="${scope}"]`);
+        const input = q(`[data-charge-input="${def.key}"][data-charge-scope="${scope}"]`);
+        const checked = !!(enabled && check && check.checked);
+        if (input) {
+          input.classList.toggle('hidden', !checked);
+          if (!checked) input.value = '';
+        }
+        if (checked && input) {
+          const val = Math.max(0, Number(input.value || 0));
+          totalCharges += val;
+        }
+      });
+
+      totalCharges = Math.min(totalCharges, Math.max(0, amount));
+      const customerGets = Math.max(0, amount - totalCharges);
+      if (totalEl) totalEl.textContent = money(totalCharges);
+      if (customerEl) customerEl.textContent = money(customerGets);
+      return { amount, totalCharges, customerGets };
     };
-    const updateSingleCommissionPreview = () => {
-      const toggle = byId('txTakeCommission');
-      const row = byId('txCommissionRow');
-      if (!toggle || !row) return;
-      row.classList.toggle('hidden', !toggle.checked);
-      const preview = commissionPreview(byId('txAmount')?.value || 0, byId('txCommission')?.value || 0);
-      if (byId('txCustomerGets')) byId('txCustomerGets').textContent = money(preview.customerGets);
+    const updateSingleCommissionPreview = () => readChargePreview('single', byId('txAmount')?.value || 0);
+    const updateJournalCommissionPreview = () => readChargePreview('journal', byId('journalAmount')?.value || 0);
+    const resetFields = () => {
+      ['txAcc','txAmount','txDetails','txCounterparty'].forEach(id=>{ if(byId(id)) byId(id).value=''; });
+      if (byId('txApplyCharges')) byId('txApplyCharges').checked = false;
+      CHARGE_DEFS.forEach(def => {
+        const check = q(`[data-charge-check="${def.key}"][data-charge-scope="single"]`);
+        const input = q(`[data-charge-input="${def.key}"][data-charge-scope="single"]`);
+        if (check) check.checked = false;
+        if (input) input.value = '';
+      });
+      if (byId('txName')) byId('txName').textContent='—';
+      if (byId('txBalance')) byId('txBalance').innerHTML='—';
+      state.ui.selectedCustomerId=null;
+      updateSingleCommissionPreview();
     };
-    const updateJournalCommissionPreview = () => {
-      const toggle = byId('journalTakeCommission');
-      const row = byId('journalCommissionRow');
-      const display = byId('journalCustomerGets');
-      if (!display) return;
-      if (row && toggle) row.classList.toggle('hidden', !toggle.checked);
-      const preview = commissionPreview(byId('journalAmount')?.value || 0, byId('journalCommission')?.value || 0);
-      display.textContent = money(preview.customerGets);
+    const resetJournalEntryFields = () => {
+      ['journalAcc','journalAmount','journalCounterparty','journalDetails'].forEach(id=>{ if(byId(id)) byId(id).value=''; });
+      if (byId('journalApplyCharges')) byId('journalApplyCharges').checked = false;
+      CHARGE_DEFS.forEach(def => {
+        const check = q(`[data-charge-check="${def.key}"][data-charge-scope="journal"]`);
+        const input = q(`[data-charge-input="${def.key}"][data-charge-scope="journal"]`);
+        if (check) check.checked = false;
+        if (input) input.value = '';
+      });
+      if (byId('journalName')) byId('journalName').textContent='—';
+      state.ui.selectedJournalCustomerId = null;
+      updateJournalCommissionPreview();
     };
-    const resetFields = () => { ['txAcc','txAmount','txDetails','txCounterparty','txCommission'].forEach(id=>{ if(byId(id)) byId(id).value=''; }); if (byId('txTakeCommission')) byId('txTakeCommission').checked=false; if (byId('txName')) byId('txName').textContent='—'; if (byId('txBalance')) byId('txBalance').innerHTML='—'; state.ui.selectedCustomerId=null; updateSingleCommissionPreview(); };
-    const resetJournalEntryFields = () => { ['journalAcc','journalAmount','journalCounterparty','journalDetails','journalCommission'].forEach(id=>{ if(byId(id)) byId(id).value=''; }); if (byId('journalTakeCommission')) byId('journalTakeCommission').checked=false; if (byId('journalName')) byId('journalName').textContent='—'; state.ui.selectedJournalCustomerId = null; updateJournalCommissionPreview(); };
 
     const recalcPreview = () => {
       const approvedBase = currentFloatAvailable(staff.id, businessDate());
