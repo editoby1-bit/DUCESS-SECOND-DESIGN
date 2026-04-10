@@ -1136,15 +1136,6 @@
     };
     byId('modalClose').onclick = closeModal;
     byId('modalBack').onclick = (e) => { if (e.target === byId('modalBack')) closeModal(); };
-    document.onclick = (event) => {
-      const inspectBtn = event.target.closest('[data-inspect-journal]');
-      if (inspectBtn) {
-        event.preventDefault();
-        event.stopPropagation();
-        openJournalApprovalModal(inspectBtn.dataset.inspectJournal);
-        return;
-      }
-    };
   }
 
   function renderHero() {
@@ -1502,7 +1493,7 @@
     const allRows = state.approvals.filter(a => categories[currentSection].includes(a.type));
     const limit = state.ui.approvalsLimit || 20;
     const approvals = allRows.slice(0, limit);
-    const rows = approvals.map((a, i) => `<tr><td>${i+1}</td><td>${prettyApprovalType(a.type)}</td><td>${approvalSubmittedBy(a)}</td><td>${approvalDetails(a)}</td><td>${fmtDate(a.requestedAt)}</td><td><span class="badge ${a.status}">${a.status}</span></td><td>${a.type.includes('_journal') ? `<div class="stack-actions"><button data-inspect-journal="${a.id}" class="secondary">Inspect</button>${a.status === 'pending' ? `<div class="inline-actions"><button data-approve="${a.id}" class="success">Approve</button><button data-reject="${a.id}" class="danger">Reject</button></div>`:''}</div>`:''}${['account_opening','account_maintenance','account_reactivation'].includes(a.type) ? `<button data-inspect-request="${a.id}" class="secondary">View</button> `:''}${!a.type.includes('_journal') ? (a.status === 'pending' ? `<div class="inline-actions"><button data-approve="${a.id}" class="success">Approve</button><button data-reject="${a.id}" class="danger">Reject</button></div>` : a.approvedBy || '—') : ''}</td></tr>`).join('');
+    const rows = approvals.map((a, i) => `<tr><td>${i+1}</td><td>${prettyApprovalType(a.type)}</td><td>${approvalSubmittedBy(a)}</td><td>${approvalDetails(a)}</td><td>${fmtDate(a.requestedAt)}</td><td><span class="badge ${a.status}">${a.status}</span></td><td>${a.type.includes('_journal') ? `<div class="stack-actions"><button data-inspect-journal="${a.id}" class="secondary" onclick="window.__ducessOpenJournalApproval && window.__ducessOpenJournalApproval(\'${a.id}\'); return false;">Inspect</button>${a.status === 'pending' ? `<div class="inline-actions"><button data-approve="${a.id}" class="success">Approve</button><button data-reject="${a.id}" class="danger">Reject</button></div>`:''}</div>`:''}${['account_opening','account_maintenance','account_reactivation'].includes(a.type) ? `<button data-inspect-request="${a.id}" class="secondary">View</button> `:''}${!a.type.includes('_journal') ? (a.status === 'pending' ? `<div class="inline-actions"><button data-approve="${a.id}" class="success">Approve</button><button data-reject="${a.id}" class="danger">Reject</button></div>` : a.approvedBy || '—') : ''}</td></tr>`).join('');
     const codRows=(state.cod||[]).filter(c=>c.status==='flagged').map((c,i)=>{
       const creditCash = Number(c.totalCreditCash ?? approvedCreditTotalForDateByMode(c.staffId, c.date, 'cash'));
       const creditTransfer = Number(c.totalCreditTransfer ?? approvedCreditTotalForDateByMode(c.staffId, c.date, 'transfer'));
@@ -2500,7 +2491,6 @@ function bindToolHandlers() {
       save();
       renderWorkspace();
       requestAnimationFrame(() => {
-        if (byId('txAcc')) byId('txAcc').value = value;
         if (byId('txName')) byId('txName').textContent = c.name;
         if (byId('txBalance')) byId('txBalance').innerHTML = balanceHtml(c.balance);
       });
@@ -2760,6 +2750,8 @@ function bindToolHandlers() {
     recalcPreview();
   }
 
+  window.__ducessOpenJournalApproval = openJournalApprovalModal;
+
   function bindApprovals() {
     qq('[data-approve]').forEach(btn => btn.onclick = () => {
       if (!hasPermission('approval_queue')) return showToast('No approval rights');
@@ -2781,10 +2773,7 @@ function bindToolHandlers() {
     qq('[data-approval-section]').forEach(btn => btn.onclick = ()=>{ state.ui.approvalsSection = btn.dataset.approvalSection; save(); renderWorkspace(); smoothScrollToOpenedSegment('#approvalsSectionTabs'); });
     const assignTopup = byId('assignFloatTopupFromApprovals');
     if (assignTopup) assignTopup.onclick = () => openFloatTopUpModal();
-    qq('[data-inspect-journal]').forEach(btn => {
-      btn.style.cursor = 'pointer';
-      btn.onclick = (e) => { e.preventDefault(); e.stopPropagation(); openJournalApprovalModal(btn.dataset.inspectJournal); };
-    });
+    qq('[data-inspect-journal]').forEach(btn => btn.onclick = ()=> openJournalApprovalModal(btn.dataset.inspectJournal));
     qq('[data-inspect-request]').forEach(btn => btn.onclick = ()=> openRequestDetailModal(btn.dataset.inspectRequest));
   }
 
