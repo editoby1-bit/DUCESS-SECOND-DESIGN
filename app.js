@@ -1105,7 +1105,15 @@
     const staffSel = byId('staffSelect');
     staffSel.innerHTML = state.staff.map(s => `<option value="${s.id}">${s.name} — ${ROLE_LABELS[s.role] || s.role}</option>`).join('');
     staffSel.value = state.activeStaffId;
-    staffSel.onchange = () => { state.activeStaffId = staffSel.value; state.ui.module = null; state.ui.tool = null; save(); render(); };
+    staffSel.onchange = () => {
+      state.activeStaffId = staffSel.value;
+      state.ui.module = null;
+      state.ui.tool = null;
+      state.ui.generatedJournals = {};
+      state.ui.collapsedJournals = {};
+      save();
+      render();
+    };
     byId('btnTodayFloat').onclick = openFloatModal;
     byId('btnCOD').onclick = () => canCloseBusinessDay() ? confirmAction(`Close business date ${businessDate()}? This will open ${nextDate(businessDate())}.`, openCODModal) : showToast('Only Approval Officer or Admin can close day');
     byId('btnCOD').disabled = !canCloseBusinessDay();
@@ -2392,6 +2400,26 @@ function bindToolHandlers() {
     };
     const updateSingleCommissionPreview = () => readChargePreview('single', byId('txAmount')?.value || 0);
     const updateJournalCommissionPreview = () => readChargePreview('journal', byId('journalAmount')?.value || 0);
+    const collectChargeBreakdownFromUi = (scope, amountValue) => {
+      const amount = Math.max(0, Number(amountValue || 0));
+      const toggleId = scope === 'single' ? 'txApplyCharges' : 'journalApplyCharges';
+      const toggle = byId(toggleId);
+      if (!(toggle && toggle.checked)) return [];
+      let remaining = amount;
+      const rows = [];
+      CHARGE_DEFS.forEach(def => {
+        const check = q(`[data-charge-check="${def.key}"][data-charge-scope="${scope}"]`);
+        const input = q(`[data-charge-input="${def.key}"][data-charge-scope="${scope}"]`);
+        if (!(check && check.checked && input)) return;
+        const raw = Math.max(0, Number(input.value || 0));
+        const amt = Math.min(raw, remaining);
+        if (amt > 0) {
+          rows.push({ key: def.key, label: def.label, amount: amt });
+          remaining = Math.max(0, remaining - amt);
+        }
+      });
+      return rows;
+    };
     const resetFields = () => {
       ['txAcc','txAmount','txDetails','txCounterparty'].forEach(id=>{ if(byId(id)) byId(id).value=''; });
       if (byId('txApplyCharges')) byId('txApplyCharges').checked = false;
@@ -2456,9 +2484,16 @@ function bindToolHandlers() {
       if (!c) return showToast('Customer not found');
       if (isCustomerFrozen(c) || c.active === false) { freezeInactiveCustomer(c); save(); return showToast('Account is frozen'); }
       state.ui.selectedCustomerId = c.id;
+      state.ui.generatedJournals ||= {};
+      state.ui.collapsedJournals ||= {};
+      state.ui.generatedJournals[visibilityKey] = false;
+      state.ui.collapsedJournals[visibilityKey] = false;
       save();
-      if (byId('txName')) byId('txName').textContent = c.name;
-      if (byId('txBalance')) byId('txBalance').innerHTML = balanceHtml(c.balance);
+      renderWorkspace();
+      requestAnimationFrame(() => {
+        if (byId('txName')) byId('txName').textContent = c.name;
+        if (byId('txBalance')) byId('txBalance').innerHTML = balanceHtml(c.balance);
+      });
     };
 
     const searchJournal = () => {
@@ -2479,7 +2514,12 @@ function bindToolHandlers() {
           if (byId('txName')) byId('txName').textContent = '—';
           if (byId('txBalance')) byId('txBalance').innerHTML = '—';
           state.ui.selectedCustomerId = null;
+          state.ui.generatedJournals ||= {};
+          state.ui.collapsedJournals ||= {};
+          state.ui.generatedJournals[visibilityKey] = false;
+          state.ui.collapsedJournals[visibilityKey] = false;
           save();
+          renderWorkspace();
           return;
         }
         if (/^\d{4}$/.test(v)) searchSingle();
@@ -2490,7 +2530,12 @@ function bindToolHandlers() {
           if (byId('txName')) byId('txName').textContent = '—';
           if (byId('txBalance')) byId('txBalance').innerHTML = '—';
           state.ui.selectedCustomerId = null;
+          state.ui.generatedJournals ||= {};
+          state.ui.collapsedJournals ||= {};
+          state.ui.generatedJournals[visibilityKey] = false;
+          state.ui.collapsedJournals[visibilityKey] = false;
           save();
+          renderWorkspace();
           return;
         }
         searchSingle();

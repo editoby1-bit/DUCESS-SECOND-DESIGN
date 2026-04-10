@@ -380,7 +380,7 @@ body[data-theme="dark-slate"] .table tr:hover td .warning{background:#f3a65a;col
 .sheet-label{font-size:16px;font-weight:700;color:#fff;white-space:nowrap}
 .sheet-label.inline-label{justify-self:end;padding-right:8px}
 .sheet-input{height:44px}
-.short-code{max-width:102px; width:102px}
+.short-code{max-width:116px; width:116px}
 .medium-amt{max-width:180px}
 .sheet-btn{height:44px;white-space:nowrap}
 .sheet-grid .display-field{min-height:44px;border-radius:0;background:#fff;color:#111;padding:10px 12px}
