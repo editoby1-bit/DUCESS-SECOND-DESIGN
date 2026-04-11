@@ -2039,7 +2039,7 @@ function renderTellerBalances() {
     return ['my_balance', 'form', 'my_close_day'].includes(tool);
   }
 
-function bindToolHandlers() {
+  function bindToolHandlers() {
     switch (state.ui.tool) {
       case 'check_balance': bindCheckBalance(); break;
       case 'account_opening': bindAccountOpening(); break;
