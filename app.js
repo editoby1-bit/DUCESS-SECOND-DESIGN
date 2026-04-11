@@ -2775,7 +2775,15 @@ function renderTellerBalances() {
     qq('[data-approval-section]').forEach(btn => btn.onclick = ()=>{ state.ui.approvalsSection = btn.dataset.approvalSection; save(); renderWorkspace(); smoothScrollToOpenedSegment('#approvalsSectionTabs'); });
     const assignTopup = byId('assignFloatTopupFromApprovals');
     if (assignTopup) assignTopup.onclick = () => openFloatTopUpModal();
-    qq('[data-inspect-journal]').forEach(btn => btn.onclick = ()=> openJournalApprovalModal(btn.dataset.inspectJournal));
+    qq('[data-inspect-journal]').forEach(btn => {
+      btn.style.pointerEvents = 'auto';
+      btn.style.position = 'relative';
+      btn.style.zIndex = '10';
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        openJournalApprovalModal(this.dataset.inspectJournal);
+      }, true);
+    });
     qq('[data-inspect-request]').forEach(btn => btn.onclick = ()=> openRequestDetailModal(btn.dataset.inspectRequest));
   }
 

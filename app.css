@@ -10735,3 +10735,11 @@ body.home-lock-scroll .shell{
   max-width:64px !important;
   text-align:center !important;
 }
+
+
+button[data-inspect-journal] {
+  pointer-events: auto !important;
+  position: relative !important;
+  z-index: 10 !important;
+  cursor: pointer !important;
+}
