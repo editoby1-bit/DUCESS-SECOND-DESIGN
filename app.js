@@ -1555,6 +1555,11 @@
     return '—';
   }
 
+  function normalizeCommissionAmount(value) {
+    const num = Number(value);
+    return Number.isFinite(num) ? num : 0;
+  }
+
   function openJournalApprovalModal(reqId){
     const req = state.approvals.find(r => String(r?.id) === String(reqId)); if(!req) return;
     const rows = req.payload?.rows || req.payload?.entries || [];
