@@ -10743,3 +10743,42 @@ button[data-inspect-journal] {
   z-index: 10 !important;
   cursor: pointer !important;
 }
+
+
+/* ===== 2026-04-13 surgical patch: journal approval compactness ===== */
+#modalBack .modal[data-modal-title="Journal Approval"] .kpi-row{
+  display:flex !important;
+  flex-wrap:wrap !important;
+  gap:10px !important;
+  margin-bottom:14px !important;
+}
+#modalBack .modal[data-modal-title="Journal Approval"] .kpi{
+  flex:0 0 auto !important;
+  min-width:132px !important;
+  width:auto !important;
+  padding:10px 12px !important;
+  border-radius:12px !important;
+}
+#modalBack .modal[data-modal-title="Journal Approval"] .kpi .label{
+  font-size:11px !important;
+  line-height:1.05 !important;
+}
+#modalBack .modal[data-modal-title="Journal Approval"] .kpi .number{
+  font-size:17px !important;
+  margin-top:4px !important;
+}
+#modalBack .modal[data-modal-title="Journal Approval"] .table-wrap{
+  border-radius:14px !important;
+}
+#modalBack .modal[data-modal-title="Journal Approval"] .modal-actions{
+  gap:8px !important;
+  padding:12px 18px !important;
+}
+#modalBack .modal[data-modal-title="Journal Approval"] .modal-actions button{
+  padding:6px 12px !important;
+  min-height:28px !important;
+  font-size:11px !important;
+  line-height:1.05 !important;
+  border-radius:10px !important;
+  min-width:0 !important;
+}

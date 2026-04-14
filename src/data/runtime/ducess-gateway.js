@@ -1,5 +1,5 @@
 window.DucessGateway = window.DucessGateway || {
-  createGateway() {
-    return null;
+  createGateway(options = {}) {
+    return { __meta: { adapter: 'local', options } };
   }
 };

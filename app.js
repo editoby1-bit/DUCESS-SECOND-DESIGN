@@ -2706,7 +2706,7 @@ function renderTellerBalances() {
         }).then((result) => {
           if (!result?.ok) return showToast(result?.error?.message || 'Unable to submit request');
           resetFields();
-          showToast(`${kind === 'credit' ? 'Credit' : 'Debit'} request sent for approval</div>`);
+          showToast(`${kind === 'credit' ? 'Credit' : 'Debit'} request sent for approval`);
           render();
         });
       });
@@ -2748,7 +2748,7 @@ function renderTellerBalances() {
           const input = byId('journalFieldNoteInput');
           if (input) input.value = '';
           save();
-          showToast(`${kind === 'credit' ? 'Credit' : 'Debit'} journal sent for approval</div>`);
+          showToast(`${kind === 'credit' ? 'Credit' : 'Debit'} journal sent for approval`);
           renderWorkspace();
         });
       });
