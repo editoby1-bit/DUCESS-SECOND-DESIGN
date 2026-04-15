@@ -10891,3 +10891,14 @@ button[data-inspect-journal] {
     flex: 0 0 190px !important;
   }
 }
+
+/* ===== 2026-04-15 SURGICAL PATCH: My Balance amount inputs exactly half current size ===== */
+@media (min-width: 901px){
+  #modalBack .modal[data-modal-title="My Balance"] #walletFundAmt,
+  #modalBack .modal[data-modal-title="My Balance"] #walletRepayAmt{
+    width: 75px !important;
+    min-width: 75px !important;
+    max-width: 75px !important;
+    flex: 0 0 75px !important;
+  }
+}
