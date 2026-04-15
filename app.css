@@ -10868,3 +10868,26 @@ button[data-inspect-journal] {
     flex: 0 0 240px !important;
   }
 }
+
+/* ===== 2026-04-15 SURGICAL PATCH: My Balance amount widths only ===== */
+@media (min-width: 901px){
+  #modalBack .modal[data-modal-title="My Balance"] .form-grid.three{
+    grid-template-columns: 150px 150px 190px !important;
+    gap: 14px !important;
+  }
+
+  #modalBack .modal[data-modal-title="My Balance"] #walletFundAmt,
+  #modalBack .modal[data-modal-title="My Balance"] #walletRepayAmt{
+    width: 150px !important;
+    min-width: 150px !important;
+    max-width: 150px !important;
+    flex: 0 0 150px !important;
+  }
+
+  #modalBack .modal[data-modal-title="My Balance"] #walletNote{
+    width: 190px !important;
+    min-width: 190px !important;
+    max-width: 190px !important;
+    flex: 0 0 190px !important;
+  }
+}
