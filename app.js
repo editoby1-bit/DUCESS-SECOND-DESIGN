@@ -297,7 +297,7 @@
     state.ui.selectedJournalCustomerId = null;
   }
   function businessDate() { return state.businessDate || today(); }
-  function nextDate(iso) { const d=new Date(`${iso}T12:00:00Z</div>`); d.setUTCDate(d.getUTCDate()+1); return d.toISOString().slice(0,10); }
+  function nextDate(iso) { const d=new Date(`${iso}T12:00:00Z`); d.setUTCDate(d.getUTCDate()+1); return d.toISOString().slice(0,10); }
   function staffById(id){ return state.staff.find(s=>s.id===id) || null; }
   function customerName(id){ return state.customers.find(c=>c.id===id)?.name || ''; }
   function getStaffWalletCustomer(staffId){ const acc=ensureStaffAccount(staffId); return state.customers.find(c=>c.id===acc.linkedCustomerId) || null; }
@@ -2938,7 +2938,7 @@ function renderTellerBalances() {
           state.cod.unshift({id:uid('cod'), staffId:st.id, staffName:st.name, date:businessDate(), formAmount, openingBalance:formAmount, totalCreditCash:creditCash, totalCreditTransfer:creditTransfer, totalDebitCash:debitCash, totalDebitTransfer:debitTransfer, totalCredits:credits, totalDebits:debits, netBookBalance:netBook, actualCash:running, expectedCash:running, runningFloat:running, remainingBalance:running, variance, overdraw, note, fieldPapers:[], status: variance===0 && overdraw===0 ? 'balanced':'flagged', approvedAt:new Date().toISOString(), approvedBy:currentStaff()?.name||''});
         });
       }
-      state.dayClosures.push({date:businessDate(), closedAt:new Date().toISOString(), closedBy:currentStaff()?.name||''}); state.businessDate = nextDate(businessDate()); save(); closeModal(); render(); showToast(`Business day closed. New open date: ${state.businessDate}</div>`); }}]);
+      state.dayClosures.push({date:businessDate(), closedAt:new Date().toISOString(), closedBy:currentStaff()?.name||''}); state.businessDate = nextDate(businessDate()); save(); closeModal(); render(); showToast(`Business day closed. New open date: ${state.businessDate}`); }}]);
   }
 
   function openAuditModal() {
