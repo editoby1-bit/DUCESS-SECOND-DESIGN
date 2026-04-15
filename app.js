@@ -177,6 +177,7 @@
   if (state.ui.module && !MODULES[state.ui.module]) state.ui.module = null;
   if (state.ui.module && state.ui.tool && !(MODULES[state.ui.module]?.tools || []).includes(state.ui.tool)) state.ui.tool = null;
   ensureState();
+  resetJournalUiState();
   if (isSupabaseApprovalMode()) {
     syncAllSharedStateFromGateway();
     setupRealtimeSubscriptions();
@@ -285,6 +286,15 @@
 
   function currentStaff() {
     return state.staff.find(s => s.id === state.activeStaffId) || state.staff[0] || null;
+  }
+
+  function resetJournalUiState() {
+    state.ui ||= {};
+    state.ui.generatedJournals = {};
+    state.ui.collapsedJournals = {};
+    state.ui.staffJournals = {};
+    state.ui.staffJournalAttachments = {};
+    state.ui.selectedJournalCustomerId = null;
   }
   function businessDate() { return state.businessDate || today(); }
   function nextDate(iso) { const d=new Date(`${iso}T12:00:00Z</div>`); d.setUTCDate(d.getUTCDate()+1); return d.toISOString().slice(0,10); }
@@ -1109,8 +1119,7 @@
       state.activeStaffId = staffSel.value;
       state.ui.module = null;
       state.ui.tool = null;
-      state.ui.generatedJournals = {};
-      state.ui.collapsedJournals = {};
+      resetJournalUiState();
       save();
       render();
     };
