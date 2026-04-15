@@ -10782,3 +10782,60 @@ button[data-inspect-journal] {
   border-radius:10px !important;
   min-width:0 !important;
 }
+
+/* ===== 2026-04-15 surgical patch: journal approval modal portability + my balance input width ===== */
+@media (min-width: 901px){
+  #modalBack .modal[data-modal-title="Journal Approval"] .modal-body{
+    padding: 14px 20px !important;
+  }
+
+  #modalBack .modal[data-modal-title="Journal Approval"] .kpi-row{
+    gap: 8px !important;
+    margin-bottom: 12px !important;
+    align-items: flex-start !important;
+  }
+
+  #modalBack .modal[data-modal-title="Journal Approval"] .kpi{
+    min-width: 0 !important;
+    width: fit-content !important;
+    padding: 8px 10px !important;
+    border-radius: 10px !important;
+  }
+
+  #modalBack .modal[data-modal-title="Journal Approval"] .kpi .label{
+    font-size: 10px !important;
+    line-height: 1.02 !important;
+    margin-bottom: 3px !important;
+  }
+
+  #modalBack .modal[data-modal-title="Journal Approval"] .kpi .number{
+    font-size: 15px !important;
+    line-height: 1.02 !important;
+    margin-top: 0 !important;
+  }
+
+  #modalBack .modal[data-modal-title="Journal Approval"] .table-wrap{
+    border-radius: 12px !important;
+  }
+
+  #modalBack .modal[data-modal-title="Journal Approval"] .modal-actions{
+    gap: 8px !important;
+    padding: 10px 16px !important;
+  }
+
+  #modalBack .modal[data-modal-title="Journal Approval"] .modal-actions button{
+    min-height: 24px !important;
+    padding: 0 12px !important;
+    font-size: 11px !important;
+    line-height: 1 !important;
+    border-radius: 999px !important;
+  }
+
+  #modalBack .modal[data-modal-title="My Balance"] #walletFundAmt,
+  #modalBack .modal[data-modal-title="My Balance"] #walletRepayAmt{
+    width: 280px !important;
+    max-width: 280px !important;
+    min-width: 280px !important;
+    flex: 0 0 280px !important;
+  }
+}
